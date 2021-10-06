@@ -2,8 +2,7 @@
 # Utils and Analysis functions for variable construction
 #
 
-# Simple transformations
-
+# Simple transformations ----
 #
 # Add some simple transformations, following https://rcompanion.org/handbook/I_12.html
 #
@@ -79,16 +78,210 @@ simple_transforms <- function( dat, vars,
   return( list( data = ret, transformations = lst ) )
 }
 
+# Box-Cox Transformations ----
 # Box-Cox transformation for regression
+box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
+  stopifnot( is.numeric( dat[[resp]] ) )
+  trans <- list()
+  mod <- dat
+  for( var in vars ) {
+    if( is.numeric( dat[[var]]) ) {
+      mo <- lm( formula( sprintf( "%s ~ %s", resp, var ), data = dat, y = TRUE, qr = TRUE ) )
+      bc <- MASS::boxcox( mo, interp=FALSE, plotit = FALSE )
+      py <- bc$x[ which.max( bc$y ) ]
+      px <- 1.0/py
+      nvar <- sprintf("%s_bc_reg",var)
+      mod[[nvar]] <- dat[[var]]^px
+      trans[[nvar]] <- list( var = var, new_var = nvar, boxcox_result = bc, py = py, px = px, transform = sprintf("(%s)^%1.4f",var,px) )
+    }
+  }
+  return( list( transforms = trans, data = mod ) )
+  
+  # MASS::boxcox()
+  # Algorithm in MASS:::boxcox.default:
+  # if (is.null(y <- object$y) || is.null(xqr <- object$qr)) 
+  #   stop(gettextf("%s does not have both 'qr' and 'y' components", 
+  #                 sQuote(deparse(substitute(object)))), domain = NA)
+  # if (any(y <= 0)) 
+  #   stop("response variable must be positive")
+  # n <- length(y)
+  # y <- y/exp(mean(log(y)))
+  # logy <- log(y)
+  # xl <- loglik <- as.vector(lambda)
+  # m <- length(xl)
+  # for (i in 1L:m) {
+  #   if (abs(la <- xl[i]) > eps) 
+  #     yt <- (y^la - 1)/la
+  #   else yt <- logy * (1 + (la * logy)/2 * (1 + (la * logy)/3 * (1 + (la * logy)/4)))
+  #   loglik[i] <- -n/2 * log(sum(qr.resid(xqr, yt)^2))
+  # }
+  # ...
+  # rr <- boxcox(Volume ~ log(Height) + log(Girth), data = trees, lambda = seq(-0.25, 0.25, length = 10))
+  # rr
+  # plot( rr$x, rr$y )
+  
+  # xx <- seq( -0.25, 0.25, length.out = 100 )
+  # yy <- sapply( xx, FUN=function( ll ) {
+  #   # ll <- -0.1
+  #   mo <- lm( formula( sprintf( "%s^%1.4f ~ %s", "Volume", ll, "log(Height) + log(Girth)" )), data = trees )
+  #   # ret <- logLik(mo)
+  #   ret <- sum( log( abs( residuals(mo) ) ) )
+  #   # summary(mo)
+  #   ret <- as.numeric( ret )
+  #   return( ret )
+  # } )
+  # plot( xx, yy )
+  
+}
 
 # Box-Cox transformation for binomial regression
+box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
+  stopifnot( is.logical( dat[[resp]] )  )
+  # Helper function for probability of observing a
+  ll_binomial <- Vectorize( function( x, beta, lambda ) {
+    ifelse( 0==lambda,
+            1.0 / ( 1.0 + exp( -beta * x ) ),
+            1.0 / ( 1.0 + ( 1.0 + lambda * beta * x )^(-1.0/lambda) ) )
+  } )
+  
+  mod <- dat
+  trans <- list()
+  for( var in vars ) {
+    if( is.numeric( dat[[var]]) ) {
+      dd <- dat[,c(resp, var)]
+      dd <- dd[which(complete.cases(dd)),]
+      fu_opt <- local( {
+        function( px ) {
+          beta <- px[1]; lambda <- px[2]
+          dd <- dd %>% mutate( pi = ll_binomial( x, beta, lambda ), pi2 = 2 * pi^y * (1-pi)^(2-y) )
+          re <- -sum( dd %>% pull( pi2 ) %>% log )
+          re
+        }
+      } )
+      or <- optim( par = c(0,0), fn = fu_opt, method="CG" ) # TODO: Try BFGS
+      or
+      beta0 <- round( or$par[2], 4 )
+      nvar <- sprintf( "%s_bc_bin", var )
+      mod[[nvar]] <- mod[[var]]^beta0
+      trans[[nvar]] <- list( var = var, new_var = nvar, boxcox_result = or, py = 1.0/beta0, px = beta0, transform = sprintf("(%s)^%1.4f",var,beta0) )
+    }
+  }
+  return( list( transforms = trans, data = mod ) )
+    
+  # From 01_numeric_distributions.R under nhl_safety:
+  # pp <- Vectorize( function( x, beta, lambda ) {
+  #   ifelse( 0==lambda, 
+  #           1.0 / ( 1.0 + exp( -beta * x ) ), 
+  #           1.0 / ( 1.0 + ( 1.0 + lambda * beta * x )^(-1.0/lambda) ) )
+  # } )
+  #
+  # dd <- data.frame( y = df.folds[,out_var], x = df.folds[,num_vars[i]], stringsAsFactors = FALSE ) %>% filter( !is.na(x) )
+  # fu_opt <- local( {
+  #   function( px ) {
+  #     beta <- px[1]; lambda <- px[2]
+  #     dd <- dd %>% mutate( pi = pp( x, beta, lambda ), pi2 = 2 * pi^y * (1-pi)^(2-y) )
+  #     re <- -sum( dd %>% pull( pi2 ) %>% log ) 
+  #     re
+  #   }
+  # } )
+  # or <- optim( par = c(0,0), fn = fu_opt, method="CG" )
+  # or
+  # beta0 <- round( or$par[2], 1 )
+  # xvalt <- df.folds %>% pull( num_vars[i] )
+  # xvalt <- xvalt^beta0
+}
 
 # Box-Cox transformation for survival regression
+# TODO
 
-
-source( "R/utils_histogram.R")
-
-# Density estimators
-
-# Mixture models
-
+# Mixture models ----
+check_modal <- function( dat, resp, vars, n_comp = 5, m_fits = 25, epsi = 1E-3 ) {
+  
+  min_aic_mod_sel <- function( var, k ) {
+    ret <- NA
+    for( r in 1:m_fits ) {
+      mo <- flexmix( formula( sprintf( "%s ~ 1", var ) ), data = dat, k = k )  
+      aic <- as.numeric( AIC(mo) ) 
+      ret <- min( ret, aic, na.rm=TRUE )
+    }
+    return( ret )
+  } # min_aic_mod_sel (END)
+  
+  eval_aics <- function( var ) {
+    ks <- 1:n_comp
+    aics <- sapply( ks, FUN=function(k) min_aic_mod_sel( var, k ) )
+    tab <- tibble( k=ks, aic = aics )
+    
+    idx <- which.min( tab$aic )
+    kmin <- tab$k[idx]
+    maic <- tab$aic[idx]
+    momin <- mo <- flexmix( formula( sprintf( "%s ~ 1", var ) ), data = dat, k = kmin )
+    t <- 1000 # Max number of runs
+    while( 0 < t & maic + epsi < AIC(mo) ) {
+      mo <- flexmix( formula( sprintf( "%s ~ 1", var ) ), data = dat, k = kmin )
+      if( AIC(mo) < AIC(momin) ) { momin <- mo }
+      t <- t - 1
+    } # while 
+    
+    ret <- list( var = var, aic_tab = tab, min_k = kmin, best_model = momin, cut_points = NULL )
+    
+    if( 1 < kmin ) {
+      cat( sprintf( "Variable %s is multi-modal with %d Normal components. Determining cut-points. \n", var, kmin ) )
+      prm <- parameters(momin)
+      ood <- order(prm["coef.(Intercept)",])
+      prio <- mod0@prior[ood]
+      prm <- prm[,ood]
+      
+      cps <- c()
+      i <- 1
+      j <- i + 1
+      while( j <= kmin ) {
+        rt <- uniroot( function( val ) {
+          d1 <- dnorm( x = val, mean = prm["coef.(Intercept)",i], sd = prm["sigma",i]  ) * prio[i]
+          d2 <- dnorm( x = val, mean = prm["coef.(Intercept)",j], sd = prm["sigma",j]  ) * prio[j]
+          ret <- d1 - d2
+          return( ret )
+        }, interval = c(prm["coef.(Intercept)",i],prm["coef.(Intercept)",j])  )
+        rt
+        cp <- rt$root
+        cps <- c( cps, cp )
+        
+        i <- i + 1
+        j <- i + 1
+      } # while
+      
+      cps <- c( -Inf, cps, Inf )
+      ret[['cut_points']] <- cps
+    } # if
+    
+    return( ret )
+  } # eval_aics (END)
+  
+  ret <- list()
+  # Check response, if numeric, if it is bimodal
+  mod <- dat
+  if( ! is.null(resp) && is.numeric( dat[[resp]] ) ) {
+    evl <- eval_aics( resp )
+    if( !is.null(evl$cut_points) ) {
+      nvar <- sprintf( "%s_resp_grp", resp )
+      mod[[nvar]] <- as.character( cut( mod[[resp]], breaks = evl$cut_points, labels = sprintf( "resp_group[%d]", 1:length(evl$cut_points) ), include.lowest = TRUE ) )
+      evl$nvar <- nvar
+    }
+    ret[[resp]] <- evl
+  }
+  
+  # Check all numeric variables if they are bimodal
+  for( var in vars ) {
+    if( is.numeric(dat[[var]]) ) {
+      evl <- eval_aics( var )
+      if( !is.null(evl$cut_points) ) {
+        nvar <- sprintf( "%s_grp", var )
+        mod[[nvar]] <- as.character( cut( mod[[resp]], breaks = evl$cut_points, labels = sprintf( "group[%d]", 1:length(evl$cut_points) ), include.lowest = TRUE ) )
+        evl$nvar <- nvar
+      }
+      ret[[var]] <- evl
+    }
+  }
+  
+  return( list( transforms = ret, data = mod ) )
+} # check_modal (END)

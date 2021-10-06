@@ -1,3 +1,5 @@
+# Density estimators
+#
 # Cross-validated bin width for histograms, Larry Wassermann, Chapter 6.2ff, p.127
 # Carsten Henneges
 
