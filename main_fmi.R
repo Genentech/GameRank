@@ -131,7 +131,6 @@ info <- tibble( var_names = colData(data.mae) %>% colnames,
                 var_info  = colData(data.mae) %>% as_tibble %>% var_label ) %>% unnest(var_info)
 # info %>% View
 
-
 dat <- colData(data.mae) %>% 
   as_tibble %>%
   dplyr::select( all_of( c( lst_keys, lst_resp, lst_vars ) ) )
@@ -162,4 +161,3 @@ dat_md
 
 df_md <- dat_md$data
 df_ii <- dat_md$transforms
-

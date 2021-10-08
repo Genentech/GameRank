@@ -20,8 +20,8 @@ Imports:
   labelled,
   numDeriv,
   formula.tools,
-  ROCR,
-  entropy
+  entropy,
+  ROCR
 Suggests:
   RcppAlgos
   
