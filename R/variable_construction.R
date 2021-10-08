@@ -13,7 +13,7 @@ simple_transforms <- function( dat, vars,
                                name_pattern = function( varname, transform_name ) sprintf( "%s_%s", varname, transform_name )
                                )
 {
-  stopifnot( is.data.frame(dat) | is_tibble(dat) )
+  stopifnot( is.data.frame(dat) | tibble::is_tibble(dat) )
   cat( "Adding simple transformed variables if they are better by Shapiro-Wilk statistic W (larger is better) \n")
   ret <- dat
   lst <- list()
@@ -66,10 +66,11 @@ simple_transforms <- function( dat, vars,
       # z-score transform
       if( "zscore" %in% transforms ) {
         nwname <- name_pattern( var, "zscore" )
+        # browser( condition={nwname=="AGE_zscore"})
         stopifnot( !(nwname %in% colnames(ret) ) )
         mn <- mean( ret[[var]], na.rm=TRUE )
         st <- sd( ret[[var]], na.rm=TRUE )
-        ret[,nwname] <- qnorm( p = ret[[var]], mean = mn, sd = st )
+        ret[,nwname] <- pnorm( q = ret[[var]], mean = mn, sd = st )
         var_label(ret[,nwname]) <- sprintf( "simple_transforms: zscore (mean=%1.4f, sd=%1.4f)", mn, st )
         lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, term = sprintf( "qnorm( %s, mean=%1.4f, sd=%1.4f )", var, mn, st ), W = NA, transform = "zscore" )
       }
@@ -195,76 +196,105 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
 # TODO
 
 # Mixture models ----
-check_modal <- function( dat, resp, vars, n_comp = 5, m_fits = 25, epsi = 1E-3 ) {
-  
-  min_aic_mod_sel <- function( var, k ) {
-    ret <- NA
-    for( r in 1:m_fits ) {
-      mo <- flexmix( formula( sprintf( "%s ~ 1", var ) ), data = dat, k = k )  
-      aic <- as.numeric( AIC(mo) ) 
-      ret <- min( ret, aic, na.rm=TRUE )
+
+eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_prop_converged = 0.99, epsi = 1E-3 ) {
+  ks <- 1:n_comp
+  idx <- which(!is.na(dat[,var]))
+
+  models <- list()
+  tab <- NULL
+  midx <- 1
+  for( k in 1:n_comp ) {
+    for( j in 1:m_fits ) {
+      mo <- NULL
+      mo <- tryCatch({
+        flexmix::flexmix( formula( sprintf( "%s ~ 1", var ) ), 
+                          data = dat[idx,], 
+                          k = k )
+      }, error = function(e) NULL )
+      models[[midx]] <- mo
+      if( !is.null(mo) ) {
+        tab <- bind_rows( tab, tibble( round = j, k = k, midx = midx, aic = AIC(mo), converged = mo@converged ))
+      }
+      midx <- midx + 1
     }
-    return( ret )
-  } # min_aic_mod_sel (END)
+  }
+
+  agg <- tab %>% 
+    group_by(k) %>% 
+    summarise( min_aic = min(aic), sum_converged = sum( converged ) ) %>%
+    mutate( p_converged = sum_converged / m_fits )
+
+  best <- agg %>%
+    filter( min_prop_converged <= p_converged ) %>%
+    filter( min(min_aic) == min_aic ) %>%
+    filter( min(k) == k )
+  kmin <- best %>% pull( k )
+  maic <- best %>% pull( min_aic )
   
-  eval_aics <- function( var ) {
-    ks <- 1:n_comp
-    aics <- sapply( ks, FUN=function(k) min_aic_mod_sel( var, k ) )
-    tab <- tibble( k=ks, aic = aics )
+  best_idx <- tab %>% filter( k == kmin & maic == aic & converged ) %>% pull( midx )
+  momin <- models[[ best_idx[1] ]]
+
+  ret <- list( var = var, 
+               n_comp = n_comp, m_fits = m_fits, min_prop_converged = min_prop_converged, epsi = epsi,
+               aic_tab = tab, aic_aggregate = agg, min_k = kmin, best_model = momin, cut_points = NULL )
+  
+  if( 1 < kmin ) {
+    cat( sprintf( "Variable %s is multi-modal with %d Normal components. Determining cut-points. \n", var, kmin ) )
+    prm <- flexmix::parameters(momin)
+    ood <- order(prm["coef.(Intercept)",])
+    prio <- momin@prior[ood]
+    prm <- prm[,ood]
     
-    idx <- which.min( tab$aic )
-    kmin <- tab$k[idx]
-    maic <- tab$aic[idx]
-    momin <- mo <- flexmix( formula( sprintf( "%s ~ 1", var ) ), data = dat, k = kmin )
-    t <- 1000 # Max number of runs
-    while( 0 < t & maic + epsi < AIC(mo) ) {
-      mo <- flexmix( formula( sprintf( "%s ~ 1", var ) ), data = dat, k = kmin )
-      if( AIC(mo) < AIC(momin) ) { momin <- mo }
-      t <- t - 1
-    } # while 
-    
-    ret <- list( var = var, aic_tab = tab, min_k = kmin, best_model = momin, cut_points = NULL )
-    
-    if( 1 < kmin ) {
-      cat( sprintf( "Variable %s is multi-modal with %d Normal components. Determining cut-points. \n", var, kmin ) )
-      prm <- parameters(momin)
-      ood <- order(prm["coef.(Intercept)",])
-      prio <- mod0@prior[ood]
-      prm <- prm[,ood]
-      
-      cps <- c()
-      i <- 1
-      j <- i + 1
-      while( j <= kmin ) {
-        rt <- uniroot( function( val ) {
+    cps <- c()
+    i <- 1
+    j <- i + 1
+    while( j <= kmin ) {
+      rt <- NULL
+      rt <- tryCatch({
+        fu_root <- function( val ) {
           d1 <- dnorm( x = val, mean = prm["coef.(Intercept)",i], sd = prm["sigma",i]  ) * prio[i]
           d2 <- dnorm( x = val, mean = prm["coef.(Intercept)",j], sd = prm["sigma",j]  ) * prio[j]
           ret <- d1 - d2
           return( ret )
-        }, interval = c(prm["coef.(Intercept)",i],prm["coef.(Intercept)",j])  )
+        }
+        
+        rt <- uniroot( f = fu_root, 
+                       interval = c(prm["coef.(Intercept)",i],prm["coef.(Intercept)",j]),
+                       extendInt = "no" ) # We are only interested if the cut-point is between the two adjacent modes.
         rt
+      }, error = function(e) NULL ) # Catch error, if fu_root is not of opposite signs at both interval ends.
+      if( !is.null(rt) ) {
         cp <- rt$root
         cps <- c( cps, cp )
-        
-        i <- i + 1
-        j <- i + 1
-      } # while
+      }
       
-      cps <- c( -Inf, cps, Inf )
-      ret[['cut_points']] <- cps
-    } # if
+      i <- i + 1
+      j <- i + 1
+    } # while
     
-    return( ret )
-  } # eval_aics (END)
+    cps <- c( -Inf, cps, Inf )
+    ret[['cut_points']] <- cps
+  } # if
   
+  return( ret )
+} # eval_aics (END)
+
+
+check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, epsi = 1E-3 ) {
+
   ret <- list()
   # Check response, if numeric, if it is bimodal
   mod <- dat
   if( ! is.null(resp) && is.numeric( dat[[resp]] ) ) {
-    evl <- eval_aics( resp )
+    cat( sprintf( "Processing response %s \n", resp ))
+    evl <- eval_aics( dat, resp, n_comp = n_comp, m_fits = m_fits, epsi = epsi )
     if( !is.null(evl$cut_points) ) {
       nvar <- sprintf( "%s_resp_grp", resp )
-      mod[[nvar]] <- as.character( cut( mod[[resp]], breaks = evl$cut_points, labels = sprintf( "resp_group[%d]", 1:length(evl$cut_points) ), include.lowest = TRUE ) )
+      mod[[nvar]] <- as.character( cut( mod[[resp]], 
+                                        breaks = evl$cut_points, 
+                                        labels = sprintf( "resp_group[%d]", 1:(length(evl$cut_points)-1) ), 
+                                        include.lowest = TRUE ) )
       evl$nvar <- nvar
     }
     ret[[resp]] <- evl
@@ -273,10 +303,14 @@ check_modal <- function( dat, resp, vars, n_comp = 5, m_fits = 25, epsi = 1E-3 )
   # Check all numeric variables if they are bimodal
   for( var in vars ) {
     if( is.numeric(dat[[var]]) ) {
-      evl <- eval_aics( var )
+      cat( sprintf( "Processing %s \n", var ))
+      evl <- eval_aics( dat, var, n_comp = n_comp, m_fits = m_fits, epsi = epsi )
       if( !is.null(evl$cut_points) ) {
         nvar <- sprintf( "%s_grp", var )
-        mod[[nvar]] <- as.character( cut( mod[[resp]], breaks = evl$cut_points, labels = sprintf( "group[%d]", 1:length(evl$cut_points) ), include.lowest = TRUE ) )
+        mod[[nvar]] <- as.character( cut( mod[[var]], 
+                                          breaks = evl$cut_points, 
+                                          labels = sprintf( "group[%d]", 1:(length(evl$cut_points)-1) ), 
+                                          include.lowest = TRUE ) )
         evl$nvar <- nvar
       }
       ret[[var]] <- evl

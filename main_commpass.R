@@ -17,6 +17,7 @@ library( MultiAssayExperiment )
 yaml_file <- "~/CoMMpass_Dashdis_Data/CoMMpass-integration-dashdis.yaml"
 yaml_cfg <- read_yaml( file = yaml_file )
 
+library( RcppAlgos )
 library( numDeriv )
 library( formula.tools )
 library( ROCR )
