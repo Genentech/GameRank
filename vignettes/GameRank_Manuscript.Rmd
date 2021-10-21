@@ -38,6 +38,7 @@ Joseph Nathaniel Paulson, Genentech Inc., 1 DNA Way, South San Francisco, CA 940
 
 # Short Structured Abstract
 __Motivation:__ In contrast to filter and embedded method approaches for feature selection, wrapper algorithms allow for direct optimization of model performance metrics through combinatorial search. This aspect is essential to building predictive models that are calibrated and show discrimination, which are both properties required for clincial applications. Due to the combinatorial optimization, wrappers are slow and do not guarantee global optimality of their selection.
+
 __Results:__ Here we present a novel quick and maximum-likelihood-based wrapper algorithm, named GameRank, together with a R package comprising classical wrapper methods for building calibrated and discriminative predictive models.
 
 __Availability and Implementation:__ GameRank is available at https://github.com/... and released under XXX License.
