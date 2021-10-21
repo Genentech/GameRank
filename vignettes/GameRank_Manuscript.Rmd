@@ -74,7 +74,7 @@ Please see GameRank shown in the Figure for details.
 
 ### Figure 1 - GameRank algorithm
 
-![GameRank Algorithm.](./Figure.png)
+![Figure: Illustration and pseudocode for the GameRank algorithm.](./Figure.png)
 
 ## R package and its usage (~210 words)
 
