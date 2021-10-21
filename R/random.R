@@ -1,6 +1,25 @@
 #
 #  Random sampling wrapper algorithm
 #
+build_sample_matrix <- function( vars, ksize, nevals ) {
+  
+  sm <- matrix( NA_character_, nrow=0, ncol=ksize )
+  while( nrow(sm) < nevals ) {
+    idx <- 1:length(vars)
+    idx <- idx[ order( runif( length(idx) )) ]
+    while( ksize < length(idx) ) {
+      r <- vars[ idx[ 1:ksize ] ]
+      idx <- idx[-c(1:ksize)]
+      sm <- rbind( sm, r )
+    }
+    sm <- unique( sm )
+  }
+  sm <- sm[1:nevals,]
+  
+  return( sm ) 
+}
+
+
 random_selection <- function( dat,
                               resp,
                               vars,
@@ -31,7 +50,7 @@ random_selection <- function( dat,
   #  - Each variable is considered at least min_sample_per_var times
   #  - Variables are evaluated in groups of ksize sets
   # Let a be # variables, b be group size, c be min # each var evaluated then
-  samps <- comboSample( v = vars, m = ksize, repetition = FALSE, n = nevals )
+  samps <- build_sample_matrix( vars = vars, ksize = ksize, nevals = nevals )
   
   # Evaluate random combinations
   results <- NULL

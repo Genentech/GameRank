@@ -241,7 +241,7 @@ game_rank <- function( dat,
     # Results
     match_matrix = MM,
     variable_ranking = vsel_result,
-    grame_rank_selection = vsel_result %>% pull( variable ),
+    game_rank_selection = vsel_result %>% filter( selected ) %>% pull( variable ),
     
     optimization_result = oo,
     solution = oo$par,
