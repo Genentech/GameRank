@@ -23,5 +23,7 @@ Imports:
   entropy,
   ROCR
 Suggests:
-  RcppAlgos
-  
+    RcppAlgos,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

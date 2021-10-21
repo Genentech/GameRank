@@ -13,9 +13,9 @@ rewrite_formula <- local( {
     fo_m <- fo
     for( la in labs ) {
       if( any( is.na(dat_tmp[,la] )  ) ) {
-        cat ( ">> ", la,"\n" )
+        # cat ( ">> ", la,"\n" )
         sup <- sprintf( ". ~ . - %s + saf(%s) + psu(%s)", la, la, la )
-        cat( "-- ",sup,"\n")
+        # cat( "-- ",sup,"\n")
         fo_m <- update( fo_m, formula( sup ) )
       }
     }

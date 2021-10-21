@@ -9,6 +9,8 @@ library( MultiAssayExperiment)
 
 devtools::load_all("~/GameRank")
 
+file_var_rds <- "~/GameRank/tmp/df_prima_selection_data.rds"
+
 src.wd <-  "/opt/bee/analyses/CIN/cin_1269/lymphoma/prima/"
 
 data.mae <- readRDS( file.path( src.wd,  "mae.rds" ) )
@@ -160,4 +162,5 @@ dat_md <- check_multimodality( dat_st, NULL, lst_vars )
 dat_md
 
 df_md <- dat_md$data
-df_ii <- dat_md$transforms
+
+saveRDS( df_md, file = file_var_rds )
