@@ -7,6 +7,30 @@
 # individuals by group comparisons.
 #
 
+
+build_match_matrix <- function( sel, team_size, min_matches_per_var ) {
+  
+  sel[1:length(sel)] <- 0 # Set all elements to 0
+  match_matrix <- matrix( NA, nrow=0, ncol = length(sel) )
+  colnames(match_matrix) <- names(sel)
+  while( is.null(match_matrix) | !all( min_matches_per_var < colSums( abs( match_matrix ) )  ) ) {
+    idx <- 1:length(sel)
+    idx <- idx[ order( runif( length(idx) ) ) ]
+    while( 2*team_size < length(idx)  ) {
+      idxp <- idx[1:team_size]
+      idx <- idx[-c(1:team_size)]
+      idxn <- idx[1:team_size]
+      idx <- idx[-c(1:team_size)]
+      Tpm <- sel
+      Tpm[idxp] <- +1L
+      Tpm[idxn] <- -1L
+      match_matrix <- rbind( match_matrix, Tpm )
+    }
+  }
+
+  return( match_matrix )  
+}
+
 # GameRank ----
 #' @title GameRank - A maximum-likelihood based wrapper for variable selection
 #' 
@@ -54,9 +78,11 @@ game_rank <- function( dat,
   sel <- rep_len( 0.0, length.out = length(vars) )
   names(sel) <- vars
   # Initialize team vector, set first to +1, second to -1 and rest to 0
-  Tpm <- sel
-  Tpm[1:team_size] <- +1L
-  Tpm[(team_size+1):(2*team_size)] <- -1L
+  # Tpm <- sel
+  # Tpm[1:team_size] <- +1L
+  # Tpm[(team_size+1):(2*team_size)] <- -1L
+  MM <- build_match_matrix( sel = sel, team_size = team_size, min_matches_per_var = min_matches_per_var )
+  
   # Initialize row selection vector: 1 = development, 2 = evaluation in a round
   ds <- rep_len( c(1,2), length.out = nrow(dat) )
   
@@ -71,12 +97,14 @@ game_rank <- function( dat,
   }
   
   # Run GameRank matches ----
-  cat( "Comparing variable selections --- \n")
-  n_matches <- 1
+  cat( sprintf( "Comparing variable selections (# matches %d)--- \n", nrow(MM) ) )
+  t <- 1
   res_matches <- NULL
   time_start <- Sys.time()
-  while( n_matches < max_iter && (is.null(res_matches) || !all( min_matches_per_var < colSums( abs( res_matches[,-c(1,2)] ) ) ) ) ) {
-    Tpm[ 1:length(Tpm) ] <- Tpm[ order( runif( length( Tpm ) ) ) ] # Shuffle team
+  # while( n_matches < max_iter && (is.null(res_matches) || !all( min_matches_per_var < colSums( abs( res_matches[,-c(1,2)] ) ) ) ) ) {
+  while( t <= nrow(MM) ) {
+    # Tpm[ 1:length(Tpm) ] <- Tpm[ order( runif( length( Tpm ) ) ) ] # Shuffle teams
+    Tpm <- MM[t,]
     
     fop <- names( which( Tpm > 0 ) )
     fon <- names( which( Tpm < 0 ) )
@@ -118,8 +146,8 @@ game_rank <- function( dat,
     res_match <- cbind( data.frame( n.pos = np, n.neg = nn), t( Tpm ) )
     res_matches <- bind_rows( res_matches, res_match )
     
-    cat( sprintf( "Iteration %d -- (+) : (-) scored %d : %d \n", n_matches, np, nn ) )
-    n_matches <- n_matches + 1 # Iteration counter
+    cat( sprintf( "Iteration %d -- (+) : (-) scored %d : %d \n", t, np, nn ) )
+    t <- t + 1 # Iteration counter
   } # while (END)
   time_stop <- Sys.time()
   match_time <- difftime( time1 = time_stop, time2 = time_start, units = "secs" )
@@ -211,8 +239,9 @@ game_rank <- function( dat,
     total_time = total_time,
     
     # Results
-    n_matches = n_matches,
+    match_matrix = MM,
     variable_ranking = vsel_result,
+    grame_rank_selection = vsel_result %>% pull( variable ),
     
     optimization_result = oo,
     solution = oo$par,

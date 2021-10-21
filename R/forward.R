@@ -48,14 +48,14 @@ forward <- function(  dat, resp, vars,
       agg <- rnd %>%
         group_by( added ) %>%
         summarise( mean_train = mean( eval_train ),
-                   mean_validation = mean( eval_validation ) ) %>%
+                   mean_validation = mean( eval_validation, na.rm=TRUE ) ) %>%
         ungroup %>%
         arrange( desc(mean_validation) )
       
       if( maximize ) {
-        nxt <- agg %>% filter( mean_validation >= max( mean_validation) )  
+        nxt <- agg %>% filter( mean_validation >= max( mean_validation, na.rm=TRUE ) )  
       } else {
-        nxt <- agg %>% filter( mean_validation <= min( mean_validation) )  
+        nxt <- agg %>% filter( mean_validation <= min( mean_validation, na.rm=TRUE) )  
       }
       
       cat( sprintf( "Addint %d new paritions to queue (size %d) \n", nrow(nxt), length(queue) ))
@@ -65,20 +65,20 @@ forward <- function(  dat, resp, vars,
         queue[[length(queue)+1]] <- list( selection = nxt_part ) # Adding partition
       }
     }
-    cat( sprintf( "Completed round of evaluations, length of queue %d, remaining evaluations %d \n", length(queue), t ) )
+    cat( sprintf( "Completed round of evaluations, length of queue %d \n", length(queue) ) )
   } # while
   
   agg <- results %>%
     group_by( ch_selection, size ) %>%
-    summarise( mean_train = mean( eval_train ),
-               mean_validation = mean( eval_validation ) ) %>%
+    summarise( mean_train = mean( eval_train, na.rm=TRUE ),
+               mean_validation = mean( eval_validation, na.rm=TRUE ) ) %>%
     ungroup %>%
     arrange( desc(mean_validation), size )
   
   if( maximize ) {
-    best <- agg %>% filter( mean_validation >= max( mean_validation) )  
+    best <- agg %>% filter( mean_validation >= max( mean_validation, na.rm=TRUE) )  
   } else {
-    best <- agg %>% filter( mean_validation <= min( mean_validation) )  
+    best <- agg %>% filter( mean_validation <= min( mean_validation, na.rm=TRUE) )  
   }
   
   best_results <- results %>% 
