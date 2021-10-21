@@ -8,13 +8,15 @@ build_sample_matrix <- function( vars, ksize, nevals ) {
     idx <- 1:length(vars)
     idx <- idx[ order( runif( length(idx) )) ]
     while( ksize < length(idx) ) {
-      r <- vars[ idx[ 1:ksize ] ]
+      r <- sort( vars[ idx[ 1:ksize ] ] )
       idx <- idx[-c(1:ksize)]
       sm <- rbind( sm, r )
     }
     sm <- unique( sm )
   }
   sm <- sm[1:nevals,]
+  rownames(sm) <- NULL
+  colnames(sm) <- NULL
   
   return( sm ) 
 }
