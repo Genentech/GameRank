@@ -68,6 +68,10 @@ df_trnevl <- bind_rows( df_train, df_eval )
 ds_prior <- prepare_splits( ds = 3L, dat=df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox ) %>% as.matrix
 
 # debugonce(backward)
+bds_sel <- bidirectional( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, min_search_partition = 10, u = 365 )
+save.image(file = "~/GameRank/bidirectional.Rdata")
+
+# debugonce(backward)
 bwd_sel <- backward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, min_partition = 8, u = 365 )
 save.image(file = "~/GameRank/backward.Rdata")
 
