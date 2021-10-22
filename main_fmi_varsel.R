@@ -65,19 +65,19 @@ df_train <- df_sel[which(1==g_set),]
 
 df_trnevl <- bind_rows( df_train, df_eval )
 
-ds_prior <- prepare_splits( ds = 1L, dat=df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox ) %>% as.matrix
+ds_prior <- prepare_splits( ds = 3L, dat=df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox ) %>% as.matrix
 
 # debugonce(backward)
-# bwd_sel <- backward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, u = 365 )
-# save.image(file = "~/GameRank/backward.Rdata")
+bwd_sel <- backward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, min_partition = 8, u = 365 )
+save.image(file = "~/GameRank/backward.Rdata")
 
 # debugonce(forward)
-# fwd_sel <- forward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, u = 365 )
-# save.image(file = "~/GameRank/forward.Rdata")
+fwd_sel <- forward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, max_partition = 8, u = 365 )
+save.image(file = "~/GameRank/forward.Rdata")
 
 # grk_sel <- game_rank( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, team_size = 25L, maximize = FALSE, u = 365 )
 # save.image(file = "~/GameRank/group_rank.Rdata")
 
 # Issue with RcppAlgos
-rnd_sel <- random_selection( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, u = 365 )
-save.image(file = "~/GameRank/random.Rdata")
+# rnd_sel <- random_selection( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, u = 365 )
+# save.image(file = "~/GameRank/random.Rdata")

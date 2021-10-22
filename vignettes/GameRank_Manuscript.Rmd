@@ -6,8 +6,8 @@ bibliography: "game_rank.bib"
 link-citations: true
 # csl: nature.csl
 output:
-  html_document: default
   word_document: default
+  html_document: default
 ---
 
 https://academic.oup.com/bioinformatics/pages/instructions_for_authors

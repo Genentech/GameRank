@@ -4,100 +4,116 @@
 source( "R/utils.R" )
 
 #
+# Return the best variable to add; in case of ties can be multiple, in case of ties; if none is found
+# return the first of 'vars' in ret[['best_vars']]; also return evaluations and aggregate evaluations.
+#
+next_backward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, current_selection, ...  ) {
+  # browser()
+  remaining_vars <- current_selection
+  cat( "Evaluating:")
+  l_evl <- lapply( remaining_vars, function( nvar, ... ) {
+    cat( " ", nvar, " " )
+    ret <- eval_splits( ds, dat, resp, setdiff( current_selection, nvar ), fn_train, fn_eval, ... )
+    ret$removed <- nvar
+    return( ret )
+  }, ... )
+  df_evl <- Reduce( bind_rows, l_evl, NULL )
+  cat("\n")
+  
+  agg_evl <- df_evl %>% 
+    group_by( ch_selection, removed ) %>%
+    summarise( mean_train = mean( eval_train, na.rm=TRUE ),
+               mean_validation = mean( eval_validation, na.rm=TRUE ),
+               mean_bias = mean( bias, na.rm=TRUE ) ) %>%
+    ungroup
+  
+  ret <- list( df_evl = df_evl, agg_evl = agg_evl )
+  if( all( is.na(agg_evl$mean_validation) ) ) {
+    ret[['best_vars']] <- c( remaining_vars[length(remaining_vars)] )
+    cat( sprintf( "No best found, removing last (%s) \n", ret[['best_vars']] ) )
+  } else if( maximize ) {
+    ret[['best_vars']] <- agg_evl %>% 
+      filter( !is.na(mean_validation) ) %>% 
+      filter( max( mean_validation, na.rm=TRUE ) <= mean_validation ) %>%
+      pull( removed )
+    cat( sprintf( "Best found, removal variable (%s) \n", ret[['best_vars']] ) )
+  } else if( !maximize ) {
+    ret[['best_vars']] <- agg_evl %>% 
+      filter( !is.na(mean_validation) ) %>% 
+      filter( mean_validation <= min( mean_validation, na.rm=TRUE ) ) %>%
+      pull( removed )
+    cat( sprintf( "Best found, removal variable (%s) \n", ret[['best_vars']] ) )
+  }
+  return( ret )
+}
+
+#
 # Conduct one backward wrapper algorithm
 #
 backward <- function( dat, resp, vars, 
                       fn_train = fn_train_binomial,
                       fn_eval  = fn_eval_binomial,
                       ds = 5L, 
-                      max_evals = 1E8,
                       maximize = TRUE, 
-                      if_na_take_last_k = 1,
+                      min_partition = NULL,
                       ... ) {
   # Check parameters
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
   stopifnot( is.character(resp) )
   stopifnot( is.character(vars)  & 1 < length(vars) )
-  stopifnot( is.numeric(max_evals) )
   stopifnot( is.logical(maximize) )
+  
+  if( !is.integer(min_partition) | is.null(min_partition) ) min_partition <- 1
   
   # Obtain evaluation splits
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
   
-  ranks <- unique( tibble( variable = vars, rank = 1:length(vars) ) )
+  # Sequential Backward Selection algorithm:
+  # 1) Start with the full set Y0 = X
+  # 2) Remove the worst feature x- = arg max_{x in Yk} J( Yk - x)
+  # 3) Update Yk+1 = Yk - x-; k = k + 1
+  # 4) Go to 2)
   
-  col_sep <- ","
-  results <- NULL
-  queue <- list( list( selection = vars ) )
-  t <- max_evals
-  while( 0 <= t & 1 <= length(queue) ) {
-    partition <- queue[[1]]
+  df_evl <- NULL
+  agg_evl <- NULL
+  Y <- vars  # Start with all variables included
+  queue <- list()
+  queue[[length(queue)+1]] <- Y
+  k <- 1
+  while( 0 < length(queue) ) {
+    # Pull first element from search queue
+    Y <- queue[[1]]
     queue[[1]] <- NULL
     
-    cur_vars <- unique( partition[["selection"]] )
-    cat( sprintf( "Current selection " ) )
-    cat( cur_vars, "\n" )
-    if( 2<=length(cur_vars) ) {
-      # a) Evaluate removal per variable this round
-      rnd <- NULL
-      for( var in cur_vars ) {
-        sel <- setdiff( cur_vars, var )
-        evl <- eval_splits( ds, dat, resp, sel, fn_train, fn_eval, ... )
-        evl$removed <- var
-        evl$n_evaluation <- t
-        t <- t - 1 
-        rnd <- dplyr::bind_rows(rnd,evl)
-        results <- dplyr::bind_rows(results,evl)
-        cat( sprintf( "Evaluationg removal of %s (%1.4f) \n", var, mean( evl$eval_train, na.rm=TRUE ) ) )
-      }
-      # b) Determine partitions for next rounds
-      # browser()
-      agg <- rnd %>%
-        group_by( removed ) %>%
-        summarise( mean_train = mean( eval_train ),
-                   mean_validation = mean( eval_validation, na.rm=TRUE ) ) %>%
-        ungroup %>%
-        arrange( desc(mean_validation) ) %>% 
-        dplyr::left_join( ranks, c("removed"="variable") )
+    if( min_partition <= length(Y) ) {
+      best_vars <- next_backward( dat, resp, vars, fn_train, fn_eval, ds, maximize, Y, ... )
+      df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( step = k ) )
+      agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( step = k ) )
       
-      if( all( is.na( agg$mean_validation ) ) ) {
-        nxt <- agg %>% filter( max(rank) - if_na_take_last_k < rank )
-      } else if( maximize ) {
-        nxt <- agg %>% filter( mean_validation >= max( mean_validation, na.rm=TRUE) )  
-      } else {
-        nxt <- agg %>% filter( mean_validation <= min( mean_validation, na.rm=TRUE) )  
+      cat( "Removing vars: ")
+      cat( best_vars[['best_vars']] )
+      for( bvar in best_vars[['best_vars']] ) {
+        queue[[length(queue)+1]] <- setdiff( Y, bvar )
       }
-      
-      cat( sprintf( "Adding %d new paritions to queue (size %d) \n", nrow(nxt), length(queue) ))
-      cat( sprintf( "Adding paritions for removed variable %s \n", nxt$removed ))
-      for( var in nxt$removed ) {
-        nxt_part <- setdiff( cur_vars, var )
-        queue[[length(queue)+1]] <- list( selection = unique( nxt_part ) ) # Adding partition
-      }
+      cat("\n")
+      cat( sprintf("No of partitions %d in search queue \n", length( queue ) ) )
     }
-    cat( sprintf( "Completed round of evaluations, length of queue %d \n", length(queue) ) )
+    cat( sprintf( "Finished iteration %d \n", k ) )
+    k <- k + 1
   } # while
   
-  agg <- results %>%
-    group_by( ch_selection, size ) %>%
-    summarise( mean_train = mean( eval_train, na.rm=TRUE ),
-               mean_validation = mean( eval_validation, na.rm=TRUE ) ) %>%
-    ungroup %>%
-    arrange( desc(mean_validation), size )
-  
+  # Determine best selection(s)
+  best_results <- NULL
   if( maximize ) {
-    best <- agg %>% filter( mean_validation >= max( mean_validation, na.rm=TRUE) )  
-  } else {
-    best <- agg %>% filter( mean_validation <= min( mean_validation, na.rm=TRUE) )  
+    best_results <- agg_evl %>% 
+      filter( !is.na(mean_validation) ) %>% 
+      filter( max( mean_validation, na.rm=TRUE ) <= mean_validation )
+  } else if( !maximize ) {
+    best_results <- agg_evl %>% 
+      filter( !is.na(mean_validation) ) %>% 
+      filter( mean_validation <= min( mean_validation, na.rm=TRUE ) )
   }
-  
-  best_results <- results %>% 
-    filter( ch_selection %in% best$ch_selection ) 
-  best_selections <- best_results %>%
-    pull( selection ) %>%
-    unique
-  cat( "Best selection(s) found is/are : \n" )
-  print( best_results )
+  best_selections <- best_results %>% pull( selection )
   
   ret <- list( # Input data
     # data = dat,
@@ -106,13 +122,14 @@ backward <- function( dat, resp, vars,
     
     # Input parameters
     splits = ds, 
-    max_evals = max_evals,
+    min_partition = min_partition,
     maximize = maximize,
     
     # Results
     variable_selections = best_selections,
     selection_results = best_results,
-    results = results
+    results = df_evl,
+    agg_results = agg_evl
   )
   return( ret )
 } # backward (END)
@@ -121,9 +138,8 @@ backward.formula <- function( fo, dat,
                               fn_train = fn_train_binomial,
                               fn_eval  = fn_eval_binomial,
                               ds = 5L, 
-                              max_evals = 1E8,
                               maximize = TRUE,
-                              if_na_take_last_k = 1,
+                              min_partition = NULL,
                               ...  ) 
 {
   # Check inputs
@@ -141,8 +157,7 @@ backward.formula <- function( fo, dat,
             fn_train = fn_train,
             fn_eval  = fn_eval,
             ds = ds, 
-            max_evals = max_evals,
             maximize = maximize,
-            if_na_take_last_k = if_na_take_last_k,
+            min_partition = min_partition,
             ... )
 }

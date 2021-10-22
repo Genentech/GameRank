@@ -4,14 +4,58 @@
 source( "R/utils.R" )
 
 #
+# Return the best variable to add; in case of ties can be multiple, in case of ties; if none is found
+# return the first of 'vars' in ret[['best_vars']]; also return evaluations and aggregate evaluations.
+#
+next_forward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, current_selection, ...  ) {
+  # browser()
+  remaining_vars <- setdiff( vars, current_selection )
+  cat( "Evaluating:")
+  l_evl <- lapply( remaining_vars, function( nvar, ... ) {
+    cat( " ", nvar, " " )
+    ret <- eval_splits( ds, dat, resp, union( current_selection, nvar ), fn_train, fn_eval, ... )
+    ret$added <- nvar
+    return( ret )
+  }, ... )
+  df_evl <- Reduce( bind_rows, l_evl, NULL )
+  cat("\n")
+  
+  agg_evl <- df_evl %>% 
+    group_by( ch_selection, added ) %>%
+    summarise( mean_train = mean( eval_train, na.rm=TRUE ),
+               mean_validation = mean( eval_validation, na.rm=TRUE ),
+               mean_bias = mean( bias, na.rm=TRUE ) ) %>%
+    ungroup
+  
+  ret <- list( df_evl = df_evl, agg_evl = agg_evl )
+  if( all( is.na(agg_evl$mean_validation) ) ) {
+    ret[['best_vars']] <- c( remaining_vars[1] )
+    cat( sprintf( "No best found, adding first (%s) \n", ret[['best_vars']] ) )
+  } else if( maximize ) {
+    ret[['best_vars']] <- agg_evl %>% 
+      filter( !is.na(mean_validation) ) %>% 
+      filter( max( mean_validation, na.rm=TRUE ) <= mean_validation ) %>%
+      pull( added )
+    cat( sprintf( "Best found, adding variable (%s) \n", ret[['best_vars']] ) )
+  } else if( !maximize ) {
+    ret[['best_vars']] <- agg_evl %>% 
+      filter( !is.na(mean_validation) ) %>% 
+      filter( mean_validation <= min( mean_validation, na.rm=TRUE ) ) %>%
+      pull( added )
+    cat( sprintf( "Best found, adding variable (%s) \n", ret[['best_vars']] ) )
+  }
+  return( ret )
+}
+
+#
 # Conduct one forward wrapper algorithm
 #
 forward <- function(  dat, resp, vars, 
                       fn_train = fn_train_binomial,
                       fn_eval  = fn_eval_binomial,
                       ds = 5L, 
-                      max_evals = 1E8,
                       maximize = TRUE,
+                      max_partition = NULL,
                       ... ) {
   # Check parameters
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
@@ -19,74 +63,61 @@ forward <- function(  dat, resp, vars,
   stopifnot( is.character(vars)  & 1 < length(vars) )
   stopifnot( is.logical(maximize) )
   
-  # Obtain evaluation splits
+  if( !is.integer(max_partition) | is.null(max_partition) ) max_partition <- length(vars)
+  
+  # Obtain evaluation splits, if necessary
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
 
-  col_sep <- ","
-  results <- NULL
-  queue <- list( list( selection = c() ) )
-  t <- max_evals
-  while( 0 <= t & 1 <= length(queue) ) {
-    partition <- queue[[1]]
+  # Sequential Forward Selection algorithm:
+  # 1) Start with the empty set Y0 = {}
+  # 2) Select the next best feature x+ = arg max J( Yk + x ) for x not in Yk
+  # 3) Update Yk+1 = Yk + x+; k = k + 1
+  # 4) Go to 2
+  # -> Implemented as depth first search, in case of ties or no variables
+  #    In case of ties, all combinations are generated, in case of no best variable
+  #    the first one is added
+
+  df_evl <- NULL
+  agg_evl <- NULL
+  Y <- c("1")  # Start with offset, which is anyway included in each model
+  queue <- list()
+  queue[[length(queue)+1]] <- Y
+  k <- 1
+  while( 0 < length(queue) ) {
+    # Pull first element from search queue
+    Y <- queue[[1]]
     queue[[1]] <- NULL
     
-    part_sel <- partition[["selection"]]
-    cur_vars <- setdiff( vars, part_sel )
-    if( 1<=length(cur_vars) ) {
-      # a) Evaluate removal per variable this round
-      rnd <- NULL
-      for( var in cur_vars ) {
-        sel <- union( var, part_sel )
-        evl <- eval_splits( ds, dat, resp, sel, fn_train, fn_eval, ... )
-        evl$added <- var
-        evl$n_evaluation <- t
-        t <- t - 1 
-        rnd <- dplyr::bind_rows(rnd,evl)
-        results <- dplyr::bind_rows(results,evl)
-      }
-      # b) Determine partitions for next rounds
-      agg <- rnd %>%
-        group_by( added ) %>%
-        summarise( mean_train = mean( eval_train ),
-                   mean_validation = mean( eval_validation, na.rm=TRUE ) ) %>%
-        ungroup %>%
-        arrange( desc(mean_validation) )
+    if( length(Y) <= max_partition ) {
+      best_vars <- next_forward( dat, resp, vars, fn_train, fn_eval, ds, maximize, Y, ... )
+      df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( step = k ) )
+      agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( step = k ) )
       
-      if( maximize ) {
-        nxt <- agg %>% filter( mean_validation >= max( mean_validation, na.rm=TRUE ) )  
-      } else {
-        nxt <- agg %>% filter( mean_validation <= min( mean_validation, na.rm=TRUE) )  
+      cat( "Adding vars: ")
+      cat( best_vars[['best_vars']] )
+      for( bvar in best_vars[['best_vars']] ) {
+        queue[[length(queue)+1]] <- union( Y, bvar )
       }
-      
-      cat( sprintf( "Addint %d new paritions to queue (size %d) \n", nrow(nxt), length(queue) ))
-      cat( sprintf( "Adding paritions for added variables %s \n", nxt$added ))
-      for( var in nxt$added ) {
-        nxt_part <- union( var, part_sel )
-        queue[[length(queue)+1]] <- list( selection = nxt_part ) # Adding partition
-      }
+      cat("\n")
+      cat( sprintf("No of partitions %d in search queue \n", length( queue ) ) )
     }
-    cat( sprintf( "Completed round of evaluations, length of queue %d \n", length(queue) ) )
+    cat( sprintf( "Finished iteration %d \n", k ) )
+    k <- k + 1
   } # while
-  
-  agg <- results %>%
-    group_by( ch_selection, size ) %>%
-    summarise( mean_train = mean( eval_train, na.rm=TRUE ),
-               mean_validation = mean( eval_validation, na.rm=TRUE ) ) %>%
-    ungroup %>%
-    arrange( desc(mean_validation), size )
-  
+
+  # Determine best selection(s)
+  best_results <- NULL
   if( maximize ) {
-    best <- agg %>% filter( mean_validation >= max( mean_validation, na.rm=TRUE) )  
-  } else {
-    best <- agg %>% filter( mean_validation <= min( mean_validation, na.rm=TRUE) )  
+    best_results <- agg_evl %>% 
+      filter( !is.na(mean_validation) ) %>% 
+      filter( max( mean_validation, na.rm=TRUE ) <= mean_validation )
+  } else if( !maximize ) {
+    best_results <- agg_evl %>% 
+      filter( !is.na(mean_validation) ) %>% 
+      filter( mean_validation <= min( mean_validation, na.rm=TRUE ) )
   }
+  best_selections <- best_results %>% pull( selection )
   
-  best_results <- results %>% 
-    filter( ch_selection %in% best$ch_selection ) 
-  best_selections <- best_results %>%
-    pull( selection ) %>%
-    unique
-   
   ret <- list( # Input data
     # data = dat,
     response = resp,
@@ -94,23 +125,24 @@ forward <- function(  dat, resp, vars,
     
     # Input parameters
     splits = ds, 
-    max_evals = max_evals,
+    max_partition = max_partition,
     maximize = maximize,
     
     # Results
     variable_selections = best_selections,
     selection_results = best_results,
-    results = results
+    results = df_evl,
+    agg_results = agg_evl
   )
   return( ret )
 } # forward (END)
 
 forward.formula <- function( fo, dat, 
-                              fn_train = fn_train_binomial,
-                              fn_eval  = fn_eval_binomial,
-                              ds = 5L, 
-                              max_evals = 1E8,
+                             fn_train = fn_train_binomial,
+                             fn_eval  = fn_eval_binomial,
+                             ds = 5L, 
                              maximize = TRUE,
+                             max_partition = NULL,
                               ...  ) 
 {
   # Check inputs
@@ -128,7 +160,7 @@ forward.formula <- function( fo, dat,
             fn_train = fn_train,
             fn_eval  = fn_eval,
             ds = ds, 
-            max_evals = max_evals,
             maximize = maximize,
+            max_partition = max_partition,
             ... )
 }
