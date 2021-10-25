@@ -67,13 +67,15 @@ df_trnevl <- bind_rows( df_train, df_eval )
 
 ds_prior <- prepare_splits( ds = 3L, dat=df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox ) %>% as.matrix
 
-# debugonce(backward)
-bds_sel <- bidirectional( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, min_search_partition = 10, u = 365 )
-save.image(file = "~/GameRank/bidirectional.Rdata")
+lr_sel <- lrsearch( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, R=5L, L=10L, kmax=2, u = 365 )
+save.image(file = "~/GameRank/lrsearch.Rdata")
+
+# bds_sel <- bidirectional( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, min_search_partition = 10, u = 365 )
+# save.image(file = "~/GameRank/bidirectional.Rdata")
 
 # debugonce(backward)
-bwd_sel <- backward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, min_partition = 8, u = 365 )
-save.image(file = "~/GameRank/backward.Rdata")
+# bwd_sel <- backward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, min_partition = 8, u = 365 )
+# save.image(file = "~/GameRank/backward.Rdata")
 
 # debugonce(forward)
 fwd_sel <- forward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, max_partition = 8, u = 365 )
@@ -85,3 +87,14 @@ save.image(file = "~/GameRank/forward.Rdata")
 # Issue with RcppAlgos
 # rnd_sel <- random_selection( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, u = 365 )
 # save.image(file = "~/GameRank/random.Rdata")
+
+
+
+
+#
+# To Do List:
+#  - Add train-/eval-functions for linear discriminant analysis (LDA)
+#  - Add Plus-L, Minus-R search
+#  - Add Sequential Floating Forward Search / Sequential Floating Backward Search (SFFS/SFBS)
+#  - Add Oscillating Search Algorithm for Feature Selection
+#
