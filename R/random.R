@@ -1,15 +1,15 @@
 #
 #  Random sampling wrapper algorithm
 #
-build_sample_matrix <- function( vars, ksize, nevals ) {
+build_sample_matrix <- function( vars, m, nevals ) {
   
-  sm <- matrix( NA_character_, nrow=0, ncol=ksize )
+  sm <- matrix( NA_character_, nrow=0, ncol=m )
   while( nrow(sm) < nevals ) {
     idx <- 1:length(vars)
     idx <- idx[ order( runif( length(idx) )) ]
-    while( ksize < length(idx) ) {
-      r <- sort( vars[ idx[ 1:ksize ] ] )
-      idx <- idx[-c(1:ksize)]
+    while( m < length(idx) ) {
+      r <- sort( vars[ idx[ 1:m ] ] )
+      idx <- idx[-c(1:m)]
       sm <- rbind( sm, r )
     }
     sm <- unique( sm )
@@ -27,8 +27,8 @@ random_selection <- function( dat,
                               vars,
                               fn_train = fn_train_binomial,
                               fn_eval  = fn_eval_binomial,
+                              m = NULL,
                               ds = 5L, 
-                              ksize = 5L,
                               nevals = 100L,
                               maximize = TRUE,
                               ... )
@@ -41,7 +41,8 @@ random_selection <- function( dat,
   stopifnot( is.function(fn_train) ) 
   stopifnot( is.function(fn_eval) ) 
   
-  stopifnot( is.integer(ksize) )
+  if( is.null(m) ) { stop( "Please provide number m of features to select.\n" ) }
+  
   stopifnot( is.integer(nevals) )
   stopifnot( is.logical(maximize) )
   
@@ -50,9 +51,9 @@ random_selection <- function( dat,
   
   # Prepare sampling plan with the following properties:
   #  - Each variable is considered at least min_sample_per_var times
-  #  - Variables are evaluated in groups of ksize sets
+  #  - Variables are evaluated in groups of m sets
   # Let a be # variables, b be group size, c be min # each var evaluated then
-  samps <- build_sample_matrix( vars = vars, ksize = ksize, nevals = nevals )
+  samps <- build_sample_matrix( vars = vars, m = m, nevals = nevals )
   
   # Evaluate random combinations
   results <- NULL
@@ -64,10 +65,12 @@ random_selection <- function( dat,
     results <- bind_rows( results, evl )
   }
   
-  agg <- results %>%
-    group_by( ch_selection, row ) %>%
-    summarise( mean_train = mean( eval_train ),
-               mean_validation = mean( eval_validation ) ) %>%
+  agg <-  results %>% 
+    group_by( ch_selection, removed ) %>%
+    summarise( selection = first( selection ),
+               mean_train = mean( eval_train, na.rm=TRUE ),
+               mean_validation = mean( eval_validation, na.rm=TRUE ),
+               mean_bias = mean( bias, na.rm=TRUE ) ) %>%
     ungroup %>%
     arrange( desc(mean_validation), row )
   
@@ -89,7 +92,7 @@ random_selection <- function( dat,
     variables = vars,
     
     # Input parameters
-    ksize = ksize,
+    m = m,
     nevals = nevals,
     maximize = maximize,
     

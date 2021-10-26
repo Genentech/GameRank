@@ -49,6 +49,7 @@ game_rank <- function( dat,
                        vars,
                        fn_train = fn_train_binomial,
                        fn_eval  = fn_eval_binomial,
+                       m = NULL,
                        team_size = 5L,
                        rounds = 50L,
                        min_matches_per_var = 10L,
@@ -66,6 +67,7 @@ game_rank <- function( dat,
   stopifnot( is.function(fn_train) ) 
   stopifnot( is.function(fn_eval) ) 
   
+  if( is.null(m) ) { stop( "Please provide number m of features to select.\n" ) }
   stopifnot( is.integer(team_size) )
   stopifnot( is.integer(rounds) ) 
   stopifnot( is.integer(min_matches_per_var) )
@@ -215,8 +217,9 @@ game_rank <- function( dat,
                          vs = as.numeric( oo$par),
                          vs.var = diag( vv ) ) %>%
     mutate( selected = (vs > 0) ) %>%
-    arrange( desc( vs ) )
-  vsel_result
+    arrange( desc( vs ), vs.var )
+  
+  var_selection <- vsel_result$variable[1:m]
   
   # Return list object with parameters and results
   ret <- list(
@@ -224,6 +227,7 @@ game_rank <- function( dat,
     # data = dat,
     response = resp,
     variables = vars,
+    m = m,
     
     # Input parameters
     team_size = team_size,
@@ -241,7 +245,7 @@ game_rank <- function( dat,
     # Results
     match_matrix = MM,
     variable_ranking = vsel_result,
-    game_rank_selection = vsel_result %>% filter( selected ) %>% pull( variable ),
+    game_rank_selection = var_selection,
     
     optimization_result = oo,
     solution = oo$par,
@@ -255,6 +259,7 @@ game_rank <- function( dat,
 game_rank.formula <- function( fo, dat, 
                                fn_train = fn_train_binomial,
                                fn_eval  = fn_eval_binomial,
+                               m = NULL,
                                team_size = 5L,
                                rounds = 50L,
                                min_matches_per_var = 10L,
@@ -277,6 +282,7 @@ game_rank.formula <- function( fo, dat,
              vars = vars,
              fn_train = fn_train,
              fn_eval  = fn_eval,
+             m = m,
              team_size = team_size,
              rounds = rounds,
              min_matches_per_var = min_matches_per_var,

@@ -22,7 +22,8 @@ next_backward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, cur
   
   agg_evl <- df_evl %>% 
     group_by( ch_selection, removed ) %>%
-    summarise( mean_train = mean( eval_train, na.rm=TRUE ),
+    summarise( selection = first( selection ),
+               mean_train = mean( eval_train, na.rm=TRUE ),
                mean_validation = mean( eval_validation, na.rm=TRUE ),
                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
     ungroup
@@ -53,9 +54,9 @@ next_backward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, cur
 backward <- function( dat, resp, vars, 
                       fn_train = fn_train_binomial,
                       fn_eval  = fn_eval_binomial,
+                      m = m,
                       ds = 5L, 
                       maximize = TRUE, 
-                      min_partition = NULL,
                       ... ) {
   # Check parameters
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
@@ -63,7 +64,7 @@ backward <- function( dat, resp, vars,
   stopifnot( is.character(vars)  & 1 < length(vars) )
   stopifnot( is.logical(maximize) )
   
-  if( !is.integer(min_partition) | is.null(min_partition) ) min_partition <- 1
+  if( is.null(m) ) { stop( "Please provide number m of features to select.\n" ) }
   
   # Obtain evaluation splits
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
@@ -85,7 +86,7 @@ backward <- function( dat, resp, vars,
     Y <- queue[[1]]
     queue[[1]] <- NULL
     
-    if( min_partition <= length(Y) ) {
+    if( m <= length(Y) ) {
       best_vars <- next_backward( dat, resp, vars, fn_train, fn_eval, ds, maximize, Y, ... )
       df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( step = k ) )
       agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( step = k ) )
@@ -119,6 +120,7 @@ backward <- function( dat, resp, vars,
     # data = dat,
     response = resp,
     variables = vars,
+    m = m,
     
     # Input parameters
     splits = ds, 
@@ -137,6 +139,7 @@ backward <- function( dat, resp, vars,
 backward.formula <- function( fo, dat, 
                               fn_train = fn_train_binomial,
                               fn_eval  = fn_eval_binomial,
+                              m = NULL,
                               ds = 5L, 
                               maximize = TRUE,
                               min_partition = NULL,
@@ -156,8 +159,8 @@ backward.formula <- function( fo, dat,
             vars = vars,
             fn_train = fn_train,
             fn_eval  = fn_eval,
+            m = m,
             ds = ds, 
             maximize = maximize,
-            min_partition = min_partition,
             ... )
 }

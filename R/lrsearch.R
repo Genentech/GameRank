@@ -18,7 +18,7 @@ next_lrforward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, cu
   cat("\n")
   
   agg_evl <- df_evl %>% 
-    group_by( ch_selection, added ) %>%
+    group_by( ch_selection, added, selection ) %>%
     summarise( mean_train = mean( eval_train, na.rm=TRUE ),
                mean_validation = mean( eval_validation, na.rm=TRUE ),
                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
@@ -58,7 +58,7 @@ next_lrbackward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, c
   cat("\n")
   
   agg_evl <- df_evl %>% 
-    group_by( ch_selection, removed ) %>%
+    group_by( ch_selection, removed, selection ) %>%
     summarise( mean_train = mean( eval_train, na.rm=TRUE ),
                mean_validation = mean( eval_validation, na.rm=TRUE ),
                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
@@ -88,6 +88,7 @@ next_lrbackward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, c
 lrsearch <- function(  dat, resp, vars, 
                        fn_train = fn_train_binomial,
                        fn_eval  = fn_eval_binomial,
+                       m = NULL,
                        ds = 5L, 
                        maximize = TRUE,
                        L, R, 
@@ -103,6 +104,8 @@ lrsearch <- function(  dat, resp, vars,
   stopifnot( is.integer(L) )
   stopifnot( R!=L )
   stopifnot( 0 < kmax )
+  
+  if( is.null(m) ) { stop( "Please provide number m of features to select.\n" ) }
   
   # Obtain evaluation splits, if necessary
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
@@ -134,9 +137,9 @@ lrsearch <- function(  dat, resp, vars,
   }
   
   k <- 0
-  while( (k <= kmax) & (d != 0) ) {
+  while( (k <= kmax) & (m!=length(Y)) & (d != 0) ) {
     # L forward steps
-    while( (k <= kmax) & (d < 0) ) {
+    while( (k <= kmax) & (m!=length(Y)) & (d < 0) ) {
       best_vars <- next_lrforward( dat, resp, vars, fn_train, fn_eval, ds, maximize, Y, ... )
       df_evl  <- bind_rows(  df_evl, best_vars[['df_evl']] %>% mutate( step = k, d = d ) )
       agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( step = k, d = d ) )
@@ -151,7 +154,7 @@ lrsearch <- function(  dat, resp, vars,
     k <- k + 1
     
     # R backward steps
-    while( (k <= kmax) & (0 < d) ) {
+    while( (k <= kmax) & (m!=length(Y)) & (0 < d) ) {
       best_vars <- next_lrbackward( dat, resp, vars, fn_train, fn_eval, ds, maximize, Y, ... )
       df_evl  <- bind_rows(  df_evl, best_vars[['df_evl']] %>% mutate( step = k, d = d ) )
       agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( step = k, d = d ) )
@@ -185,6 +188,7 @@ lrsearch <- function(  dat, resp, vars,
     # data = dat,
     response = resp,
     variables = vars,
+    m = m,
     
     # Input parameters
     splits = ds, 
@@ -205,6 +209,7 @@ lrsearch <- function(  dat, resp, vars,
 lrsearch.formula <- function( fo, dat, 
                               fn_train = fn_train_binomial,
                               fn_eval  = fn_eval_binomial,
+                              m = NULL,
                               ds = 5L, 
                               maximize = TRUE,
                               L, R,
@@ -225,6 +230,7 @@ lrsearch.formula <- function( fo, dat,
             vars = vars,
             fn_train = fn_train,
             fn_eval  = fn_eval,
+            m = m,
             ds = ds, 
             maximize = maximize,
             L = L, R = R, 

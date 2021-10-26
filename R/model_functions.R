@@ -47,17 +47,20 @@ fn_eval_binomial <- function( dat, resp, selection, mod, ... ) {
   }, error = function( e ) NA )
   return( ret )  
 }
-'<.mad' <- function( a,b ) (as.numeric(b) < as.numeric(a)) # check b better than a [a<b]
 
-# fn_eval_binomial <- function( dat, resp, selection, mod, ... ) {
-#   fo <- as.formula( mod )
-#   prfp <- ROCR::performance( prediction = ROCR::prediction( predictions = predict( mod, newdata = dat, type = "response" ),
-#                                                             labels = as.character( model.frame( formula = fo, data = dat )[,1] ) ), 
-#                              measure = "auc"  )
-#   auc <- as.numeric( prfp@y.values )
-#   return( auc )
-# }
-
+fn_eval_binomial_auroc <- function( dat, resp, selection, mod, ... ) {
+  if( is.null(mod) ) return( NA )
+  ret <- NA
+  ret <- tryCatch({
+    fo <- as.formula( mod )
+    prfp <- ROCR::performance( prediction = ROCR::prediction( predictions = predict( mod, newdata = dat, type = "response" ),
+                                                              labels = as.character( model.frame( formula = fo, data = dat )[,1] ) ),
+                               measure = "auc"  )
+    auc <- as.numeric( prfp@y.values )
+    auc
+  }, error = function(e) NA )
+  return( ret )
+}
 
 # Survival model ----
 fn_train_cox <- function( dat, resp, selection, ... ) {
@@ -85,10 +88,56 @@ fn_eval_cox <- function( dat, resp, selection, mod, u = NULL, ... ) {
     grd.cox <- seq( quantile( prd, probs = 0.01, na.rm=TRUE ), 
                     quantile( prd, probs = 0.99, na.rm=TRUE ), 
                     length = 100 )
-    grd.prd.cll <- log(-log(1-grd.cox))
+    grd.prd.cll <- log(-log(1-grd.cox) )
     df.grd.cox <- data.frame( grd.cox, grd.prd.cll ) %>% setNames(c("prd","cll.prd"))
     df.grd.cox$prd.cal <- 1 - predictSurvProb( cal.cox, df.grd.cox, times = u )
     ret <- mean( abs( df.grd.cox$prd - df.grd.cox$prd.cal ) )
   }, error = function( e ) NA )
   return( ret )  
+}
+
+# Linear Discriminant Analysis
+fn_train_lda <- function( dat, resp, selection, lda_fit_type = "mle", ... ) {
+  mod <- NULL
+  mod <- tryCatch({
+    fo <- formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
+    mod <- lda( formula = fo, data = dat, method = lda_fit_type, ... )
+  }, error = function(e) NULL )
+  return( mod )
+}
+
+fn_eval_lda <- function( dat, resp, selection, mod, lda_pred_type = "plug-in", ... ) {
+  if( is.null(mod) ) return( NA )
+  ret <- NA
+  ret <- tryCatch({
+    tibble( y = dat %>% pull( resp ) %>% as.character, 
+            yhat = as.character( predict(mod, newdata=dat, method = lda_pred_type, ... )$class ) ) %>%
+      mutate( di = abs( y == yhat ) ) %>% 
+      pull( di ) %>%
+      mean 
+  }, error = function( e ) NA )
+  return( ret )
+}
+
+# Quadratic Discriminant Analysis
+fn_train_qda <- function( dat, resp, selection, qda_fit_type = "mle", ... ) {
+  mod <- NULL
+  mod <- tryCatch({
+    fo <- formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
+    mod <- qda( formula = fo, data = dat, method = qda_fit_type, ... )
+  }, error = function(e) NULL )
+  return( mod )
+}
+
+fn_eval_qda <- function( dat, resp, selection, mod, qda_pred_type = "plug-in", ... ) {
+  if( is.null(mod) ) return( NA )
+  ret <- NA
+  ret <- tryCatch({
+    tibble( y = dat %>% pull( resp ) %>% as.character, 
+            yhat = as.character( predict(mod, newdata=dat, method = qda_pred_type, ... )$class ) ) %>%
+      mutate( di = abs( y == yhat ) ) %>% 
+      pull( di ) %>%
+      mean 
+  }, error = function( e ) NA )
+  return( ret )
 }

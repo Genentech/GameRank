@@ -22,7 +22,8 @@ next_forward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, curr
   
   agg_evl <- df_evl %>% 
     group_by( ch_selection, added ) %>%
-    summarise( mean_train = mean( eval_train, na.rm=TRUE ),
+    summarise( selection = first( selection ),
+               mean_train = mean( eval_train, na.rm=TRUE ),
                mean_validation = mean( eval_validation, na.rm=TRUE ),
                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
     ungroup
@@ -53,9 +54,9 @@ next_forward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, curr
 forward <- function(  dat, resp, vars, 
                       fn_train = fn_train_binomial,
                       fn_eval  = fn_eval_binomial,
+                      m = NULL,
                       ds = 5L, 
                       maximize = TRUE,
-                      max_partition = NULL,
                       ... ) {
   # Check parameters
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
@@ -63,7 +64,7 @@ forward <- function(  dat, resp, vars,
   stopifnot( is.character(vars)  & 1 < length(vars) )
   stopifnot( is.logical(maximize) )
   
-  if( !is.integer(max_partition) | is.null(max_partition) ) max_partition <- length(vars)
+  if( is.null(m) ) { stop( "Please provide number m of features to select.\n" ) }
   
   # Obtain evaluation splits, if necessary
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
@@ -88,7 +89,7 @@ forward <- function(  dat, resp, vars,
     Y <- queue[[1]]
     queue[[1]] <- NULL
     
-    if( length(Y) <= max_partition ) {
+    if( length(Y) <= m ) {
       best_vars <- next_forward( dat, resp, vars, fn_train, fn_eval, ds, maximize, Y, ... )
       df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( step = k ) )
       agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( step = k ) )
@@ -122,10 +123,10 @@ forward <- function(  dat, resp, vars,
     # data = dat,
     response = resp,
     variables = vars,
+    m = m,
     
     # Input parameters
     splits = ds, 
-    max_partition = max_partition,
     maximize = maximize,
     
     # Results
@@ -140,10 +141,10 @@ forward <- function(  dat, resp, vars,
 forward.formula <- function( fo, dat, 
                              fn_train = fn_train_binomial,
                              fn_eval  = fn_eval_binomial,
+                             m = NULL,
                              ds = 5L, 
                              maximize = TRUE,
-                             max_partition = NULL,
-                              ...  ) 
+                             ...  ) 
 {
   # Check inputs
   stopifnot( is.formula( fo ) ) 
@@ -159,8 +160,8 @@ forward.formula <- function( fo, dat,
             vars = vars,
             fn_train = fn_train,
             fn_eval  = fn_eval,
+            m = NULL,
             ds = ds, 
             maximize = maximize,
-            max_partition = max_partition,
             ... )
 }

@@ -21,7 +21,8 @@ Imports:
   numDeriv,
   formula.tools,
   entropy,
-  ROCR
+  ROCR,
+  MASS
 Suggests:
     RcppAlgos,
     knitr,

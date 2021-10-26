@@ -17,7 +17,7 @@ next_bds_forward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, 
   cat("\n")
   
   agg_evl <- df_evl %>% 
-    group_by( ch_selection, added ) %>%
+    group_by( ch_selection, added, selection ) %>%
     summarise( mean_train = mean( eval_train, na.rm=TRUE ),
                mean_validation = mean( eval_validation, na.rm=TRUE ),
                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
@@ -57,7 +57,7 @@ next_bds_backward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize,
   cat("\n")
   
   agg_evl <- df_evl %>% 
-    group_by( ch_selection, removed ) %>%
+    group_by( ch_selection, removed, selection ) %>%
     summarise( mean_train = mean( eval_train, na.rm=TRUE ),
                mean_validation = mean( eval_validation, na.rm=TRUE ),
                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
@@ -86,9 +86,9 @@ next_bds_backward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize,
 bidirectional <- function( dat, resp, vars, 
                            fn_train = fn_train_binomial,
                            fn_eval  = fn_eval_binomial,
+                           m = NULL,
                            ds = 5L, 
                            maximize = TRUE,
-                           min_search_partition = 0,
                            ... )
 {
   # Check parameters
@@ -96,6 +96,8 @@ bidirectional <- function( dat, resp, vars,
   stopifnot( is.character(resp) )
   stopifnot( is.character(vars)  & 1 < length(vars) )
   stopifnot( is.logical(maximize) )
+  
+  if( is.null(m) ) { stop( "Please provide number m of features to select.\n" ) }
   
   # Obtain evaluation splits
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
@@ -118,7 +120,7 @@ bidirectional <- function( dat, resp, vars,
   Yf <- c( "1" )
   Yb <- vars # Contains features to select
   k <- 1
-  while( min_search_partition <= length( setdiff( Yb, Yf ) ) ) {
+  while( m <= length( setdiff( Yb, Yf ) ) ) {
     
     # Forward step
     best_vars <- next_bds_forward( dat, resp, vars, fn_train, fn_eval, ds, maximize, Yf, Yb, ... )
@@ -140,6 +142,7 @@ bidirectional <- function( dat, resp, vars,
     Yb <- setdiff( Yb, best_vars[['best_vars']] )
     cat("\n")
     
+    k <- k + 1
   } # while
   
   
@@ -160,10 +163,10 @@ bidirectional <- function( dat, resp, vars,
     # data = dat,
     response = resp,
     variables = vars,
+    m = m, 
     
     # Input parameters
     splits = ds, 
-    min_search_partition = min_search_partition,
     maximize = maximize,
     
     # Results
@@ -178,9 +181,9 @@ bidirectional <- function( dat, resp, vars,
 bidirectional.formula <- function( fo, dat, 
                                    fn_train = fn_train_binomial,
                                    fn_eval  = fn_eval_binomial,
+                                   m = NULL,
                                    ds = 5L, 
                                    maximize = TRUE,
-                                   min_search_partition = 0,
                                    ... )
 {
   # Check inputs
@@ -195,10 +198,10 @@ bidirectional.formula <- function( fo, dat,
   bidirectional( dat = dat,
                  resp = resp, 
                  vars = vars,
+                 m = m,
                  fn_train = fn_train,
                  fn_eval  = fn_eval,
                  ds = ds, 
                  maximize = maximize,
-                 min_search_partition = min_search_partition,
                  ... )
 }
