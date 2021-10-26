@@ -21,9 +21,8 @@ next_backward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, cur
   cat("\n")
   
   agg_evl <- df_evl %>% 
-    group_by( ch_selection, removed ) %>%
-    summarise( selection = first( selection ),
-               mean_train = mean( eval_train, na.rm=TRUE ),
+    group_by( ch_selection, removed, selection ) %>%
+    summarise( mean_train = mean( eval_train, na.rm=TRUE ),
                mean_validation = mean( eval_validation, na.rm=TRUE ),
                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
     ungroup
