@@ -1,7 +1,6 @@
 #
 # Backward Selection wrapper algorithm
 #
-source( "R/utils.R" )
 
 #
 # Return the best variable to add; in case of ties can be multiple, in case of ties; if none is found

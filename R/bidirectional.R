@@ -1,7 +1,7 @@
 #
 # Bidirectional Search wrapper algorithm
 #
-source( "R/utils.R" )
+
 
 next_bds_forward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, Yf, Yb, ...  ) {
   # browser()

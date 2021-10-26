@@ -1,5 +1,8 @@
+#
+# Sequential Floating Forward Selection (SFFS) and
+# Sequential Floating Backward Selection (SFBS)
+#
 
-source( "R/utils.R" )
 
 # Sequential Floating Forward Search ----
 

@@ -88,25 +88,3 @@ prepare_splits <- function( ds, dat, resp, vars, fn_train, fn_eval, ... ) {
 }
 
 
-eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ... ) {
-  var_sep <- ","
-  ret <- NULL
-  for( k in 1:ncol(ds) ) {
-    mod  <- fn_train( dat[which(1==ds[,k]),], resp, selection, ... )   # Obtain model from data in 1-fold
-    evl1 <- fn_eval(  dat[which(1==ds[,k]),], resp, selection, mod, ... ) # Evaluate model on data in 1-fold
-    evl2 <- fn_eval(  dat[which(2==ds[,k]),], resp, selection, mod, ... ) # Evaluate model on data in 2-fold
-    selection <- sort( selection )
-    txt_selection <- paste( selection, collapse = var_sep )
-    cnt <- length(selection)
-    rr <- tibble( selection = list( selection ),
-                  ch_selection = txt_selection,
-                  size = cnt,
-                  response = resp, 
-                  split = k,
-                  eval_train = evl1,
-                  eval_validation = evl2,
-                  bias = sqrt( (evl1 - evl2)^2 ) )
-    ret <- bind_rows( ret, rr )
-  } # for
-  return( ret )
-} # eval_splits (END)

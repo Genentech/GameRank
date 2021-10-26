@@ -1,7 +1,6 @@
 #
 # Plus-L, Minus-R Search
 #
-source( "R/utils.R" )
 
 
 next_lrforward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, current_selection, ...  ) {

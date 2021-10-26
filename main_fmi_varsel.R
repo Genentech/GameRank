@@ -59,19 +59,29 @@ lst_vars <- var_chks %>% arrange( desc( entropy )  ) %>% pull( variable ) # Sort
 
 
 df_sel <- df_sel %>% mutate_at( names(which(lst_is_char)), function(x) x %>% as.factor %>% fct_drop )
-df_test <- df_sel[which(3==g_set),]
-df_eval <- df_sel[which(2==g_set),]
+df_test  <- df_sel[which(3==g_set),]
+df_eval  <- df_sel[which(2==g_set),]
 df_train <- df_sel[which(1==g_set),]
 
 df_trnevl <- bind_rows( df_train, df_eval )
 
 ds_prior <- prepare_splits( ds = 3L, dat=df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox ) %>% as.matrix
 
-# lr_sel <- lrsearch( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 6L, ds = ds_prior, maximize = FALSE, R=2L, L=3L, kmax=2, u = 365 )
-# save.image(file = "~/GameRank/lrsearch.Rdata")
 
-bds_sel <- bidirectional( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 6, ds = ds_prior, maximize = FALSE, u = 365 )
-save.image(file = "~/GameRank/bidirectional.Rdata")
+df_evl <- eval_splits( ds_prior, df_trnevl, resp1, lst_vars[1:5], fn_train_cox, fn_eval_cox, u = 365 )
+agg_evl <- agg_evals( df_evl, NULL, minimize = TRUE ) 
+
+avl <- eval_add_vars( ds_prior, df_trnevl, resp1, lst_vars, fn_train_cox, fn_eval_cox, minimize = TRUE, lst_vars[1:5], NULL, u = 365 )
+avl
+
+avl <- eval_remove_vars( ds_prior, df_trnevl, resp1, lst_vars, fn_train_cox, fn_eval_cox, minimize = TRUE, lst_vars[1:5], NULL, u = 365 )
+avl
+
+r_sel <- lrsearch( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 6L, ds = ds_prior, maximize = FALSE, R=2L, L=3L, kmax=2, u = 365 )
+save.image(file = "~/GameRank/lrsearch.Rdata")
+
+# bds_sel <- bidirectional( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 6, ds = ds_prior, maximize = FALSE, u = 365 )
+# save.image(file = "~/GameRank/bidirectional.Rdata")
 
 # debugonce(backward)
 # bwd_sel <- backward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 6, ds = ds_prior, maximize = FALSE, u = 365 )
