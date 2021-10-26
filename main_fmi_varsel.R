@@ -67,44 +67,30 @@ df_trnevl <- bind_rows( df_train, df_eval )
 
 ds_prior <- prepare_splits( ds = 3L, dat=df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox ) %>% as.matrix
 
+# rnd_sel <- random_selection( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 7L, ds = ds_prior, nevals = 100L, maximize = FALSE, u = 365 )
+# rnd_sel
+# 
+# gmr_sel <- game_rank( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 7L, maximize = FALSE, u = 365 )
+# gmr_sel
+# 
+# fwd_sel <- forward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 2L, ds = ds_prior, maximize = FALSE, u = 365 )
+# fwd_sel
 
-df_evl <- eval_splits( ds_prior, df_trnevl, resp1, lst_vars[1:5], fn_train_cox, fn_eval_cox, u = 365 )
-agg_evl <- agg_evals( df_evl, NULL, minimize = TRUE ) 
+# bwd_sel <- backward( dat = df_trnevl, resp = resp1, vars = lst_vars[1:5], fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 3, ds = ds_prior, maximize = FALSE, u = 365 )
+# bwd_sel
 
-avl <- eval_add_vars( ds_prior, df_trnevl, resp1, lst_vars, fn_train_cox, fn_eval_cox, minimize = TRUE, lst_vars[1:5], NULL, u = 365 )
-avl
+# bwd_sel <- bidirectional( dat = df_trnevl, resp = resp1, vars = lst_vars[1:10], fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 3, ds = ds_prior, maximize = FALSE, u = 365 )
+# bwd_sel
 
-avl <- eval_remove_vars( ds_prior, df_trnevl, resp1, lst_vars, fn_train_cox, fn_eval_cox, minimize = TRUE, lst_vars[1:5], NULL, u = 365 )
-avl
+# lrs_sel <- lrsearch( dat = df_trnevl, resp = resp1, vars = lst_vars[1:10], fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 3L, L = 3L, R = 2L, ds = ds_prior, maximize = FALSE, u = 365 )
+# lrs_sel
 
-r_sel <- lrsearch( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 6L, ds = ds_prior, maximize = FALSE, R=2L, L=3L, kmax=2, u = 365 )
-save.image(file = "~/GameRank/lrsearch.Rdata")
-
-# bds_sel <- bidirectional( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 6, ds = ds_prior, maximize = FALSE, u = 365 )
-# save.image(file = "~/GameRank/bidirectional.Rdata")
-
-# debugonce(backward)
-# bwd_sel <- backward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 6, ds = ds_prior, maximize = FALSE, u = 365 )
-# save.image(file = "~/GameRank/backward.Rdata")
-
-# debugonce(forward)
-# fwd_sel <- forward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 6, ds = ds_prior, maximize = FALSE, u = 365 )
-# save.image(file = "~/GameRank/forward.Rdata")
-
-# grk_sel <- game_rank( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 6, team_size = 25L, maximize = FALSE, u = 365 )
-# save.image(file = "~/GameRank/group_rank.Rdata")
-
-# Issue with RcppAlgos
-# rnd_sel <- random_selection( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, ds = ds_prior, maximize = FALSE, u = 365 )
-# save.image(file = "~/GameRank/random.Rdata")
-
-
+sffs_sel <- sffs( dat = df_trnevl, resp = resp1, vars = lst_vars[1:10], fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 3L, ds = ds_prior, maximize = FALSE, u = 365 )
+sffs_sel
 
 
 #
 # To Do List:
-#  - Add train-/eval-functions for linear discriminant analysis (LDA)
-#  - Add Plus-L, Minus-R search
-#  - Add Sequential Floating Forward Search / Sequential Floating Backward Search (SFFS/SFBS)
 #  - Add Oscillating Search Algorithm for Feature Selection
+#  - Debug floating searches
 #

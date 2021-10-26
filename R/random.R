@@ -65,26 +65,8 @@ random_selection <- function( dat,
     results <- bind_rows( results, evl )
   }
   
-  agg <-  results %>% 
-    group_by( ch_selection, removed ) %>%
-    summarise( selection = first( selection ),
-               mean_train = mean( eval_train, na.rm=TRUE ),
-               mean_validation = mean( eval_validation, na.rm=TRUE ),
-               mean_bias = mean( bias, na.rm=TRUE ) ) %>%
-    ungroup %>%
-    arrange( desc(mean_validation), row )
-  
-  if( maximize ) {
-    best <- agg %>% filter( mean_validation >= max( mean_validation, na.rm=TRUE ) )  
-  } else {
-    best <- agg %>% filter( mean_validation <= min( mean_validation, na.rm=TRUE) )  
-  }
-  
-  best_results <- results %>% 
-    filter( ch_selection %in% best$ch_selection ) 
-  best_selections <- best_results %>%
-    pull( selection ) %>%
-    unique
+  agg <-  agg_evals( evl, "row", maximize )
+  best_selections <- best_selection( agg )
   
   ret <- list( # Input data
     # data = dat,
@@ -98,8 +80,8 @@ random_selection <- function( dat,
     
     # Results
     variable_selections = best_selections,
-    selection_results = best_results,
-    results = results
+    selection_results = agg,
+    results = evl
   )
   return( ret )
 }
