@@ -2,17 +2,22 @@
 # Backward Selection wrapper algorithm
 #
 
-#
-# Return the best variable to add; in case of ties can be multiple, in case of ties; if none is found
-# return the first of 'vars' in ret[['best_vars']]; also return evaluations and aggregate evaluations.
-#
-
 #' @title Backward selection algorithm
 #' 
 #' @description Starts with the full set of available features and removes the worst feature
-#' during each iteration until determined partition size is reached.
+#' during each iteration until determined partition size is reached. In case of ties, all partitions
+#' are explored.
 #' 
-#' @param dat Data.frame or tibble comprising data for model generation and validation.
+#' @details The backward selection algorithm runs as follows:
+#' \code{ \cr
+#' 1) Start with the full set Y0 = X \cr
+#' 2) Remove the worst feature x- = arg max_{x in Yk} J( Yk - x) \cr
+#' 3) Update Yk+1 = Yk - x-; k = k + 1 \cr
+#' 4) Go to 2) \cr
+#' }
+#' 
+#' @param fo Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )
+#' @param dat data.frame or tibble comprising data for model generation and validation.
 #' @param resp Character string defining the response (lhs) of the model formula.
 #' @param vars Character vector defining the list of variables for selection. Those are concatenated by '+' 
 #' as the right hand side (rhs) of the modelling formula.
@@ -28,6 +33,24 @@
 #' @param maximize A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).
 #' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
 #'
+#' @return List with elements
+#' \describe{
+#'  \item{response}{As from input parameters}
+#'  \item{variables}{As from input parameters}
+#'  \item{m}{As from input parameters}
+#'  \item{splits}{As from input parameters}
+#'  \item{maximize}{As from input parameters}
+#'  \item{start}{Start time of core algorithm loop}
+#'  \item{end}{End time of core algorithm loop}
+#'  \item{variable_selections}{Best selections overall (regardless of m)}
+#'  \item{results}{Dataset with one record per train:validation evaluation}
+#'  \item{agg_results}{Dataset with averaged performance over splits}
+#' }
+#' @name backward
+NULL
+
+#' @rdname backward
+#' @export
 backward <- function( dat, resp, vars, 
                       fn_train = fn_train_binomial,
                       fn_eval  = fn_eval_binomial,
@@ -46,6 +69,7 @@ backward <- function( dat, resp, vars,
   # Obtain evaluation splits
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
   
+  start_time <- Sys.time()
   # Sequential Backward Selection algorithm:
   # 1) Start with the full set Y0 = X
   # 2) Remove the worst feature x- = arg max_{x in Yk} J( Yk - x)
@@ -74,13 +98,14 @@ backward <- function( dat, resp, vars,
     cat( sprintf( "Finished iteration %d \n", k ) )
     k <- k + 1
   } # while
+  end_time <- Sys.time()
   
   # Determine best selection(s)
   agg <- agg_evals( df_evl, NULL, maximize )
   best_selections <- best_selection( agg )
   
-  ret <- list( # Input data
-    # data = dat,
+  ret <- list( 
+    # Parameters
     response = resp,
     variables = vars,
     m = m,
@@ -88,6 +113,9 @@ backward <- function( dat, resp, vars,
     # Input parameters
     splits = ds, 
     maximize = maximize,
+    
+    # Time
+    start = start_time, end = end_time,
     
     # Results
     variable_selections = best_selections,
@@ -97,6 +125,8 @@ backward <- function( dat, resp, vars,
   return( ret )
 } # backward (END)
 
+#' @rdname backward
+#' @export
 backward.formula <- function( fo, dat, 
                               fn_train = fn_train_binomial,
                               fn_eval  = fn_eval_binomial,

@@ -2,6 +2,7 @@
 % Please edit documentation in R/backward.R
 \name{backward}
 \alias{backward}
+\alias{backward.formula}
 \title{Backward selection algorithm}
 \usage{
 backward(
@@ -13,6 +14,18 @@ backward(
   m = m,
   ds = 5L,
   maximize = TRUE,
+  ...
+)
+
+backward.formula(
+  fo,
+  dat,
+  fn_train = fn_train_binomial,
+  fn_eval = fn_eval_binomial,
+  m = NULL,
+  ds = 5L,
+  maximize = TRUE,
+  min_partition = NULL,
   ...
 )
 }
@@ -40,8 +53,35 @@ Note this parameter is used for stopping only. Best selection will be determined
 \item{maximize}{A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).}
 
 \item{...}{An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.}
+
+\item{fo}{Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )}
+}
+\value{
+List with elements
+\describe{
+ \item{response}{As from input parameters}
+ \item{variables}{As from input parameters}
+ \item{m}{As from input parameters}
+ \item{splits}{As from input parameters}
+ \item{maximize}{As from input parameters}
+ \item{start}{Start time of core algorithm loop}
+ \item{end}{End time of core algorithm loop}
+ \item{variable_selections}{Best selections overall (regardless of m)}
+ \item{results}{Dataset with one record per train:validation evaluation}
+ \item{agg_results}{Dataset with averaged performance over splits}
+}
 }
 \description{
 Starts with the full set of available features and removes the worst feature
-during each iteration until determined partition size is reached.
+during each iteration until determined partition size is reached. In case of ties, all partitions
+are explored.
+}
+\details{
+The backward selection algorithm runs as follows:
+\code{ \cr
+1) Start with the full set Y0 = X \cr
+2) Remove the worst feature x- = arg max_{x in Yk} J( Yk - x) \cr
+3) Update Yk+1 = Yk - x-; k = k + 1 \cr
+4) Go to 2) \cr
+}
 }
