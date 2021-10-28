@@ -1,6 +1,6 @@
 
 #
-# Write custom summary parts for TLS reporting
+# Write custom summary parts for descriptive reporting
 #
 
 summary.logical <- function( ... ) {

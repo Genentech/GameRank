@@ -1,6 +1,12 @@
 #
-# Utils evaluation
+# Utility evaluation
 #
+
+#' @title Split evaluation function
+#' 
+#' @description 
+#' 
+#' @export
 eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ..., var_sep = "," ) 
 {
   ret <- NULL

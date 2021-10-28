@@ -8,6 +8,69 @@
 #
 
 
+#' @title GameRank algorithm
+#' 
+#' @description GameRank is an two phase algorithm that first builds a comparison of feature set pairs and evaluates them
+#' on repeated 50:50 random training:validation splits. In the second phase it uses those evaluations to estimate a maximum
+#' likelihood ranking model for feature combinations.
+#' 
+#' @details The Game Rank algorithm runs as follows:
+#' \code{ \cr
+#' 1. Build a sampling matrix of disjoint and unique feature combinations
+#' 2. For each combination evaluate the model per training:validation splits.
+#' 3. Return the best selection.
+#' }
+#' 
+#' @param fo Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )
+#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param resp Character string defining the response (lhs) of the model formula.
+#' @param vars Character vector defining the list of variables for selection. Those are concatenated by '+' 
+#' as the right hand side (rhs) of the modelling formula.
+#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param m Size of final partition size. 
+#' @param team_size Selection sizes that are evaluated during match phase against each other
+#' @param rounds Number of rounds each pair of selections is evaluated on randomly selected train/eval sets
+#' @param min_matches_per_var Minimum number of matches each variable needs to be part of before the match phase can end
+#' @param opt_method Should be either 'BFGS' or 'CG', the latter in case Hessian-based optimization is infeasible for the match data
+#' @param max_iter Maximum number of optimization iterations for group rank model fit, passed to optim( ... ).
+#' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
+#'
+#' @return List with elements
+#' \describe{
+#'  \item{response}{As from input parameters}
+#'  \item{variables}{As from input parameters}
+#'  \item{m}{As from input parameters}
+#'  \item{maximize}{As from input parameters}
+#'  \item{team_size}{As from input parameters}
+#'  \item{rounds}{As from input parameters}
+#'  \item{min_matches_per_var}{As from input parameters}
+#'  \item{opt_method}{As from input parameters}
+#'  \item{max_iter}{As from input parameters}
+#'  \item{start}{Start time of core algorithm loop}
+#'  \item{end}{End time of core algorithm loop}
+
+#'  \item{match_matrix}{The match matrix that was used to determine the feature selection comparisons.}
+#'  \item{variable_ranking}{Tibble with variable ranking, including standard errors}
+#'  \item{game_rank_selection}{Best m variables as final selection per maximum likelihood estimate.}
+
+#'  \item{optimization_result}{Result of optimization call.}
+#'  \item{solution}{Optimization solution vector.}
+#'  \item{score_vector}{Gradient at optimal solution (score vector)}
+#'  \item{inv_hessian}{Inverse Hessian matrix at optimal solution. Can be used for Delta method.}
+#' }
+#' @name game_rank
+NULL
+
+#
+# Algorithm to generate a match matrix that enumerates random feature selection pairs
+# with predefined size and ensures that each feature is part of a minimum number of evaluations.
+#
+# The match matrix bears +1 for the (+) team and -1 for the (-) team, and 0 for all others.
+# An index vector into the list of variables is created and then chunked in sizes of team_size
+# to alternatingly define (+) and (-) teams being added to the match matrix until it is empty and 
+# then is refilled. The process continues until each feature is evaluated min_matches_per_var times.
+#
 build_match_matrix <- function( sel, team_size, min_matches_per_var ) {
   
   sel[1:length(sel)] <- 0 # Set all elements to 0
@@ -32,30 +95,20 @@ build_match_matrix <- function( sel, team_size, min_matches_per_var ) {
 }
 
 # GameRank ----
-#' @title GameRank - A maximum-likelihood based wrapper for variable selection
-#' 
-#' @param dat Is either a data.frame or tibble with the full dataset used for selection
-#' @param resp Character string defining response variable (e.g. either a variable name or an formula expression, like 'Surv(time,censored)', used by fn_train and fn_eval)
-#' @param vars Character strings with variables or variable expressions. Subselections will be fed into fn_train and fn_eval functions.
-#' @param team_size Selection sizes that are evaluated during match phase against each other
-#' @param rounds Number of rounds each pair of selections is evaluated on randomly selected train/eval sets
-#' @param min_matches_per_var Minimum number of matches each variable needs to be part of before the match phase can end
-#' @param opt_method Should be either 'BFGS' or 'CG', the latter in case Hessian-based optimization is infeasible for the match data
-#' @param max_iter Maximum number of rounds of the match phase and for group rank model fit.
-#' 
-#' @returns List with selection results [TBD]
+#' @rdname game_rank
+#' @export
 game_rank <- function( dat,
                        resp,
                        vars,
                        fn_train = fn_train_binomial,
                        fn_eval  = fn_eval_binomial,
                        m = NULL,
+                       maximize = TRUE,
                        team_size = 5L,
                        rounds = 50L,
                        min_matches_per_var = 10L,
                        opt_method = "BFGS",
-                       max_iter = as.integer(1E8), 
-                       maximize = TRUE,
+                       max_iter = 1E8L, 
                        ...
                        )
 {
@@ -75,8 +128,8 @@ game_rank <- function( dat,
   stopifnot( is.integer(max_iter) )
   stopifnot( is.logical(maximize) )
   
+  start_time <- Sys.time()
   # Initialize variables ----
-  total_start_time = Sys.time()
   sel <- rep_len( 0.0, length.out = length(vars) )
   names(sel) <- vars
   # Initialize team vector, set first to +1, second to -1 and rest to 0
@@ -102,8 +155,6 @@ game_rank <- function( dat,
   cat( sprintf( "Comparing variable selections (# matches %d)--- \n", nrow(MM) ) )
   t <- 1
   res_matches <- NULL
-  time_start <- Sys.time()
-  # while( n_matches < max_iter && (is.null(res_matches) || !all( min_matches_per_var < colSums( abs( res_matches[,-c(1,2)] ) ) ) ) ) {
   while( t <= nrow(MM) ) {
     # Tpm[ 1:length(Tpm) ] <- Tpm[ order( runif( length( Tpm ) ) ) ] # Shuffle teams
     Tpm <- MM[t,]
@@ -151,11 +202,8 @@ game_rank <- function( dat,
     cat( sprintf( "Iteration %d -- (+) : (-) scored %d : %d \n", t, np, nn ) )
     t <- t + 1 # Iteration counter
   } # while (END)
-  time_stop <- Sys.time()
-  match_time <- difftime( time1 = time_stop, time2 = time_start, units = "secs" )
-  cat( sprintf( "Match phase took %1.4s \n", as.double(match_time) ))
   
-  # Evaluating Group Rank Maximumn Likelihood estimator 
+  # Evaluating Group Rank Maximum Likelihood estimator 
   # Define group rank negative log-likelihood function ----
   # Huang et al., 2008, p.10, Eq.31
   ll_gr <- local({
@@ -188,7 +236,6 @@ game_rank <- function( dat,
   
   # Fitting Group Rank model ----
   cat( "Optimizing maximum likelihood \n" )
-  time_start <- Sys.time()
   oo <- optim( par = sel, fn = ll_gr, gr = ll_gr_grad, method = opt_method, control = list( fnscale = +1L, maxit = max_iter ) )
   oo
   
@@ -203,13 +250,7 @@ game_rank <- function( dat,
   vv <- chol2inv( hh )
   rownames(vv) <- colnames(vv) <- colnames(hh)
   vv
-  time_stop <- Sys.time()
-  grprnk_time <- difftime( time1 = time_stop, time2 = time_start, units = "secs" )
-  cat( sprintf( "Fitting GroupRank model took %1.4s \n", as.double(grprnk_time) ))
-  
-  total_stop_time = Sys.time()
-  total_time <- difftime( time1 = total_stop_time, time2 = total_start_time, units = "secs" )
-  cat( sprintf( "Overall selection process took %1.4s \n", as.double(total_time) ))
+  end_time <- Sys.time()
   
   # Compiling results  ----
   cat( "Compiling results \n" )
@@ -237,10 +278,9 @@ game_rank <- function( dat,
     max_iter = max_iter,
     maximize = maximize,
     
-    # Timings 
-    match_time = match_time,
-    grprnk_time = grprnk_time,
-    total_time = total_time,
+    
+    # Time
+    start = start_time, end = end_time,
     
     # Results
     match_matrix = MM,
@@ -257,16 +297,18 @@ game_rank <- function( dat,
 } # game_rank (END)
 
 # GameRank formula interface ----
+#' @rdname game_rank
+#' @export
 game_rank.formula <- function( fo, dat, 
                                fn_train = fn_train_binomial,
                                fn_eval  = fn_eval_binomial,
                                m = NULL,
+                               maximize = TRUE,
                                team_size = 5L,
                                rounds = 50L,
                                min_matches_per_var = 10L,
                                opt_method = "BFGS",
-                               max_iter = as.integer(1E8), 
-                               maximize = TRUE,
+                               max_iter = 1E8L, 
                                ... ) 
 {
   # Check inputs
@@ -284,12 +326,12 @@ game_rank.formula <- function( fo, dat,
              fn_train = fn_train,
              fn_eval  = fn_eval,
              m = m,
+             maximize = maximize,
              team_size = team_size,
              rounds = rounds,
              min_matches_per_var = min_matches_per_var,
              opt_method = opt_method,
              max_iter = max_iter,
-             maximize = maximize,
              ... )
 } # game_rank.formula (END)
 
@@ -298,6 +340,8 @@ game_rank.formula <- function( fo, dat,
 # Given a Match matrix, we want to estimate (differential) team score and their
 # standard errors using the Delta method. We also construct (1-alpha)% confidence
 # intervals using Normal approximation.
+#
+# TODO Debug and check!
 #
 estimate_T_matches <- function( Tm, vs, HH, alpha = 0.05 ) {
   stopifnot( is.matrix(Tm) & 0==length( setdiff( unique(as.numeric(Tm)), c(-1L,0L,+1L) ) ) )

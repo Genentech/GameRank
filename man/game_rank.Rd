@@ -2,7 +2,8 @@
 % Please edit documentation in R/game_rank.R
 \name{game_rank}
 \alias{game_rank}
-\title{GameRank - A maximum-likelihood based wrapper for variable selection}
+\alias{game_rank.formula}
+\title{GameRank algorithm}
 \usage{
 game_rank(
   dat,
@@ -11,21 +12,43 @@ game_rank(
   fn_train = fn_train_binomial,
   fn_eval = fn_eval_binomial,
   m = NULL,
+  maximize = TRUE,
   team_size = 5L,
   rounds = 50L,
   min_matches_per_var = 10L,
   opt_method = "BFGS",
-  max_iter = as.integer(1e+08),
+  max_iter = 100000000L,
+  ...
+)
+
+game_rank.formula(
+  fo,
+  dat,
+  fn_train = fn_train_binomial,
+  fn_eval = fn_eval_binomial,
+  m = NULL,
   maximize = TRUE,
+  team_size = 5L,
+  rounds = 50L,
+  min_matches_per_var = 10L,
+  opt_method = "BFGS",
+  max_iter = 100000000L,
   ...
 )
 }
 \arguments{
-\item{dat}{Is either a data.frame or tibble with the full dataset used for selection}
+\item{dat}{data.frame or tibble comprising data for model generation and validation.}
 
-\item{resp}{Character string defining response variable (e.g. either a variable name or an formula expression, like 'Surv(time,censored)', used by fn_train and fn_eval)}
+\item{resp}{Character string defining the response (lhs) of the model formula.}
 
-\item{vars}{Character strings with variables or variable expressions. Subselections will be fed into fn_train and fn_eval functions.}
+\item{vars}{Character vector defining the list of variables for selection. Those are concatenated by '+' 
+as the right hand side (rhs) of the modelling formula.}
+
+\item{fn_train}{Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.}
+
+\item{fn_eval}{Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.}
+
+\item{m}{Size of final partition size.}
 
 \item{team_size}{Selection sizes that are evaluated during match phase against each other}
 
@@ -35,11 +58,45 @@ game_rank(
 
 \item{opt_method}{Should be either 'BFGS' or 'CG', the latter in case Hessian-based optimization is infeasible for the match data}
 
-\item{max_iter}{Maximum number of rounds of the match phase and for group rank model fit.}
+\item{max_iter}{Maximum number of optimization iterations for group rank model fit, passed to optim( ... ).}
+
+\item{...}{An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.}
+
+\item{fo}{Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )}
 }
 \value{
-List with selection results [TBD]
+List with elements
+\describe{
+ \item{response}{As from input parameters}
+ \item{variables}{As from input parameters}
+ \item{m}{As from input parameters}
+ \item{maximize}{As from input parameters}
+ \item{team_size}{As from input parameters}
+ \item{rounds}{As from input parameters}
+ \item{min_matches_per_var}{As from input parameters}
+ \item{opt_method}{As from input parameters}
+ \item{max_iter}{As from input parameters}
+ \item{start}{Start time of core algorithm loop}
+ \item{end}{End time of core algorithm loop}
+ \item{match_matrix}{The match matrix that was used to determine the feature selection comparisons.}
+ \item{variable_ranking}{Tibble with variable ranking, including standard errors}
+ \item{game_rank_selection}{Best m variables as final selection per maximum likelihood estimate.}
+ \item{optimization_result}{Result of optimization call.}
+ \item{solution}{Optimization solution vector.}
+ \item{score_vector}{Gradient at optimal solution (score vector)}
+ \item{inv_hessian}{Inverse Hessian matrix at optimal solution. Can be used for Delta method.}
+}
 }
 \description{
-GameRank - A maximum-likelihood based wrapper for variable selection
+GameRank is an two phase algorithm that first builds a comparison of feature set pairs and evaluates them
+on repeated 50:50 random training:validation splits. In the second phase it uses those evaluations to estimate a maximum
+likelihood ranking model for feature combinations.
+}
+\details{
+The Game Rank algorithm runs as follows:
+\code{ \cr
+1. Build a sampling matrix of disjoint and unique feature combinations
+2. For each combination evaluate the model per training:validation splits.
+3. Return the best selection.
+}
 }

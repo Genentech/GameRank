@@ -3,6 +3,8 @@
 #
 
 # Regression model ----
+#' @rdname model_functions
+#' @export
 fn_train_normal_ml_imp <- function( dat, resp, selection, ... ) {
   fo <- formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
   fo <- rewrite_formula( fo, dat )
@@ -11,6 +13,8 @@ fn_train_normal_ml_imp <- function( dat, resp, selection, ... ) {
 }
 
 # Binomial model ----
+#' @rdname model_functions
+#' @export
 fn_train_binomial_ml_imp <- function( dat, resp, selection, ... ) {
   fo <- formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
   fo <- rewrite_formula( fo, dat )
@@ -18,17 +22,9 @@ fn_train_binomial_ml_imp <- function( dat, resp, selection, ... ) {
   return( mod )
 }
 
-# fn_eval_binomial <- function( dat, resp, selection, mod, ... ) {
-#   fo <- as.formula( mod )
-#   prfp <- ROCR::performance( prediction = ROCR::prediction( predictions = predict( mod, newdata = dat, type = "response" ),
-#                                                             labels = as.character( model.frame( formula = fo, data = dat )[,1] ) ), 
-#                              measure = "auc"  )
-#   auc <- as.numeric( prfp@y.values )
-#   return( auc )
-# }
-
-
 # Survival model ----
+#' @rdname model_functions
+#' @export
 fn_train_cox_ml_imp <- function( dat, resp, selection, ... ) {
   fo <- formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
   fo <- rewrite_formula( fo, dat )

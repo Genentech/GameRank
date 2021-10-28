@@ -84,8 +84,8 @@ run training:validation evaluation for each selection, and returns the best comb
 \details{
 The random search algorithm runs as follows:
 \code{ \cr
-1. Build a sampling matrix of disjoint and unique feature combinations
-2. For each combination evaluate the model per training:validation splits.
-3. Return the best selection.
+1. Build a sampling matrix of disjoint and unique feature combinations \cr
+2. For each combination evaluate the model per training:validation splits. \cr
+3. Return the best selection. \cr
 }
 }
