@@ -70,9 +70,6 @@ ds_prior <- prepare_splits( ds = 3L, dat=df_trnevl, resp = resp1, vars = lst_var
 # rnd_sel <- random_selection( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 7L, ds = ds_prior, nevals = 100L, maximize = FALSE, u = 365 )
 # rnd_sel
 # 
-# gmr_sel <- game_rank( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 7L, maximize = FALSE, u = 365 )
-# gmr_sel
-# 
 # fwd_sel <- forward( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 2L, ds = ds_prior, maximize = FALSE, u = 365 )
 # fwd_sel
 
@@ -85,12 +82,29 @@ ds_prior <- prepare_splits( ds = 3L, dat=df_trnevl, resp = resp1, vars = lst_var
 # lrs_sel <- lrsearch( dat = df_trnevl, resp = resp1, vars = lst_vars[1:10], fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 3L, L = 3L, R = 2L, ds = ds_prior, maximize = FALSE, u = 365 )
 # lrs_sel
 
-sffs_sel <- sffs( dat = df_trnevl, resp = resp1, vars = lst_vars[1:10], fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 3L, ds = ds_prior, maximize = FALSE, u = 365 )
-sffs_sel
+gmr_sel <- game_rank( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 7L, team_size = 20L, rounds = 5L, maximize = FALSE, u = 365 )
+gmr_sel
+
+vs = gmr_sel$solution
+HH = gmr_sel$inv_hessian
+
+mmp <- gmr_sel$match_matrix
+mmp <- ifelse( +1L==mmp, 1L, 0L )
+mmn <- gmr_sel$match_matrix
+mmn <- ifelse( -1L==mmn, 1L, 0L )
+mm <- rbind( mmp, mmn )
+
+tt <- estimate_T_matches(  mm, vs, HH )
+tt
 
 
 #
 # To Do List:
 #  - Add Oscillating Search Algorithm for Feature Selection
 #  - Debug floating searches
+# TODO Debug and fix
+# sffs_sel <- sffs( dat = df_trnevl, resp = resp1, vars = lst_vars[1:10], fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 3L, ds = ds_prior, maximize = FALSE, u = 365 )
+# sffs_sel
 #
+
+

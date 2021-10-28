@@ -6,7 +6,7 @@
 #
 # Add some simple transformations, following https://rcompanion.org/handbook/I_12.html
 #
-# Add transformed variable if Normality is improved, as found by increase in Shapiro-Wilk W statistic
+# Add transformed variable if Normality is improved, as found by increase in Shapiro-Wilk W statistic.
 #
 simple_transforms <- function( dat, vars, 
                                transforms = c("sqrt","cubert","log", "zscore" ),

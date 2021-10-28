@@ -252,6 +252,7 @@ game_rank <- function( dat,
     score_vector = gg,
     inv_hessian = hh
   )
+  class( ret ) <- c( "GameRank", class(ret) )
   return( ret )
 } # game_rank (END)
 
@@ -291,3 +292,39 @@ game_rank.formula <- function( fo, dat,
              maximize = maximize,
              ... )
 } # game_rank.formula (END)
+
+
+#
+# Given a Match matrix, we want to estimate (differential) team score and their
+# standard errors using the Delta method. We also construct (1-alpha)% confidence
+# intervals using Normal approximation.
+#
+estimate_T_matches <- function( Tm, vs, HH, alpha = 0.05 ) {
+  stopifnot( is.matrix(Tm) & 0==length( setdiff( unique(as.numeric(Tm)), c(-1L,0L,+1L) ) ) )
+  stopifnot( is.numeric(vs) )
+  stopifnot( (length(vs)==nrow(HH)) & (length(vs)==ncol(HH)) )
+  
+  # TODO: Check this implementation for correctness!
+  Tscore <- function( m ) { as.numeric( m %*% vs ) } 
+  se_Tscore <- function( m ) {
+    gg <- grad( func = Tscore, x = m )
+    # hh <- hessian( func = Tscore, x = m )
+    as.numeric( gg %*% HH %*% gg )
+  } 
+  
+  zz <- qnorm( 1 - alpha / 2.0 )
+  rr <- matrix( NA, ncol = 4, nrow = nrow(Tm) )
+  colnames(rr) <- c("dT","dT.se","dT.LCL","dT.UCL")
+  for( i in 1:nrow(rr) ) {
+    rr[i,"dT"] <- Tscore( Tm[i,] )
+    rr[i,"dT.se"] <- se_Tscore( Tm[i,] )
+  }
+  rr[,"dT.LCL"] <- rr[,"dT"] - zz * rr[,"dT.se"] 
+  rr[,"dT.UCL"] <- rr[,"dT"] + zz * rr[,"dT.se"]
+  return( rr )  
+}
+
+estimate_T_matches.GameRank <- function( gmr_result, Tm ) {
+  estimate_T_matches( Tm = Tm, vs = gmr_result$solution ) 
+}
+
