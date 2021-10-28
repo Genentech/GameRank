@@ -7,49 +7,27 @@
 # return the first of 'vars' in ret[['best_vars']]; also return evaluations and aggregate evaluations.
 #
 
-# next_backward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, current_selection, ...  ) {
-#   # browser()
-#   remaining_vars <- current_selection
-#   cat( "Evaluating:")
-#   l_evl <- lapply( remaining_vars, function( nvar, ... ) {
-#     cat( " ", nvar, " " )
-#     ret <- eval_splits( ds, dat, resp, setdiff( current_selection, nvar ), fn_train, fn_eval, ... )
-#     ret$removed <- nvar
-#     return( ret )
-#   }, ... )
-#   df_evl <- Reduce( bind_rows, l_evl, NULL )
-#   cat("\n")
-#   
-#   agg_evl <- df_evl %>% 
-#     group_by( ch_selection, removed, selection ) %>%
-#     summarise( mean_train = mean( eval_train, na.rm=TRUE ),
-#                mean_validation = mean( eval_validation, na.rm=TRUE ),
-#                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
-#     ungroup
-#   
-#   ret <- list( df_evl = df_evl, agg_evl = agg_evl )
-#   if( all( is.na(agg_evl$mean_validation) ) ) {
-#     ret[['best_vars']] <- c( remaining_vars[length(remaining_vars)] )
-#     cat( sprintf( "No best found, removing last (%s) \n", ret[['best_vars']] ) )
-#   } else if( maximize ) {
-#     ret[['best_vars']] <- agg_evl %>% 
-#       filter( !is.na(mean_validation) ) %>% 
-#       filter( max( mean_validation, na.rm=TRUE ) <= mean_validation ) %>%
-#       pull( removed )
-#     cat( sprintf( "Best found, removal variable (%s) \n", ret[['best_vars']] ) )
-#   } else if( !maximize ) {
-#     ret[['best_vars']] <- agg_evl %>% 
-#       filter( !is.na(mean_validation) ) %>% 
-#       filter( mean_validation <= min( mean_validation, na.rm=TRUE ) ) %>%
-#       pull( removed )
-#     cat( sprintf( "Best found, removal variable (%s) \n", ret[['best_vars']] ) )
-#   }
-#   return( ret )
-# }
-
-#
-# Conduct one backward wrapper algorithm
-#
+#' @title Backward selection algorithm
+#' 
+#' @description Starts with the full set of available features and removes the worst feature
+#' during each iteration until determined partition size is reached.
+#' 
+#' @param dat Data.frame or tibble comprising data for model generation and validation.
+#' @param resp Character string defining the response (lhs) of the model formula.
+#' @param vars Character vector defining the list of variables for selection. Those are concatenated by '+' 
+#' as the right hand side (rhs) of the modelling formula.
+#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param m Size of final partition size. 
+#' Note this parameter is used for stopping only. Best selection will be determined by whole set of evaluated selections, i.e., can be larger than m.
+#' @param ds Definition of (parallel) training:validation splits
+#'  - a matrix with d columns containing 1s and 2s, where 1 denotes sample is used for training the model and 2 denotes sample used for validation.
+#'    The average of all d training:validation results is used for selection.
+#'  - an integer number determing the number of random training:validation splits that should be generated. The sampling will ensure a sufficient number
+#'    of complete cases in the training split.
+#' @param maximize A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).
+#' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
+#'
 backward <- function( dat, resp, vars, 
                       fn_train = fn_train_binomial,
                       fn_eval  = fn_eval_binomial,

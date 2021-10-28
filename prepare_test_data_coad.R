@@ -14,7 +14,6 @@ library( labelled )
 library( curatedTCGAData )
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
-# 
 # BiocManager::install("TCGAutils")
 library( TCGAutils )
 

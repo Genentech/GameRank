@@ -26,5 +26,8 @@ Imports:
 Suggests:
     RcppAlgos,
     knitr,
-    rmarkdown
+    rmarkdown,
+    curatedTCGAData,
+    TCGAutils
 VignetteBuilder: knitr
+RoxygenNote: 7.1.0
