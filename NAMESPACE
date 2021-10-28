@@ -2,3 +2,11 @@
 
 export(backward)
 export(backward.formula)
+export(bidirectional)
+export(bidirectional.formula)
+export(forward)
+export(forward.formula)
+export(lrsearch)
+export(lrsearch.formula)
+export(random_selection)
+export(random_selection.formula)

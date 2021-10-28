@@ -1,8 +1,8 @@
 #
-# Backward Selection wrapper algorithm
+# Sequential Backward Selection algorithm
 #
 
-#' @title Backward selection algorithm
+#' @title Sequential Backward Selection algorithm
 #' 
 #' @description Starts with the full set of available features and removes the worst feature
 #' during each iteration until determined partition size is reached. In case of ties, all partitions

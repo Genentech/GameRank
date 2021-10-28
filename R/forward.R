@@ -2,54 +2,55 @@
 # Forward Selection wrapper algorithm
 #
 
-#
-# Return the best variable to add; in case of ties can be multiple, in case of ties; if none is found
-# return the first of 'vars' in ret[['best_vars']]; also return evaluations and aggregate evaluations.
-#
+#' @title Sequential Forward Selection algorithm
+#' 
+#' @description Starts with the empty set of available features and adds the best feature
+#' during each iteration until determined partition size is reached. In case of ties, all partitions
+#' are explored.
+#' 
+#' @details The Sequential Forward Selection algorithm runs as follows:
+#' \code{ \cr
+#'  1) Start with the empty set Y0 = {} \cr
+#'  2) Select the next best feature x+ = arg max J( Yk + x ) for x not in Yk \cr
+#'  3) Update Yk+1 = Yk + x+; k = k + 1 \cr
+#'  4) Go to 2 \cr
+#' }
+#' 
+#' @param fo Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )
+#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param resp Character string defining the response (lhs) of the model formula.
+#' @param vars Character vector defining the list of variables for selection. Those are concatenated by '+' 
+#' as the right hand side (rhs) of the modelling formula.
+#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param m Size of final partition size. 
+#' Note this parameter is used for stopping only. Best selection will be determined by whole set of evaluated selections, i.e., can be larger than m.
+#' @param ds Definition of (parallel) training:validation splits
+#'  - a matrix with d columns containing 1s and 2s, where 1 denotes sample is used for training the model and 2 denotes sample used for validation.
+#'    The average of all d training:validation results is used for selection.
+#'  - an integer number determing the number of random training:validation splits that should be generated. The sampling will ensure a sufficient number
+#'    of complete cases in the training split.
+#' @param maximize A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).
+#' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
+#'
+#' @return List with elements
+#' \describe{
+#'  \item{response}{As from input parameters}
+#'  \item{variables}{As from input parameters}
+#'  \item{m}{As from input parameters}
+#'  \item{splits}{As from input parameters}
+#'  \item{maximize}{As from input parameters}
+#'  \item{start}{Start time of core algorithm loop}
+#'  \item{end}{End time of core algorithm loop}
+#'  \item{variable_selections}{Best selections overall (regardless of m)}
+#'  \item{results}{Dataset with one record per train:validation evaluation}
+#'  \item{agg_results}{Dataset with averaged performance over splits}
+#' }
+#' @name forward
+NULL
 
-# next_forward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, current_selection, ...  ) {
-#   # browser()
-#   remaining_vars <- setdiff( vars, current_selection )
-#   cat( "Evaluating:")
-#   l_evl <- lapply( remaining_vars, function( nvar, ... ) {
-#     cat( " ", nvar, " " )
-#     ret <- eval_splits( ds, dat, resp, union( current_selection, nvar ), fn_train, fn_eval, ... )
-#     ret$added <- nvar
-#     return( ret )
-#   }, ... )
-#   df_evl <- Reduce( bind_rows, l_evl, NULL )
-#   cat("\n")
-#   
-#   agg_evl <- df_evl %>% 
-#     group_by( ch_selection, added, selection ) %>%
-#     summarise( mean_train = mean( eval_train, na.rm=TRUE ),
-#                mean_validation = mean( eval_validation, na.rm=TRUE ),
-#                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
-#     ungroup
-#   
-#   ret <- list( df_evl = df_evl, agg_evl = agg_evl )
-#   if( all( is.na(agg_evl$mean_validation) ) ) {
-#     ret[['best_vars']] <- c( remaining_vars[1] )
-#     cat( sprintf( "No best found, adding first (%s) \n", ret[['best_vars']] ) )
-#   } else if( maximize ) {
-#     ret[['best_vars']] <- agg_evl %>% 
-#       filter( !is.na(mean_validation) ) %>% 
-#       filter( max( mean_validation, na.rm=TRUE ) <= mean_validation ) %>%
-#       pull( added )
-#     cat( sprintf( "Best found, adding variable (%s) \n", ret[['best_vars']] ) )
-#   } else if( !maximize ) {
-#     ret[['best_vars']] <- agg_evl %>% 
-#       filter( !is.na(mean_validation) ) %>% 
-#       filter( mean_validation <= min( mean_validation, na.rm=TRUE ) ) %>%
-#       pull( added )
-#     cat( sprintf( "Best found, adding variable (%s) \n", ret[['best_vars']] ) )
-#   }
-#   return( ret )
-# }
-
-#
-# Conduct one forward wrapper algorithm
-#
+#' @rdname forward
+#' @export
 forward <- function(  dat, resp, vars, 
                       fn_train = fn_train_binomial,
                       fn_eval  = fn_eval_binomial,
@@ -68,6 +69,7 @@ forward <- function(  dat, resp, vars,
   # Obtain evaluation splits, if necessary
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
 
+  start_time <- Sys.time()
   # Sequential Forward Selection algorithm:
   # 1) Start with the empty set Y0 = {}
   # 2) Select the next best feature x+ = arg max J( Yk + x ) for x not in Yk
@@ -114,6 +116,9 @@ forward <- function(  dat, resp, vars,
     splits = ds, 
     maximize = maximize,
     
+    # Time
+    start = start_time, end = end_time,
+    
     # Results
     variable_selections = best_selections,
     results = df_evl,
@@ -122,6 +127,8 @@ forward <- function(  dat, resp, vars,
   return( ret )
 } # forward (END)
 
+#' @rdname forward
+#' @export
 forward.formula <- function( fo, dat, 
                              fn_train = fn_train_binomial,
                              fn_eval  = fn_eval_binomial,

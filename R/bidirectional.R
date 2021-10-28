@@ -2,87 +2,60 @@
 # Bidirectional Search wrapper algorithm
 #
 
+#' @title Bidirectional search algorithm
+#' 
+#' @description Performs forward and backward selection steps per iteration to converge to
+#' the same, consistent variable selection set.
+#' 
+#' @details The Bidirectional Search algorithm runs as follows:
+#' \code{ \cr
+#' 1) Start SFS with Yf = {} \cr
+#' 2) Start SBS with Yb = X \cr
+#' 3) Select the best feature \cr
+#'         x+ = arg max_{x not in Yfk; x in Ybk} J( Yfk + x ) \cr
+#'         Yfk+1 = Yfk + x+ \cr
+#' 4) Remove the worst feature \cr
+#'         x- = arg max_{x in Ybk; x not in Yfk+1} J( Ybk - x ) \cr
+#'         Ybk+1 = Ybk - x-; \cr
+#'         k = k + 1 \cr
+#' 5) Go to 3 \cr
+#' }
+#' 
+#' @param fo Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )
+#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param resp Character string defining the response (lhs) of the model formula.
+#' @param vars Character vector defining the list of variables for selection. Those are concatenated by '+' 
+#' as the right hand side (rhs) of the modelling formula.
+#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param m Size of final partition size. 
+#' Note this parameter is used for stopping only. Best selection will be determined by whole set of evaluated selections, i.e., can be larger than m.
+#' @param ds Definition of (parallel) training:validation splits
+#'  - a matrix with d columns containing 1s and 2s, where 1 denotes sample is used for training the model and 2 denotes sample used for validation.
+#'    The average of all d training:validation results is used for selection.
+#'  - an integer number determing the number of random training:validation splits that should be generated. The sampling will ensure a sufficient number
+#'    of complete cases in the training split.
+#' @param maximize A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).
+#' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
+#'
+#' @return List with elements
+#' \describe{
+#'  \item{response}{As from input parameters}
+#'  \item{variables}{As from input parameters}
+#'  \item{m}{As from input parameters}
+#'  \item{splits}{As from input parameters}
+#'  \item{maximize}{As from input parameters}
+#'  \item{start}{Start time of core algorithm loop}
+#'  \item{end}{End time of core algorithm loop}
+#'  \item{variable_selections}{Best selections overall (regardless of m)}
+#'  \item{results}{Dataset with one record per train:validation evaluation}
+#'  \item{agg_results}{Dataset with averaged performance over splits}
+#' }
+#' @name bidirectional
+NULL
 
-# next_bds_forward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, Yf, Yb, ...  ) {
-#   # browser()
-#   remaining_vars <- setdiff( Yb, Yf )
-#   cat( "Evaluating:")
-#   l_evl <- lapply( remaining_vars, function( nvar, ... ) {
-#     cat( " ", nvar, " " )
-#     ret <- eval_splits( ds, dat, resp, union( Yf, nvar ), fn_train, fn_eval, ... )
-#     ret$added <- nvar
-#     return( ret )
-#   }, ... )
-#   df_evl <- Reduce( bind_rows, l_evl, NULL )
-#   cat("\n")
-#   
-#   agg_evl <- df_evl %>% 
-#     group_by( ch_selection, added, selection ) %>%
-#     summarise( mean_train = mean( eval_train, na.rm=TRUE ),
-#                mean_validation = mean( eval_validation, na.rm=TRUE ),
-#                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
-#     ungroup
-#   
-#   ret <- list( df_evl = df_evl, agg_evl = agg_evl )
-#   if( all( is.na(agg_evl$mean_validation) ) ) {
-#     ret[['best_vars']] <- c( remaining_vars[1] )
-#     cat( sprintf( "No best found, adding first (%s) \n", ret[['best_vars']] ) )
-#   } else if( maximize ) {
-#     ret[['best_vars']] <- agg_evl %>% 
-#       filter( !is.na(mean_validation) ) %>% 
-#       filter( max( mean_validation, na.rm=TRUE ) <= mean_validation ) %>%
-#       pull( added )
-#     cat( sprintf( "Best found, adding variable (%s) \n", ret[['best_vars']] ) )
-#   } else if( !maximize ) {
-#     ret[['best_vars']] <- agg_evl %>% 
-#       filter( !is.na(mean_validation) ) %>% 
-#       filter( mean_validation <= min( mean_validation, na.rm=TRUE ) ) %>%
-#       pull( added )
-#     cat( sprintf( "Best found, adding variable (%s) \n", ret[['best_vars']] ) )
-#   }
-#   return( ret )
-# }
-# 
-# next_bds_backward <- function( dat, resp, vars, fn_train, fn_eval, ds, maximize, Yf, Yb, ...  ) {
-#   # browser()
-#   remaining_vars <- setdiff( Yb, Yf )
-#   cat( "Evaluating:")
-#   l_evl <- lapply( remaining_vars, function( nvar, ... ) {
-#     cat( " ", nvar, " " )
-#     ret <- eval_splits( ds, dat, resp, setdiff( Yb, nvar ), fn_train, fn_eval, ... )
-#     ret$removed <- nvar
-#     return( ret )
-#   }, ... )
-#   df_evl <- Reduce( bind_rows, l_evl, NULL )
-#   cat("\n")
-#   
-#   agg_evl <- df_evl %>% 
-#     group_by( ch_selection, removed, selection ) %>%
-#     summarise( mean_train = mean( eval_train, na.rm=TRUE ),
-#                mean_validation = mean( eval_validation, na.rm=TRUE ),
-#                mean_bias = mean( bias, na.rm=TRUE ) ) %>%
-#     ungroup
-#   
-#   ret <- list( df_evl = df_evl, agg_evl = agg_evl )
-#   if( all( is.na(agg_evl$mean_validation) ) ) {
-#     ret[['best_vars']] <- c( remaining_vars[length(remaining_vars)] )
-#     cat( sprintf( "No best found, removing last (%s) \n", ret[['best_vars']] ) )
-#   } else if( maximize ) {
-#     ret[['best_vars']] <- agg_evl %>% 
-#       filter( !is.na(mean_validation) ) %>% 
-#       filter( max( mean_validation, na.rm=TRUE ) <= mean_validation ) %>%
-#       pull( removed )
-#     cat( sprintf( "Best found, removal variable (%s) \n", ret[['best_vars']] ) )
-#   } else if( !maximize ) {
-#     ret[['best_vars']] <- agg_evl %>% 
-#       filter( !is.na(mean_validation) ) %>% 
-#       filter( mean_validation <= min( mean_validation, na.rm=TRUE ) ) %>%
-#       pull( removed )
-#     cat( sprintf( "Best found, removal variable (%s) \n", ret[['best_vars']] ) )
-#   }
-#   return( ret )
-# }
-
+#' @rdname bidirectional
+#' @export
 bidirectional <- function( dat, resp, vars, 
                            fn_train = fn_train_binomial,
                            fn_eval  = fn_eval_binomial,
@@ -102,6 +75,7 @@ bidirectional <- function( dat, resp, vars,
   # Obtain evaluation splits
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
   
+  start_time <- Sys.time()
   # Bidirectional Search algorithm:
   # 1) Start SFS with Yf = {}
   # 2) Start SBS with Yb = X
@@ -140,6 +114,7 @@ bidirectional <- function( dat, resp, vars,
     }
     k <- k + 1
   } # while
+  end_time <- Sys.time()
   
   # Determine best selection(s)
   agg <- agg_evals( df_evl, NULL, maximize )
@@ -155,6 +130,9 @@ bidirectional <- function( dat, resp, vars,
     splits = ds, 
     maximize = maximize,
     
+    # Time
+    start = start_time, end = end_time,
+    
     # Results
     variable_selections = best_selections,
     results = df_evl,
@@ -163,6 +141,8 @@ bidirectional <- function( dat, resp, vars,
   return( ret )
 }
 
+#' @rdname bidirectional
+#' @export
 bidirectional.formula <- function( fo, dat, 
                                    fn_train = fn_train_binomial,
                                    fn_eval  = fn_eval_binomial,
