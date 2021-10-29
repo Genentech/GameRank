@@ -3,6 +3,29 @@
 #
 
 # Construct m random splits that work to generate fn_train models if possible
+
+#' @title Helper function to generate splits that are likely to produce models
+#' 
+#' @description The function should generate m random splits for dat, resp, vars such
+#' that fn_train is likely to produce models. E.g. if there are a lot of missing values
+#' in the dataset and splitting reduces these in an unfavorable way, model parameters for lm
+#' or glm might not be estimable. That happens likely if the number of complete.cases is too low.
+#' Therefore this function first separates the complete and incomplete cases, and then
+#' randomly samples and distributes them into training and validation splits. This ensures that
+#' both splits include 2/3rds and 1/3rd complete cases each.
+#' 
+#' @param m Number of parallel random splits to generate
+#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param resp Character string defining the response (lhs) of the model formula.
+#' @param vars Character vector defining the list of variables for selection. Those are concatenated by '+' 
+#' as the right hand side (rhs) of the modelling formula.
+#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
+#' 
+#' @return Matrix with nrow(dat) rows and m columns comprising 1s and 2s to indicate if sample is part of training or validation split.
+#' 
+#' @export
 build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, ... ) {
   rr <- c( 1,1,2 ) # Use 2/3 train and 1/3 validation
   

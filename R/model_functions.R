@@ -15,7 +15,7 @@
 #' Model function should return NULL if the model cannot be fit or determined or
 #' other reasons exist for why it cannot be generated.
 #' 
-#' The interfce for evaluation functions is \strong{function( dat, resp, selection, mod, ... )}
+#' The interface for evaluation functions is \strong{function( dat, resp, selection, mod, ... )}
 #' with the same parameters as model generating functions but extended by the model mod. 
 #' Evaluation functions should return a numeric value and NA in case of the model is NULL
 #' or any other failure preventing evaluation.

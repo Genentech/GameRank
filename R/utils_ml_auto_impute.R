@@ -5,6 +5,17 @@
 saf <- Vectorize( function( x ) ifelse( !is.na(x), x, 0 ) )
 psu <- Vectorize( function( x ) ifelse(  is.na(x), 1, 0 ) )
 
+#' @title Helper function for Maximum-Likelihood Estimation of Imputation Values
+#' 
+#' @description Missing values are dummy-encoded such that maximum-likelihood estimation
+#' via lm or glm models will identify a value maximizing the model likelihood for missing observations.
+#' 
+#' @param fo Formula specifying lhs ~ rhs of a model
+#' @param dat data.frame or tibble that contains data for the model formula
+#' 
+#' @return Formula object that includes dummy terms and transforms for variables with missing data.
+#' 
+#' @export
 rewrite_formula <- local( {
   function( fo, dat ) {
     dat_tmp <- model.frame( fo, dat, na.action = na.pass )

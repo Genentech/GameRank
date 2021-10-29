@@ -49,7 +49,9 @@
 #'  \item{max_iter}{As from input parameters}
 #'  \item{start}{Start time of core algorithm loop}
 #'  \item{end}{End time of core algorithm loop}
-
+#'  \item{match_matrix_time}{Time after start when the match matrix has been sampled.}
+#'  \item{match_played_time}{Time after start when the match comparisons have been completed.}
+#'  \item{fit_time}{Time after start when the maximum-likelihood model has been fit, excluding time to compute the score vector and Hessian matrix.}
 #'  \item{match_matrix}{The match matrix that was used to determine the feature selection comparisons.}
 #'  \item{variable_ranking}{Tibble with variable ranking, including standard errors}
 #'  \item{game_rank_selection}{Best m variables as final selection per maximum likelihood estimate.}
@@ -137,6 +139,7 @@ game_rank <- function( dat,
   # Tpm[1:team_size] <- +1L
   # Tpm[(team_size+1):(2*team_size)] <- -1L
   MM <- build_match_matrix( sel = sel, team_size = team_size, min_matches_per_var = min_matches_per_var )
+  match_matrix_time <- Sys.time()
   
   # Initialize row selection vector: 1 = development, 2 = evaluation in a round
   ds <- rep_len( c(1,2), length.out = nrow(dat) )
@@ -152,10 +155,11 @@ game_rank <- function( dat,
   }
   
   # Run GameRank matches ----
-  cat( sprintf( "Comparing variable selections (# matches %d)--- \n", nrow(MM) ) )
+  nmm <- nrow(MM)
+  cat( sprintf( "Comparing variable selections (# matches %d)--- \n", nmm ) )
   t <- 1
   res_matches <- NULL
-  while( t <= nrow(MM) ) {
+  while( t <= nmm ) {
     # Tpm[ 1:length(Tpm) ] <- Tpm[ order( runif( length( Tpm ) ) ) ] # Shuffle teams
     Tpm <- MM[t,]
     
@@ -199,9 +203,10 @@ game_rank <- function( dat,
     res_match <- cbind( data.frame( n.pos = np, n.neg = nn), t( Tpm ) )
     res_matches <- bind_rows( res_matches, res_match )
     
-    cat( sprintf( "Iteration %d -- (+) : (-) scored %d : %d \n", t, np, nn ) )
+    cat( sprintf( "Iteration %4d of %4d -- (+) : (-) scored %4d : %4d \n", t, nmm, np, nn ) )
     t <- t + 1 # Iteration counter
   } # while (END)
+  match_played_time <- Sys.time()
   
   # Evaluating Group Rank Maximum Likelihood estimator 
   # Define group rank negative log-likelihood function ----
@@ -238,6 +243,7 @@ game_rank <- function( dat,
   cat( "Optimizing maximum likelihood \n" )
   oo <- optim( par = sel, fn = ll_gr, gr = ll_gr_grad, method = opt_method, control = list( fnscale = +1L, maxit = max_iter ) )
   oo
+  fit_time <- Sys.time()
   
   cat( "Calculating score vector \n" )
   gg <- ll_gr_grad( oo$par )  
@@ -281,6 +287,7 @@ game_rank <- function( dat,
     
     # Time
     start = start_time, end = end_time,
+    match_matrix_time = match_matrix_time, match_played_time = match_played_time, fit_time = fit_time,
     
     # Results
     match_matrix = MM,

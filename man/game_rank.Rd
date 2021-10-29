@@ -78,6 +78,9 @@ List with elements
  \item{max_iter}{As from input parameters}
  \item{start}{Start time of core algorithm loop}
  \item{end}{End time of core algorithm loop}
+ \item{match_matrix_time}{Time after start when the match matrix has been sampled.}
+ \item{match_played_time}{Time after start when the match comparisons have been completed.}
+ \item{fit_time}{Time after start when the maximum-likelihood model has been fit, excluding time to compute the score vector and Hessian matrix.}
  \item{match_matrix}{The match matrix that was used to determine the feature selection comparisons.}
  \item{variable_ranking}{Tibble with variable ranking, including standard errors}
  \item{game_rank_selection}{Best m variables as final selection per maximum likelihood estimate.}

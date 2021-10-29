@@ -1,6 +1,23 @@
 
 
-
+#' @title Utility function that performs high-level checks for a variable in a dataset
+#' 
+#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param var Character indicating the variable to check.
+#' 
+#' @return A tibble with entries
+#' \describe{
+#' \item{N}{Overall number of values}
+#' \item{n}{Overall number of non-missing values}
+#' \item{nmiss}{Number of missing values}
+#' \item{nmiss_pct}{Percentage of missing values}
+#' \item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 'Good', 'Perfect' depending on the percentage of missingness <70%, <80%, <90%, <99%, or 100%}
+#' \item{type}{Type of the variable binary, categorical, integer, or real}
+#' \item{entropy}{Entropy estimated, eventually by package entropy function, for the variable. This value describes the information content of the variable distribution. The more the better.}
+#' \item{check_entropy}{Variables with entropy close to 0.0 (<0.001) are recommended to be dropped.}
+#' }
+#' 
+#' @export 
 check_variable <- function( dat, var ) {
   cat( sprintf( "Evaluating variable %s \n", var ) )
   ret <- list()
@@ -122,6 +139,27 @@ check_variable <- function( dat, var ) {
   return( ret )
 }
 
+#' @title Utility function that applies check_variable to a dataset
+#' 
+#' @description Applies check_variable to each response and each variable in vars, and returns a merged dataset.
+#' 
+#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param resp Character string defining the response (lhs) of the model formula.
+#' @param vars Character indicating the variables to check.
+#' 
+#' @return A tibble with entries
+#' \describe{
+#' \item{N}{Overall number of values}
+#' \item{n}{Overall number of non-missing values}
+#' \item{nmiss}{Number of missing values}
+#' \item{nmiss_pct}{Percentage of missing values}
+#' \item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 'Good', 'Perfect' depending on the percentage of missingness <70%, <80%, <90%, <99%, or 100%}
+#' \item{type}{Type of the variable binary, categorical, integer, or real}
+#' \item{entropy}{Entropy estimated, eventually by package entropy function, for the variable. This value describes the information content of the variable distribution. The more the better.}
+#' \item{check_entropy}{Variables with entropy close to 0.0 (<0.001) are recommended to be dropped.}
+#' }
+#' 
+#' @export 
 check_variables <- function( dat, resp, vars ) {
   
   ret <- list()

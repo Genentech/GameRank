@@ -82,7 +82,7 @@ ds_prior <- prepare_splits( ds = 3L, dat=df_trnevl, resp = resp1, vars = lst_var
 # lrs_sel <- lrsearch( dat = df_trnevl, resp = resp1, vars = lst_vars[1:10], fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 3L, L = 3L, R = 2L, ds = ds_prior, maximize = FALSE, u = 365 )
 # lrs_sel
 
-gmr_sel <- game_rank( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 7L, team_size = 20L, rounds = 5L, maximize = FALSE, u = 365 )
+gmr_sel <- game_rank( dat = df_trnevl, resp = resp1, vars = lst_vars, fn_train = fn_train_cox, fn_eval = fn_eval_cox, m = 7L, team_size = 20L, rounds = 25L, maximize = FALSE, u = 365 )
 gmr_sel
 
 vs = gmr_sel$solution

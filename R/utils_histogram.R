@@ -30,7 +30,16 @@ nbins_ucv <-  function( x ) {
   return( hh[ oo ] )
 } 
 
-
+#' @title Helper function to determine the optimal number of breaks for a histogram
+#' 
+#' @description This function determines the optimal set of breaks for a histogram for numerical sample
+#' by leave-one-out cross-validation minimizing the empirical risk.
+#' 
+#' @param x A numeric vector of variables for which the set of breaks should be computed.
+#' 
+#' @return A numeric vector of cut-points points that will define an optimal histogram density estimator for the sample.
+#' 
+#' @export
 bins_ucv <-  function( x ) {
   n <- length( x )
   mmax <- sqrt( n )
