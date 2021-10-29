@@ -3,11 +3,25 @@
 #
 
 # Simple transformations ----
-#
-# Add some simple transformations, following https://rcompanion.org/handbook/I_12.html
-#
-# Add transformed variable if Normality is improved, as found by increase in Shapiro-Wilk W statistic.
-#
+#' @title Function to evaluate and add simple variable tranformations
+#' 
+#' @description This function adds some simple transformations, as described in \link{following https://rcompanion.org/handbook/I_12.html}
+#' to a dataset for a set of given variables. However, variables are only added if they improve Normality as measured by an
+#' increase in Shapiro-Wilk W statistic.
+#' 
+#' @param dat A data.frame or tibble with data for each variable in vars
+#' @param vars A character vector of variable names to process.
+#' @param transforms A list of transformations to try. These can be of square root 'sqrt', cube root 'cubert', 
+#' natural logarithm 'log', and z-Score to Normal distribution 'zscore'
+#' @param name_pattern A function that takes two arguments 'varname' and 'transform_name' and generates a new
+#' variable name under with the transformed data is stored. Default is 'varname + '_' + transform_name.
+#' 
+#' @return list with two elements
+#' \describe{
+#' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
+#' \item{transformations}{A list of lists with elements for variable, transformed variable, a formula term, Shapiro-Wilk W statistic, and the name of the transform.}
+#' } 
+#' @export
 simple_transforms <- function( dat, vars, 
                                transforms = c("sqrt","cubert","log", "zscore" ),
                                name_pattern = function( varname, transform_name ) sprintf( "%s_%s", varname, transform_name )
@@ -81,6 +95,23 @@ simple_transforms <- function( dat, vars,
 
 # Box-Cox Transformations ----
 # Box-Cox transformation for regression
+
+#' @title Function to generate Box-Cox transformations for Regression
+#' 
+#' @description Applies the Box-Cox transformation for set of variables to improve a regression models. Only
+#' univariate models are considered.
+#' 
+#' @param dat A data.frame or tibble as dataset.
+#' @param resp Character string for lhs of the formula.
+#' @param vars Character vector with variables to transform.
+#' @param lambda Real vector of lambda coefficients to evaluate for the Box-Cox transform.
+#' 
+#' @return list with two elements
+#' \describe{
+#' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
+#' \item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the transforms.}
+#' } 
+#' @export
 box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   stopifnot( is.numeric( dat[[resp]] ) )
   trans <- list()
@@ -136,6 +167,21 @@ box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
 }
 
 # Box-Cox transformation for binomial regression
+#' @title Box-Cox transform for binomial models
+#' 
+#' @description Determines Box-Cox transformed variables for a binary outcome modelling.
+#' 
+#' @param dat A data.frame or tibble comprising the data.
+#' @param resp A lhs term for the formula. Must be a binary variable (0/1-coded).
+#' @param vars Character vector of variables for which the Box-Cox transformation should be computed.
+#' @param lambda Real numeric vector of lambda values to evaluate.
+#' 
+#' @return list with two elements
+#' \describe{
+#' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
+#' \item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the transforms.}
+#' } 
+#' @export
 box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   stopifnot( is.logical( dat[[resp]] )  )
   # Helper function for probability of observing a
@@ -236,7 +282,7 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_prop_converged = 0
   momin <- models[[ best_idx[1] ]]
 
   ret <- list( var = var, 
-               n_comp = n_comp, m_fits = m_fits, min_prop_converged = min_prop_converged, epsi = epsi,
+               n_comp = n_comp, m_fits = m_fits, min_prop_converged = min_prop_converged,
                aic_tab = tab, aic_aggregate = agg, min_k = kmin, best_model = momin, cut_points = NULL )
   
   if( 1 < kmin ) {
@@ -280,15 +326,34 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_prop_converged = 0
   return( ret )
 } # eval_aics (END)
 
-
-check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, epsi = 1E-3 ) {
+#' @title A function to evaluate continues variables for multi-modiality using Gaussian-Mixture Models
+#' 
+#' @description The function receives a list of variables and first performs a Gaussian-Mixture Model (GMM)
+#' model selection using the Akaike Information Criterion (AIC) to determine the number of components.
+#' If this process indicates more than one componet, it determines cut-points between the individual 
+#' mixture distributions and generates a transformed categorical variable based on those.
+#' 
+#' @param dat A data.frame or tibble
+#' @param resp A response term for the lhs of a formula
+#' @param vars A character vector of variables to secreen
+#' @param n_comp Integer determining the maximum number of components to check
+#' @param m_fits Each GMM is fitted multiple times to avoid local minima. m_fits determines how many GMMs are generated each time.
+#' @param min_prop_converged Minimal proportion of GMM that need to converge before considering their AIC for model selection.
+#' 
+#' @return list with two elements
+#' \describe{
+#' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
+#' \item{transformations}{A list of check_aic results for each variable.}
+#' } 
+#' @export
+check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_prop_converged = 0.99 ) {
 
   ret <- list()
   # Check response, if numeric, if it is bimodal
   mod <- dat
   if( ! is.null(resp) && is.numeric( dat[[resp]] ) ) {
     cat( sprintf( "Processing response %s \n", resp ))
-    evl <- eval_aics( dat, resp, n_comp = n_comp, m_fits = m_fits, epsi = epsi )
+    evl <- eval_aics( dat, resp, n_comp = n_comp, m_fits = m_fits, min_prop_converged = min_prop_converged )
     if( !is.null(evl$cut_points) ) {
       nvar <- sprintf( "%s_resp_grp", resp )
       mod[[nvar]] <- as.character( cut( mod[[resp]], 
