@@ -6,29 +6,28 @@ Description: The GameRank package implements functions for feature selection to 
   predictive models. In addition, it provides methods for feature construction, ie. Box-Cox
   transformation and detection of multi-modal distributed features.
 Depends: R (>= 3.1.0)
-License: GPL-2
-LazyData: true
-Imports:
   dplyr,
   tidyr,
   tibble,
   purrr,
-  flexmix,
+  formula.tools,
   survival,
+  ggplot2
+License: GPL-2
+LazyData: true
+Imports:
+  numDeriv,
+  boot,
+  entropy,
+  gridExtra,
+  ROCR,
+  MASS,
+  flexmix,
   rms,
   pec,
   labelled,
-  numDeriv,
-  formula.tools,
-  entropy,
-  ROCR,
-  MASS,
-  ggplot2,
-  gridExtra,
   broom,
-  survival,
-  survminer,
-  boot
+  survminer
 Suggests:
     RcppAlgos,
     knitr,
