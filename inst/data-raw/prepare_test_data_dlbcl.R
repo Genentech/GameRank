@@ -91,10 +91,9 @@ library( TCGAutils )
 #
 
 dir_out <- "~/GameRank/data/"
-
-# Lung ----
-file_rdata <- file.path( dir_out, "tcga_luad_cna_cnv.Rdata" )
-dc <- c("LUAD")
+# DLBCL ----
+file_rdata <- file.path( dir_out, "tcga_dlbcl_cna_cnv.Rdata" )
+dc <- c("DLBC")
 ay <- c("CNASNP","CNVSNP")
 dorun <- TRUE
 mae <- curatedTCGAData( diseaseCode = dc, assays = ay, dry.run = !dorun )
@@ -104,7 +103,7 @@ cod <- colData( mae ) %>% as_tibble
 cod <- cod %>% 
   dplyr::select( all_of( intersect( cod %>% colnames, c("patientID", var_clin ) ) ) )
 cod 
-mae # N = 518
+mae # N = 48
 
 # Simplyfy the RaggedExperiments to RangedSummarizedExperiments
 # RaggedExperiment mutation objects become a genes by patients RangedSummarizedExperiment object containing '1' if there is a 
@@ -113,14 +112,20 @@ mae # N = 518
 # 
 # These functions rely on 'TxDb.Hsapiens.UCSC.hg19.knownGene' and 'org.Hs.eg.db' to map to the 'hg19' NCBI build.
 mae <- simplifyTCGA( mae )
-df_cna <- longFormat( mae[["LUAD_CNASNP-20160128_simplified"]] ) %>%  as_tibble %>% 
-  transmute( patientID = colname, rowname = sprintf( "%s_cna", rowname ), value ) %>%
-  pivot_wider( names_from = "rowname", values_from = "value", values_fill = list( value = NA_real_ ) )
+smp <- sampleMap( mae ) %>% as_tibble
+
+df_cna <- longFormat( mae[["DLBC_CNASNP-20160128_simplified"]] ) %>%  as_tibble %>% 
+  transmute( colname, rowname = sprintf( "%s_cna",  gsub( "-","_",rowname, fixed=TRUE ) ), value ) %>%
+  pivot_wider( names_from = "rowname", values_from = "value", values_fill = list( value = NA_real_ ) ) %>%
+  dplyr::left_join( smp %>% filter( "DLBC_CNASNP-20160128_simplified"==assay ) %>% transmute( colname, patientID = primary ) ) %>%
+  dplyr::select( patientID, tidyr::everything() )
 df_cna 
 
-df_cnv <- longFormat( mae[["LUAD_CNVSNP-20160128_simplified"]] ) %>% as_tibble %>%
-  transmute( patientID = colname, rowname = sprintf( "%s_cnv", rowname ), value ) %>%
-  pivot_wider( names_from = "rowname", values_from = "value", values_fill = list( value = NA_real_ ) )
+df_cnv <- longFormat( mae[["DLBC_CNVSNP-20160128_simplified"]] ) %>% as_tibble %>%
+  transmute( colname, rowname = sprintf( "%s_cnv",  gsub( "-","_",rowname, fixed=TRUE ) ), value ) %>%
+  pivot_wider( names_from = "rowname", values_from = "value", values_fill = list( value = NA_real_ ) ) %>%
+  dplyr::left_join( smp %>% filter( "DLBC_CNVSNP-20160128_simplified"==assay ) %>% transmute( colname, patientID = primary ) ) %>%
+  dplyr::select( patientID, tidyr::everything() )
 df_cnv
 
 dat <- cod %>%

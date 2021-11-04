@@ -11,11 +11,13 @@ library( labelled )
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 # BiocManager::install("curatedTCGAData")
-library( curatedTCGAData )
+# library( curatedTCGAData )
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
-# 
 # BiocManager::install("TCGAutils")
+# BiocManager::install("TxDb.Hsapiens.UCSC.hg19.knownGene")
+# BiocManager::install("org.Hs.eg.db")
+# BiocManager::install("mirbase.db")
 library( TCGAutils )
 
 #   Study Abbreviation Study Name
@@ -91,9 +93,9 @@ library( TCGAutils )
 #
 
 dir_out <- "~/GameRank/data/"
-# Uterine Corpus Endometrial Carcinoma ----
-file_rdata <- file.path( dir_out, "tcga_ucec_cna_cnv.Rdata" )
-dc <- c("UCEC")
+# Colon ----
+file_rdata <- file.path( dir_out, "tcga_coad_cna_cnv.Rdata" )
+dc <- c("COAD")
 ay <- c("CNASNP","CNVSNP")
 dorun <- TRUE
 mae <- curatedTCGAData( diseaseCode = dc, assays = ay, dry.run = !dorun )
@@ -101,9 +103,10 @@ mae <- curatedTCGAData( diseaseCode = dc, assays = ay, dry.run = !dorun )
 var_clin <- getClinicalNames( diseaseCode = dc )
 cod <- colData( mae ) %>% as_tibble 
 cod <- cod %>% 
-  dplyr::select( all_of( intersect( cod %>% colnames, c("patientID", var_clin ) ) ) )
+  dplyr::select( all_of( intersect( cod %>% colnames, c("patientID", var_clin, sprintf( "%s.x", var_clin ) ) ) ) )
+colnames(cod) <- gsub( ".x","", colnames(cod), fixed=TRUE )
 cod 
-mae # N = 48
+mae # N = 914
 
 # Simplyfy the RaggedExperiments to RangedSummarizedExperiments
 # RaggedExperiment mutation objects become a genes by patients RangedSummarizedExperiment object containing '1' if there is a 
@@ -112,15 +115,26 @@ mae # N = 48
 # 
 # These functions rely on 'TxDb.Hsapiens.UCSC.hg19.knownGene' and 'org.Hs.eg.db' to map to the 'hg19' NCBI build.
 mae <- simplifyTCGA( mae )
-df_cna <- longFormat( mae[["UCEC_CNASNP-20160128_simplified"]] ) %>%  as_tibble %>% 
-  transmute( patientID = colname, rowname = sprintf( "%s_cna", rowname ), value ) %>%
-  pivot_wider( names_from = "rowname", values_from = "value", values_fill = list( value = NA_real_ ) )
+smp <- sampleMap( mae ) %>% as_tibble
+
+df_cna <- longFormat( mae[["COAD_CNASNP-20160128_simplified"]] ) %>%  as_tibble %>% 
+  transmute( colname, rowname = sprintf( "%s_cna",  gsub( "-","_",rowname, fixed=TRUE ) ), value ) %>%
+  pivot_wider( names_from = "rowname", values_from = "value", values_fill = list( value = NA_real_ ) ) %>%
+  dplyr::left_join( smp %>% filter( "COAD_CNASNP-20160128_simplified"==assay ) %>% transmute( colname, patientID = primary ) ) %>%
+  dplyr::select( patientID, tidyr::everything() )
 df_cna 
 
-df_cnv <- longFormat( mae[["UCEC_CNVSNP-20160128_simplified"]] ) %>% as_tibble %>%
-  transmute( patientID = colname, rowname = sprintf( "%s_cnv", rowname ), value ) %>%
-  pivot_wider( names_from = "rowname", values_from = "value", values_fill = list( value = NA_real_ ) )
+df_cnv <- longFormat( mae[["COAD_CNVSNP-20160128_simplified"]] ) %>% as_tibble %>%
+  transmute( colname, rowname = sprintf( "%s_cnv",  gsub( "-","_",rowname, fixed=TRUE ) ), value ) %>%
+  pivot_wider( names_from = "rowname", values_from = "value", values_fill = list( value = NA_real_ ) ) %>%
+  dplyr::left_join( smp %>% filter( "COAD_CNASNP-20160128_simplified"==assay ) %>% transmute( colname, patientID = primary ) ) %>%
+  dplyr::select( patientID, tidyr::everything() )
 df_cnv
+
+
+setequal( df_cna$patientID, df_cnv$patientID )
+setdiff( cod$patientID, df_cnv$patientID )
+setdiff( cod$patientID, df_cna$patientID )
 
 dat <- cod %>%
   dplyr::left_join( df_cna, "patientID" ) %>%
@@ -129,7 +143,7 @@ dat
 
 lst_keys <- c("patientID")
 lst_outcomes <- c("days_to_death", "vital_status" )
-lst_meta <- c("days_to_last_followup","date_of_initial_pathologic_diagnosis","tumor_tissue_site","histological_type")
+lst_meta <- c("days_to_last_followup.x","date_of_initial_pathologic_diagnosis","tumor_tissue_site","days_to_last_known_alive","histological_type.x")
 lst_vars <- var_clin %>%
   union( union( df_cna %>% colnames, df_cnv %>% colnames ) ) %>% 
   setdiff( lst_keys ) %>%
