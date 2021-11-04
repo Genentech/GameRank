@@ -1,0 +1,95 @@
+---
+output: html_document
+params:
+  ds: !r NULL
+  dat: !r NULL
+  resp: !r NULL
+  selection: !r NULL
+  u: !r NULL
+  k: 1
+---
+
+```{r setup, include=FALSE}
+stopifnot( is.matrix(params$ds) & nrow(params$ds)==nrow(params$dat) )
+
+options(width=80)
+devtools::load_all("~/GameRank")
+
+theme_set(theme_minimal() +
+          theme(strip.background = element_rect(color = 'black',
+                                                fill = 'white')))
+# pal <- palette::nord
+# ggsurvplot( ... palette = pallete)
+# https://github.com/EmilHvitfeldt/r-color-palettes
+
+df_train <- params$dat[which(1==params$ds[,params$k]),]
+df_eval  <- params$dat[which(2==params$ds[,params$k]),]
+df_test  <- params$dat[which(3==params$ds[,params$k]),]
+
+mod <- fn_train_cox( df_train, params$resp, params$selection, u=params$u )
+
+```
+
+# Data summary
+
+## Training split
+```{r}
+summary( model.frame( as.formula(mod), df_train ) )
+```
+
+# Validation split
+```{r}
+summary( model.frame( as.formula(mod), df_eval ) )
+```
+
+# Test split
+```{r}
+summary( model.frame( as.formula(mod), df_test ) )
+```
+
+
+# Model summary
+```{r}
+summary( mod )
+```
+
+# Model parameters
+```{r}
+broom::tidy(mod, conf.int=TRUE ) %>%
+  knitr::kable( caption = "Estimated model parameters")
+```
+
+# Plot calication
+## Training
+```{r out.width="100%"}
+gplot_predictions_cox( df_train, params$resp1, params$selection, mod, u = params$u )
+```
+
+## Validation
+```{r out.width="100%"}
+gplot_predictions_cox( df_eval, params$resp1, params$selection, mod, u = params$u )
+```
+
+## Test
+```{r out.width="100%"}
+gplot_predictions_cox( df_test, params$resp1, params$selection, mod, u = params$u )
+```
+
+# Plot discrimination
+## Training
+```{r out.width="100%"}
+gplot_km_cox( df_train, params$resp1, params$selection, mod, u = params$u )
+```
+
+## Validation
+```{r out.width="100%"}
+gplot_km_cox( df_eval, params$resp1, params$selection, mod, u = params$u )
+```
+
+## Test
+```{r out.width="100%"}
+gplot_km_cox( df_test, params$resp1, params$selection, mod, u = params$u )
+```
+
+Add a plot with Validation and Test overlaid
+

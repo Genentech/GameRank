@@ -22,7 +22,13 @@ Imports:
   formula.tools,
   entropy,
   ROCR,
-  MASS
+  MASS,
+  ggplot2,
+  gridExtra,
+  broom,
+  survival,
+  survminer,
+  boot
 Suggests:
     RcppAlgos,
     knitr,
