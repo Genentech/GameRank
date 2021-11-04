@@ -121,7 +121,7 @@ ff_fn_eval_bootstrap <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n
       #
       didx <- 1:nrow(dat)
       bt <- boot::boot( data = dat,
-                        statistic = funcion( dd,ii ) {
+                        statistic = function( dd,ii ) {
                           mm  <- fn_train( dd[ii,], resp, selection, ... )
                           vv  <- fn_eval( dd, resp, selection, mm, ... )
                           vvb <- fn_eval( dd[ii,], resp, selection, mm, ... )
