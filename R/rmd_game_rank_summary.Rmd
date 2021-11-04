@@ -1,0 +1,86 @@
+---
+output: html_document
+params:
+  gmr: !r NULL
+---
+
+```{r setup, include=FALSE}
+gmr <- params$gmr
+
+options(width=80)
+devtools::load_all("~/GameRank")
+
+theme_set(theme_minimal() +
+          theme(strip.background = element_rect(color = 'black',
+                                                fill = 'white')))
+```
+
+# Input
+
+## General Parameters
+```{r}
+cat(sprintf("Maximize objective : %s \n", gmr$maximize))
+cat(sprintf("Partition size m = %d \n", gmr$m))
+cat(sprintf("Response : %s \n",gmr$resp ))
+cat("Included variables : \n")
+cat( gmr$variables )
+cat("\n")
+```
+
+## Algorithm Parameters
+```{r}
+cat(sprintf("team size = %d \n", gmr$team_size))
+cat(sprintf("match rounds = %d \n", gmr$rounds))
+cat(sprintf("minimum matches per variable = %d \n", gmr$min_matches_per_var))
+cat(sprintf("optimization method : %s \n", gmr$opt_method))
+cat(sprintf("optimization maximum iterations : %d \n", gmr$max_iter))
+```
+
+# Results
+
+## Time consumption
+```{r}
+dt <- difftime( gmr$end, gmr$start, units="auto" )
+cat(sprintf("GameRank ran from %s to %s for %1.4f [%s]. \n", gmr$start, gmr$end, dt, units(dt) ))
+dt <- difftime( gmr$match_matrix_time, gmr$start, units="auto" )
+cat(sprintf("Time to sample match matrix was %1.4f [%s]. \n", dt, units(dt) ))
+dt <- difftime( gmr$match_played_time, gmr$match_matrix_time, units="auto" )
+cat(sprintf("Time to evaluate matches was %1.4f [%s]. \n", dt, units(dt) ))
+dt <- difftime( gmr$fit_time, gmr$match_played_time, units="auto" )
+cat(sprintf("Time to fit maximum-likelihood ranking model was %1.4f [%s]. \n", dt, units(dt) ))
+```
+
+# Selection 
+```{r}
+cat("GroupRank selection : \n")
+cat( gmr$game_rank_selection)
+cat("\n")
+```
+
+# Variable Ranking
+```{r}
+gmr$variable_ranking %>%
+  knitr::kable(caption = "GroupRank variable ranking")
+```
+
+# Optimization
+```{r}
+print(gmr$optimization_result)
+```
+
+# Match results
+```{r}
+mm <- gmr$match_results
+cn <- colnames(mm)[-c(1:2)]
+
+cat( sprintf( "Overall number of objective function evalutions : %d \n", sum( mm[,c(1:2)] ) ))
+```
+
+```{r}
+for( r in 1:nrow(mm) ) {
+  Tp <- paste( cn[which(mm[r,-c(1:2)]>0)], collapse = ", " )
+  Tn <- paste( cn[which(mm[r,-c(1:2)]<0)], collapse = ", " )
+  cat(sprintf("%d) %d : %d  for (+) { %s } and (-) { %s }\n", r, mm[r,"n.pos"], mm[r,"n.neg"], Tp, Tn ))
+}
+```
+
