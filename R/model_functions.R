@@ -132,7 +132,7 @@ fn_eval_cox <- function( dat, resp, selection, mod, u = NULL, ... ) {
   ret <- NA
   ret <- tryCatch({
     mod$coefficients[which(is.na(mod$coefficients))] <- 0
-    prd <- 1 - predictSurvProb( mod, newdata = dat, times = u, ... )
+    prd <- 1 - pec::predictSurvProb( mod, newdata = dat, times = u, ... )
     cll.prd <- log( -log(1-prd) ) 
     cal.cox <- coxph( formula( sprintf( "%s ~ rms::rcs(cll.prd,3)", resp )), data = bind_cols( dat, tibble( cll.prd = cll.prd )), x=TRUE )
     # cal.cox <- coxph( formula( sprintf( "%s ~ rms::lsp(cll.prd,3)", resp )), data = bind_cols( dat, tibble( cll.prd = cll.prd )), x=TRUE )
@@ -141,7 +141,7 @@ fn_eval_cox <- function( dat, resp, selection, mod, u = NULL, ... ) {
                     length = 100 )
     grd.prd.cll <- log(-log(1-grd.cox) )
     df.grd.cox <- data.frame( grd.cox, grd.prd.cll ) %>% setNames(c("prd","cll.prd"))
-    df.grd.cox$prd.cal <- 1 - predictSurvProb( cal.cox, df.grd.cox, times = u )
+    df.grd.cox$prd.cal <- 1 - pec::predictSurvProb( cal.cox, df.grd.cox, times = u )
     ret <- mean( abs( df.grd.cox$prd - df.grd.cox$prd.cal ) )
   }, error = function( e ) NA )
   return( ret )  
@@ -154,7 +154,7 @@ fn_train_lda <- function( dat, resp, selection, lda_fit_type = "mle", ... ) {
   mod <- NULL
   mod <- tryCatch({
     fo <- formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
-    mod <- lda( formula = fo, data = dat, method = lda_fit_type, ... )
+    mod <- MASS::lda( formula = fo, data = dat, method = lda_fit_type, ... )
   }, error = function(e) NULL )
   return( mod )
 }
@@ -181,7 +181,7 @@ fn_train_qda <- function( dat, resp, selection, qda_fit_type = "mle", ... ) {
   mod <- NULL
   mod <- tryCatch({
     fo <- formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
-    mod <- qda( formula = fo, data = dat, method = qda_fit_type, ... )
+    mod <- MASS::qda( formula = fo, data = dat, method = qda_fit_type, ... )
   }, error = function(e) NULL )
   return( mod )
 }

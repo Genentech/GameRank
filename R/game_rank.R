@@ -250,7 +250,7 @@ game_rank <- function( dat,
   gg
   
   cat( "Calculating Hessian matrix \n" )
-  hh <- jacobian( func = ll_gr_grad, x = oo$par )
+  hh <- numDeriv::jacobian( func = ll_gr_grad, x = oo$par )
   hh
   
   vv <- chol2inv( hh )
@@ -358,7 +358,7 @@ estimate_T_matches <- function( Tm, vs, HH, alpha = 0.05 ) {
   # TODO: Check this implementation for correctness!
   Tscore <- function( m ) { as.numeric( m %*% vs ) } 
   se_Tscore <- function( m ) {
-    gg <- grad( func = Tscore, x = m )
+    gg <-   numDeriv::grad( func = Tscore, x = m )
     # hh <- hessian( func = Tscore, x = m )
     as.numeric( gg %*% HH %*% gg )
   } 
