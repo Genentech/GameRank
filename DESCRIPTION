@@ -27,11 +27,15 @@ Imports:
   pec,
   labelled,
   broom,
-  survminer
+  gridExtra,
+  survminer,
+  knitr,
+  rmarkdown,
+  boot
+License: GPL-2
+LazyData: true
 Suggests:
     RcppAlgos,
-    knitr,
-    rmarkdown,
     curatedTCGAData,
     TCGAutils
 VignetteBuilder: knitr
