@@ -4,7 +4,7 @@
 \alias{check_variables}
 \title{Utility function that applies check_variable to a dataset}
 \usage{
-check_variables(dat, resp, vars)
+check_variables(dat, resp, vars, min_cases = 35L, c_out = 1.5)
 }
 \arguments{
 \item{dat}{data.frame or tibble comprising data for model generation and validation.}
@@ -12,6 +12,10 @@ check_variables(dat, resp, vars)
 \item{resp}{Character string defining the response (lhs) of the model formula.}
 
 \item{vars}{Character indicating the variables to check.}
+
+\item{min_cases}{Minimal number of cases for which the entropy is estimated or outlier tests are performed.}
+
+\item{c_out}{Constant for the Robust Outlier Test determining the scaling of IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR.}
 }
 \value{
 

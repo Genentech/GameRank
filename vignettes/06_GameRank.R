@@ -65,8 +65,8 @@ vck %>%
   stat_ecdf() + 
   theme_classic()
 
-var_cnv <- vck %>% filter( 100.0==nmiss_pct ) %>% filter( is_cnv ) %>% filter( max(entropy) * 0.975 <= entropy ) %>% pull( variable )
-var_cna <- vck %>% filter( 100.0==nmiss_pct ) %>% filter( is_cna ) %>% filter( max(entropy) * 0.75 <= entropy ) %>% pull( variable )
+var_cnv <- vck %>% filter( 100.0==p ) %>% filter( is_cnv ) %>% filter( max(entropy) * 0.975 <= entropy ) %>% pull( variable )
+var_cna <- vck %>% filter( 100.0==p ) %>% filter( is_cna ) %>% filter( max(entropy) * 0.75 <= entropy ) %>% pull( variable )
 intersect( gsub( "_cna$", "", var_cna ), gsub( "_cnv$", "", var_cnv ) )
 var_clin <- vck %>% filter( !is_cnv & !is_cna ) %>% filter( check_missing %in% c("Perfect","Good")) %>% pull( variable )
 sel_vars <- union( var_clin, var_cnv ) %>% union( var_cna )

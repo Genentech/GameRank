@@ -4,12 +4,16 @@
 \alias{check_variable}
 \title{Utility function that performs high-level checks for a variable in a dataset}
 \usage{
-check_variable(dat, var)
+check_variable(dat, var, min_cases = 35L, c_out = 1.5)
 }
 \arguments{
 \item{dat}{data.frame or tibble comprising data for model generation and validation.}
 
 \item{var}{Character indicating the variable to check.}
+
+\item{min_cases}{Minimal number of cases for which the entropy is estimated or outlier tests are performed.}
+
+\item{c_out}{Constant for the Robust Outlier Test determining the scaling of IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR.}
 }
 \value{
 
