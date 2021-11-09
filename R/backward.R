@@ -89,11 +89,13 @@ backward <- function( dat, resp, vars,
     
     if( m <= length(Y) ) {
       best_vars <- eval_remove_vars( ds, dat, resp, lst_vars, fn_train, fn_eval, maximize, Y, Y, ...  )
-      df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
-      agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
-      
-      queue <- append( queue, best_vars[['best_selections']] )
-      cat( sprintf("No of partitions %d in search queue \n", length( queue ) ) )
+      if( !is.nulL(best_vars) ) {
+        df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
+        agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
+        
+        queue <- append( queue, best_vars[['best_selections']] )
+        cat( sprintf("No of partitions %d in search queue \n", length( queue ) ) )
+      }
     }
     cat( sprintf( "Finished iteration %d \n", k ) )
     k <- k + 1

@@ -29,6 +29,8 @@
 #' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
 #' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
 #' @param m Size of final partition size. 
+#' @param dsi Integer array of 1s and 2s to determine the proportion of training vs validation splits during match rounds. Default is c(1,2) to use 50:50 splits. 
+#' Can be set to c(2,2) if only validation should be used, e.g. in the case of bootstrapping the validation performance.
 #' @param team_size Selection sizes that are evaluated during match phase against each other
 #' @param rounds Number of rounds each pair of selections is evaluated on randomly selected train/eval sets
 #' @param min_matches_per_var Minimum number of matches each variable needs to be part of before the match phase can end
@@ -41,6 +43,7 @@
 #'  \item{response}{As from input parameters}
 #'  \item{variables}{As from input parameters}
 #'  \item{m}{As from input parameters}
+#'  \item{dsi}{As from input parameters}
 #'  \item{maximize}{As from input parameters}
 #'  \item{team_size}{As from input parameters}
 #'  \item{rounds}{As from input parameters}
@@ -105,6 +108,7 @@ game_rank <- function( dat,
                        fn_train = fn_train_binomial,
                        fn_eval  = fn_eval_binomial,
                        m = NULL,
+                       dsi = c(1L,2L),
                        maximize = TRUE,
                        team_size = 5L,
                        rounds = 50L,
@@ -123,6 +127,7 @@ game_rank <- function( dat,
   stopifnot( is.function(fn_eval) ) 
   
   if( is.null(m) ) { stop( "Please provide number m of features to select.\n" ) }
+  stopifnot( is.vector(dsi) & is.integer(dsi) & setequal(intersect(c(1L,2L),dsi), dsi) )
   stopifnot( is.integer(team_size) )
   stopifnot( is.integer(rounds) ) 
   stopifnot( is.integer(min_matches_per_var) )
@@ -142,7 +147,7 @@ game_rank <- function( dat,
   match_matrix_time <- Sys.time()
   
   # Initialize row selection vector: 1 = development, 2 = evaluation in a round
-  ds <- rep_len( c(1,2), length.out = nrow(dat) )
+  ds <- rep_len( dsi, length.out = nrow(dat) )
   
   # Define team evaluation function (internal) ----
   eval_team <- function( dat, resp, selection, ds, ... ) {
@@ -310,6 +315,7 @@ game_rank.formula <- function( fo, dat,
                                fn_train = fn_train_binomial,
                                fn_eval  = fn_eval_binomial,
                                m = NULL,
+                               dsi = c(1L,2L),
                                maximize = TRUE,
                                team_size = 5L,
                                rounds = 50L,
@@ -333,6 +339,7 @@ game_rank.formula <- function( fo, dat,
              fn_train = fn_train,
              fn_eval  = fn_eval,
              m = m,
+             dsi = dsi,
              maximize = maximize,
              team_size = team_size,
              rounds = rounds,

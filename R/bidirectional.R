@@ -97,20 +97,24 @@ bidirectional <- function( dat, resp, vars,
     # Forward step
     if( 0 < length(setdiff(Yb,Yf))) {
       best_vars <- eval_add_vars( ds, dat, resp, lst_vars, fn_train, fn_eval, maximize, Yf, setdiff( Yb, Yf ), ...  )
-      df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
-      agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
-      bs <- best_vars[['best_selections']]
-      Y <- bs[[1]]
-      Yf <- union( Y, Yf )
+      if(!is.null(best_vars)) {
+        df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
+        agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
+        bs <- best_vars[['best_selections']]
+        Y <- bs[[1]]
+        Yf <- union( Y, Yf )
+      }
     }
     # Backward step
     if( 0 < length(setdiff(Yb,Yf))) {
       best_vars <- eval_remove_vars( ds, dat, resp, lst_vars, fn_train, fn_eval, maximize, Yb, setdiff( Yb, Yf ), ...  )
-      df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
-      agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
-      bs <- best_vars[['best_selections']]
-      Y <- bs[[1]]
-      Yb <- intersect( Yb, Y ) # Y is Yb removed by one variable
+      if(!is.null(best_vars)) {
+        df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
+        agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
+        bs <- best_vars[['best_selections']]
+        Y <- bs[[1]]
+        Yb <- intersect( Yb, Y ) # Y is Yb removed by one variable
+      }
     }
     k <- k + 1
   } # while

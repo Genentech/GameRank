@@ -144,6 +144,7 @@ best_selection <- function( agg ) {
 #' @export
 eval_add_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, selection, add_vars = NULL, ..., var_sep = ","  ) {
   if( is.null(add_vars) ) add_vars <- setdiff( vars, selection )
+  if( 0 == length(add_vars) ) return( NULL )
   
   df_evl <- purrr::map_dfr( .x=add_vars, .f=function(vv) mutate( eval_splits(ds,dat,resp,union(selection,vv),fn_train,fn_eval, ... ), added = vv ) )
   agg_evl <- agg_evals( df_evl, "added", maximize )
@@ -177,6 +178,7 @@ eval_add_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, sel
 #' @export
 eval_remove_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, selection, remove_vars = NULL, ..., var_sep = ","  ) {
   if( is.null(remove_vars) ) remove_vars <- selection
+  if( 0 == length(remove_vars) ) return( NULL )
   
   df_evl <- purrr::map_dfr( .x=remove_vars, .f=function(vv) mutate( eval_splits(ds,dat,resp,setdiff(selection,vv),fn_train,fn_eval, ... ), removed = vv ) )
   agg_evl <- agg_evals( df_evl, "removed", maximize )
