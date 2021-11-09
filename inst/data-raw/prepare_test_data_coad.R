@@ -11,13 +11,11 @@ library( labelled )
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 # BiocManager::install("curatedTCGAData")
-library( curatedTCGAData )
-# if (!requireNamespace("BiocManager", quietly = TRUE))
-#   install.packages("BiocManager")
 # BiocManager::install("TCGAutils")
 # BiocManager::install("TxDb.Hsapiens.UCSC.hg19.knownGene")
 # BiocManager::install("org.Hs.eg.db")
 # BiocManager::install("mirbase.db")
+library( curatedTCGAData )
 library( TCGAutils )
 
 #   Study Abbreviation Study Name
@@ -120,15 +118,17 @@ smp <- sampleMap( mae ) %>% as_tibble
 df_cna <- longFormat( mae[["COAD_CNASNP-20160128_simplified"]] ) %>%  as_tibble %>% 
   transmute( colname, rowname = sprintf( "%s_cna",  gsub( "-","_",rowname, fixed=TRUE ) ), value ) %>%
   pivot_wider( names_from = "rowname", values_from = "value", values_fill = list( value = NA_real_ ) ) %>%
-  dplyr::left_join( smp %>% filter( "COAD_CNASNP-20160128_simplified"==assay ) %>% transmute( colname, patientID = primary ) ) %>%
-  dplyr::select( patientID, tidyr::everything() )
-df_cna 
+  dplyr::left_join( smp %>% filter( "COAD_CNASNP-20160128_simplified"==assay ) %>% transmute( colname, patientID = primary ), "colname" ) %>%
+  dplyr::select( patientID, colname, tidyr::everything() ) %>%
+  dplyr::rename( SampleID_cna = colname )
+df_cna
 
 df_cnv <- longFormat( mae[["COAD_CNVSNP-20160128_simplified"]] ) %>% as_tibble %>%
   transmute( colname, rowname = sprintf( "%s_cnv",  gsub( "-","_",rowname, fixed=TRUE ) ), value ) %>%
   pivot_wider( names_from = "rowname", values_from = "value", values_fill = list( value = NA_real_ ) ) %>%
-  dplyr::left_join( smp %>% filter( "COAD_CNASNP-20160128_simplified"==assay ) %>% transmute( colname, patientID = primary ) ) %>%
-  dplyr::select( patientID, tidyr::everything() )
+  dplyr::left_join( smp %>% filter( "COAD_CNASNP-20160128_simplified"==assay ) %>% transmute( colname, patientID = primary ), "colname" ) %>%
+  dplyr::select( patientID, colname, tidyr::everything() ) %>%
+  dplyr::rename( SampleID_cnv = colname )
 df_cnv
 
 
@@ -141,16 +141,24 @@ dat <- cod %>%
   dplyr::left_join( df_cnv, "patientID" )
 dat 
 
-lst_keys <- c("patientID")
+lst_keys <- c("patientID","SampleID_cna","SampleID_cnv")
+intersect( dat %>% colnames, lst_keys )
 lst_outcomes <- c("days_to_death", "vital_status" )
-lst_meta <- c("days_to_last_followup.x","date_of_initial_pathologic_diagnosis","tumor_tissue_site","days_to_last_known_alive","histological_type.x")
-lst_vars <- var_clin %>%
+intersect( dat %>% colnames, lst_outcomes )
+lst_meta <- c("days_to_last_followup","days_to_last_known_alive","date_of_initial_pathologic_diagnosis","tumor_tissue_site","histological_type")
+intersect( dat %>% colnames, lst_meta )
+
+lst_clinvars <- var_clin %>% 
+  setdiff( lst_keys ) %>%
+  setdiff( lst_outcomes ) %>%
+  setdiff( lst_meta )
+lst_vars <- lst_clinvars %>%
   union( union( df_cna %>% colnames, df_cnv %>% colnames ) ) %>% 
   setdiff( lst_keys ) %>%
   setdiff( lst_outcomes ) %>%
   setdiff( lst_meta )
 lst_vars
 
-dat <- dat %>% dplyr::select( all_of( intersect(c(lst_keys, lst_meta, lst_outcomes, lst_vars), dat %>% colnames ) ) )
-save( dat, lst_keys, lst_outcomes, lst_meta, lst_vars, file = file_rdata )
+dat <- dat %>% dplyr::select( all_of( intersect(c(lst_keys, lst_meta, lst_outcomes, lst_clinvars), tidyr::everything() ) ) )
+save( dat, lst_keys, lst_outcomes, lst_meta, lst_clinvars, lst_vars, file = file_rdata )
 

@@ -12,6 +12,7 @@ game_rank(
   fn_train = fn_train_binomial,
   fn_eval = fn_eval_binomial,
   m = NULL,
+  dsi = c(1L, 2L),
   maximize = TRUE,
   team_size = 5L,
   rounds = 50L,
@@ -27,6 +28,7 @@ game_rank.formula(
   fn_train = fn_train_binomial,
   fn_eval = fn_eval_binomial,
   m = NULL,
+  dsi = c(1L, 2L),
   maximize = TRUE,
   team_size = 5L,
   rounds = 50L,
@@ -50,6 +52,9 @@ as the right hand side (rhs) of the modelling formula.}
 
 \item{m}{Size of final partition size.}
 
+\item{dsi}{Integer array of 1s and 2s to determine the proportion of training vs validation splits during match rounds. Default is c(1,2) to use 50:50 splits. 
+Can be set to c(2,2) if only validation should be used, e.g. in the case of bootstrapping the validation performance.}
+
 \item{team_size}{Selection sizes that are evaluated during match phase against each other}
 
 \item{rounds}{Number of rounds each pair of selections is evaluated on randomly selected train/eval sets}
@@ -70,6 +75,7 @@ List with elements
  \item{response}{As from input parameters}
  \item{variables}{As from input parameters}
  \item{m}{As from input parameters}
+ \item{dsi}{As from input parameters}
  \item{maximize}{As from input parameters}
  \item{team_size}{As from input parameters}
  \item{rounds}{As from input parameters}
@@ -98,8 +104,8 @@ likelihood ranking model for feature combinations.
 \details{
 The Game Rank algorithm runs as follows:
 \code{ \cr
-1. Build a sampling matrix of disjoint and unique feature combinations
-2. For each combination evaluate the model per training:validation splits.
-3. Return the best selection.
+1. Build a sampling matrix of disjoint and unique feature combinations \cr
+2. For each combination evaluate the model per training:validation splits. \cr
+3. Return the best selection. \cr
 }
 }
