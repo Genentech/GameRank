@@ -92,16 +92,21 @@ forward <- function(  dat, resp, vars,
     
     if( length(Y) <= m ) {
       best_vars <- eval_add_vars( ds, dat, resp, lst_vars, fn_train, fn_eval, maximize, Y, setdiff( vars, Y ), ...  )
-      df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
-      agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
-      
-      queue <- append( queue, best_vars[['best_selections']] )
-      cat( sprintf("No of partitions %d in search queue \n", length( queue ) ) )
+      if( !is.null(best_vars) ) {
+        df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
+        agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
+        
+        queue <- append( queue, best_vars[['best_selections']] )
+        cat( sprintf("No of partitions %d in search queue \n", length( queue ) ) )
+      }
     }
     cat( sprintf( "Finished iteration %d \n", k ) )
     k <- k + 1
+    # browser( condition = { 3==k } )
   } # while
-
+  end_time <- Sys.time()
+  # browser()
+  
   # Determine best selection(s)
   agg <- agg_evals( df_evl, NULL, maximize )
   best_selections <- best_selection( agg )

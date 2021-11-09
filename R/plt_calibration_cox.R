@@ -31,20 +31,21 @@ gplot_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
     geom_abline( slope = 1, intercept = 0, color = "gray" ) +
     geom_point() +
     geom_smooth( method = "loess", se = TRUE, color = "blue" ) +
-    theme_classic() +
+    # theme_classic() +
     xlim( c(0,lim ) ) +
     ylim( c(0,lim ) ) +
     xlab( sprintf( "Predicted Survival Probability \n %s", msg ) ) +
     ylab( "Observed Survival Probability" ) 
-  ggExtra::ggMarginal( ret )
+  ggExtra::ggMarginal( ret, type="densigram" )
 }
 
 
-gplot_km_cox <- function( dat, resp, selection, mod, u, ... ) {
+gplot_km_cox <- function( dat, resp, selection, mod, u, cutpoint = NULL, ... ) {
   plt <- dat
   plt$prd <- as.numeric( 1 - pec::predictSurvProb( mod, newdata = dat, times = u, ... ) )
-  plt$prd_med <- factor( cut( plt$prd, breaks = c(-Inf,median(plt$prd, na.rm=TRUE),+Inf), include.lowest = TRUE  ) )
-  fo <- formula( sprintf( "%s ~ prd_med", resp ) )
+  if( is.null(cutpoint) ) cutpoint <- median(plt$prd, na.rm=TRUE)
+  plt$cut <- factor( cut( plt$prd, breaks = c(-Inf,cutpoint,+Inf), labels = c("Low","High"), include.lowest = TRUE  ) )
+  fo <- formula( sprintf( "%s ~ cut", resp ) )
   fit <- survminer::surv_fit( fo, plt )
   ggsurvplot( fit, plt, conf.int = TRUE, risk.table = TRUE )
 }
