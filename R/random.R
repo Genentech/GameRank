@@ -125,7 +125,9 @@ random_selection <- function( dat,
   agg <-  agg_evals( evl, "row", maximize )
   best_selections <- best_selection( agg )
   
-  ret <- list( # Input data
+  ret <- list( 
+    algorithm = "random",
+    # Input data
     # data = dat,
     response = resp,
     variables = vars,

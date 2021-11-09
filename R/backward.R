@@ -107,6 +107,7 @@ backward <- function( dat, resp, vars,
   best_selections <- best_selection( agg )
   
   ret <- list( 
+    algorithm = "backward",
     # Parameters
     response = resp,
     variables = vars,

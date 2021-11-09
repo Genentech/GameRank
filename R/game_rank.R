@@ -16,9 +16,9 @@
 #' 
 #' @details The Game Rank algorithm runs as follows:
 #' \code{ \cr
-#' 1. Build a sampling matrix of disjoint and unique feature combinations
-#' 2. For each combination evaluate the model per training:validation splits.
-#' 3. Return the best selection.
+#' 1. Build a sampling matrix of disjoint and unique feature combinations \cr
+#' 2. For each combination evaluate the model per training:validation splits. \cr
+#' 3. Return the best selection. \cr
 #' }
 #' 
 #' @param fo Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )
@@ -275,6 +275,7 @@ game_rank <- function( dat,
   
   # Return list object with parameters and results
   ret <- list(
+    algorithm = "game_rank",
     # Input data
     # data = dat,
     response = resp,

@@ -124,7 +124,9 @@ bidirectional <- function( dat, resp, vars,
   agg <- agg_evals( df_evl, NULL, maximize )
   best_selections <- best_selection( agg )
   
-  ret <- list( # Input data
+  ret <- list( 
+    algorithm = "bidirectional",
+    # Input data
     # data = dat,
     response = resp,
     variables = vars,
