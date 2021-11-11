@@ -4,7 +4,7 @@
 \alias{check_variables}
 \title{Utility function that applies check_variable to a dataset}
 \usage{
-check_variables(dat, resp, vars, min_cases = 35L, c_out = 1.5)
+check_variables(dat, resp, vars, min_cases = 25L, c_out = 1.5)
 }
 \arguments{
 \item{dat}{data.frame or tibble comprising data for model generation and validation.}
@@ -18,7 +18,21 @@ check_variables(dat, resp, vars, min_cases = 35L, c_out = 1.5)
 \item{c_out}{Constant for the Robust Outlier Test determining the scaling of IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR.}
 }
 \value{
-
+A tibble with entries
+\describe{
+\item{N}{Overall number of values}
+\item{n}{Overall number of non-missing values}
+\item{nmiss}{Number of missing values}
+\item{p}{Percentage of non-missing values.}
+\item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 'Good', 'Perfect' depending on the percentage of missingness <70\%, <80\%, <90\%, <99\%, or 100\%}
+\item{type}{Type of the variable binary, categorical, integer, or real}
+\item{entropy}{Entropy estimated, eventually by package entropy function, for the variable. This value describes the information content in bits of the variable distribution. The more the better.}
+\item{mutual_information}{Mutual information between variable and response (if provided) in bits. For survival endpoints, the event flag (Yes/No) is used.}
+\item{check_entropy}{Variables with entropy close to 0.0 (<0.001) are recommended to be dropped.}
+\item{rot.nmin}{Number of samples lower than Robust Outlier Test cut-off of Q1 - c_out x IQR.}
+\item{rot.nmax}{Number of samples lower than Robust Outlier Test cut-off of Q3 + c_out x IQR.}
+\item{rng_sd}{Ratio of sample range by sample standard deviation.}
+}
 }
 \description{
 Applies check_variable to each response and each variable in vars, and returns a merged dataset.

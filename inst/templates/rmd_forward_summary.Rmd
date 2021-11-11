@@ -1,0 +1,59 @@
+---
+output: html_document
+params:
+  fwd: !r NULL
+---
+
+```{r setup, include=FALSE}
+res <- params$fwd
+
+options(width=80)
+devtools::load_all("~/GameRank")
+
+theme_set(theme_minimal() +
+          theme(strip.background = element_rect(color = 'black',
+                                                fill = 'white')))
+```
+
+# Input
+
+## General Parameters
+```{r}
+cat(sprintf("Maximize objective : %s \n", res$maximize))
+cat(sprintf("Partition size m = %d \n", res$m))
+cat(sprintf("Response : %s \n",res$resp ))
+cat("Included variables : \n")
+cat( res$variables )
+cat("\n")
+```
+
+## Algorithm Parameters
+```{r}
+cat("splits : \n")
+cat(" - distribution of how often a sample was used for validation \n")
+ds <- res$splits
+table( apply( 2==ds, 1, sum ) )
+```
+
+# Results
+
+## Time consumption
+```{r}
+dt <- difftime( res$end, res$start, units="auto" )
+cat(sprintf("Forward Selection ran from %s to %s for %1.4f [%s]. \n", res$start, res$end, dt, units(dt) ))
+```
+
+# Selection 
+```{r}
+cat("Forward selection : \n")
+res$variable_selections
+cat("\n")
+```
+
+# Optimal Aggregate Results
+
+```{r}
+agg <- res$agg_results %>% filter( opt )
+agg %>% knitr::kable( caption = "Aggregated performance" )
+```
+

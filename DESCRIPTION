@@ -12,7 +12,8 @@ Depends: R (>= 3.1.0),
   purrr,
   formula.tools,
   survival,
-  ggplot2
+  ggplot2,
+  yaml
 Imports:
   numDeriv,
   boot,

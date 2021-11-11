@@ -135,17 +135,24 @@ df_cnv
 setequal( df_cna$patientID, df_cnv$patientID )
 setdiff( cod$patientID, df_cnv$patientID )
 setdiff( cod$patientID, df_cna$patientID )
-
-dat <- cod %>%
-  dplyr::left_join( df_cna, "patientID" ) %>%
-  dplyr::left_join( df_cnv, "patientID" )
-dat 
+# There are duplicate samples with different values => change merging strategy
+# dat <- cod %>%
+#   dplyr::left_join( df_cna, "patientID" ) %>%
+#   dplyr::left_join( df_cnv, "patientID" )
+df_cna %>% nrow
+df_cnv %>% nrow
+dat <- dplyr::left_join( df_cna, df_cnv, c("SampleID_cna"="SampleID_cnv","patientID"="patientID") )
+dat %>% nrow
+dat <- dplyr::left_join( dat, cod, "patientID" )
+dat %>% nrow
+dat <- dat %>% mutate( SampleID_cnv = SampleID_cna )
+dat %>% colnames %>% tail 
 
 lst_keys <- c("patientID","SampleID_cna","SampleID_cnv")
 intersect( dat %>% colnames, lst_keys )
 lst_outcomes <- c("days_to_death", "vital_status" )
 intersect( dat %>% colnames, lst_outcomes )
-lst_meta <- c("days_to_last_followup","days_to_last_known_alive","date_of_initial_pathologic_diagnosis","tumor_tissue_site","histological_type")
+lst_meta <- c("days_to_last_followup","date_of_initial_pathologic_diagnosis","tumor_tissue_site","histological_type") # ,"days_to_last_known_alive"
 intersect( dat %>% colnames, lst_meta )
 
 lst_clinvars <- var_clin %>% 
@@ -159,6 +166,10 @@ lst_vars <- lst_clinvars %>%
   setdiff( lst_meta )
 lst_vars
 
-dat <- dat %>% dplyr::select( all_of( intersect(c(lst_keys, lst_meta, lst_outcomes, lst_clinvars), tidyr::everything() ) ) )
+dat <- dat %>% dplyr::select( all_of( c(lst_keys, lst_meta, lst_outcomes, lst_clinvars) ), tidyr::everything() )
 save( dat, lst_keys, lst_outcomes, lst_meta, lst_clinvars, lst_vars, file = file_rdata )
 
+nrow(cod)
+nrow(df_cna)
+nrow(df_cnv)
+nrow(dat)

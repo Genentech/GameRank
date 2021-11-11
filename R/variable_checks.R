@@ -6,6 +6,7 @@
 #' @param var Character indicating the variable to check.
 #' @param min_cases Minimal number of cases for which the entropy is estimated or outlier tests are performed.
 #' @param c_out Constant for the Robust Outlier Test determining the scaling of IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR.
+#' @param resp_cat Categorical array with response variable to estimate mutation information in bits.
 #' 
 #' @return A tibble with entries
 #' \describe{
@@ -13,19 +14,21 @@
 #' \item{n}{Overall number of non-missing values}
 #' \item{nmiss}{Number of missing values}
 #' \item{p}{Percentage of non-missing values.}
-#' \item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 'Good', 'Perfect' depending on the percentage of missingness <70%, <80%, <90%, <99%, or 100%}
+#' \item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 'Good', 'Perfect' depending on the percentage of missingness <70\%, <80\%, <90\%, <99\%, or 100\%}
 #' \item{type}{Type of the variable binary, categorical, integer, or real}
-#' \item{entropy}{Entropy estimated, eventually by package entropy function, for the variable. This value describes the information content of the variable distribution. The more the better.}
+#' \item{entropy}{Entropy estimated, eventually by package entropy function, for the variable. This value describes the information content in bits of the variable distribution. The more the better.}
+#' \item{mutual_information}{Mutual information between variable and response (if provided) in bits. For survival endpoints, the event flag (Yes/No) is used.}
 #' \item{check_entropy}{Variables with entropy close to 0.0 (<0.001) are recommended to be dropped.}
 #' \item{rot.nmin}{Number of samples lower than Robust Outlier Test cut-off of Q1 - c_out * IQR.}
 #' \item{rot.nmax}{Number of samples lower than Robust Outlier Test cut-off of Q3 + c_out * IQR.}
+#' \item{rot.p}{Percentage of outliers.}
 #' \item{rng_sd}{Ratio of sample range by sample standard deviation.}
 # \item{dixon.Q}{Dixons Q-statistics.}
 # \item{dixon.pval}{Dixons p-value that there is an outlier in the sample.}
 #' }
 #' 
 #' @export 
-check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
+check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = NULL ) {
   cat( sprintf( "Evaluating variable %s \n", var ) )
   ret <- list()
   ret[["variable"]] <- var
@@ -55,8 +58,11 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
       
       # x <- c( TRUE, TRUE, FALSE, FALSE, FALSE )
       # x <- c( TRUE, TRUE,TRUE, TRUE )
-      tab <- table( x )
-      en <- entropy::entropy( y = tab, method = "ML" )
+      en <- entropy::entropy( y =  table( x ), method = "ML", unit = "log2" )
+      mi <- NA_real_
+      if( !is.null(resp_cat) ) {
+        mi <- entropy::mi.empirical( y2d = table( resp_cat, xval ), unit = "log2"  )  
+      }
       
       # tab <- table( x )
       # ptab <- prop.table( tab )
@@ -66,6 +72,7 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
       
       ret[["type"]] <- "binary"
       ret[["entropy"]] <- en
+      ret[["mutual_information"]] <- mi
       ret[["check_entropy"]] <- ifelse( entropy < epsi, "Entropy too low", "Entropy ok" )
       
     } else if( is.factor(x) | is.character(x) ) {
@@ -73,8 +80,11 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
       # x <- c( "TRUE", "TRUE", "FALSE", "FALSE", "FALSE" )
       # x <- c( rep.int( "TRUE", 100 ), "FALSE" )
       # x <- x %>% factor( levels = c("FALSE","TRUE") )
-      tab <- table( x )
-      en <- entropy::entropy( y = tab, method = "ML" )
+      en <- entropy::entropy( y = table( x ), method = "ML", unit = "log2" )
+      mi <- NA_real_
+      if( !is.null(resp_cat) ) {
+        mi <- entropy::mi.empirical( y2d = table( resp_cat, xval ), unit = "log2"  )  
+      }
       
       # tab <- table( x )
       # ptab <- prop.table( tab )
@@ -84,14 +94,18 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
       
       ret[["type"]] <- "categorical"
       ret[["entropy"]] <- en
+      ret[["mutual_information"]] <- mi
       ret[["check_entropy"]] <- ifelse( en < epsi, "Entropy too low", "Entropy ok" )
       
     } else if( is.integer(x) ) {
       
       # x <- as.integer( rnorm(100) * 100 )
       # x <- rep.int( 1L, 100 )
-      tab <- table( x )
-      en <- entropy::entropy( y = tab, method = "ML" )
+      en <- entropy::entropy( y = table( x ), method = "ML", unit = "log2" )
+      mi <- NA_real_
+      if( !is.null(resp_cat) ) {
+        mi <- entropy::mi.empirical( y2d = table( resp_cat, xval ), unit = "log2"  )  
+      }
       
       # tab <- table( x )
       # ptab <- prop.table( tab )
@@ -101,6 +115,7 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
       
       ret[["type"]] <- "integer"
       ret[["entropy"]] <- en
+      ret[["mutual_information"]] <- mi
       ret[["check_entropy"]] <- ifelse( en < epsi, "Entropy too low", "Entropy ok" )
       
       
@@ -110,12 +125,14 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
       q3 <- quantile( x, prob = 0.75, na.rm=TRUE )
       rot.nmin <- length( which( x < q1 - c_out * iqr ) )
       rot.nmax <- length( which( x > q3 + c_out * iqr ) )
+      rot.p <- (rot.nmin+rot.nmax) / n * 100.0
       rng_sd <- range( x ) / sd( x )
       # tst <- outliers::dixon.test( x=x, type=22 )
       # tst_stat <- tst$statistic
       # tst_pval <- tst$p.value
       ret[["rot.nmin"]] <- rot.nmin
       ret[["rot.nmax"]] <- rot.nmax
+      ret[["rot.p"]] <- rot.p
       ret[["rng_sd"]] <- rng_sd
       # ret[["dixon.Q"]] <- tst_stat
       # ret[["dixon.pval"]] <- tst_pval
@@ -128,7 +145,11 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
       # before we can use it to estimate the entropy.
       bb <- bins_ucv( x )
       tab <- as.integer( table( cut( x, breaks = bb, include.lowest = TRUE ) ) )
-      en <- entropy::entropy( y = tab, method = "ML" )
+      en <- entropy::entropy( y = tab, method = "ML", unit = "log2" )
+      mi <- NA_real_
+      if( !is.null(resp_cat) ) {
+        mi <- entropy::mi.empirical( y2d = table( resp_cat, cut( xval, breaks = bb, include.lowest = TRUE ) ), unit = "log2"  )  
+      }
       
       # Attempt 1:
       # n_points <- 512 # Default
@@ -156,6 +177,7 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
       
       ret[["type"]] <- "real"
       ret[["entropy"]] <- en
+      ret[["mutual_information"]] <- mi
       ret[["check_entropy"]] <- ifelse( en < epsi, "Entropy too low", "Entropy ok" )
       
       # Evaluate for outliers
@@ -164,12 +186,14 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
       q3 <- quantile( x, prob = 0.75, na.rm=TRUE )
       rot.nmin <- length( which( x < q1 - c_out * iqr ) )
       rot.nmax <- length( which( x > q3 + c_out * iqr ) )
+      rot.p <- (rot.nmin+rot.nmax) / n * 100.0
       rng_sd <- range( x ) / sd( x )
       # tst <- outliers::dixon.test( x=x, type=22 )
       # tst_stat <- tst$statistic
       # tst_pval <- tst$p.value
       ret[["rot.nmin"]] <- rot.nmin
       ret[["rot.nmax"]] <- rot.nmax
+      ret[["rot.p"]] <- rot.p
       ret[["rng_sd"]] <- rng_sd
       # ret[["dixon.Q"]] <- tst_stat
       # ret[["dixon.pval"]] <- tst_pval
@@ -196,9 +220,10 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
 #' \item{n}{Overall number of non-missing values}
 #' \item{nmiss}{Number of missing values}
 #' \item{p}{Percentage of non-missing values.}
-#' \item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 'Good', 'Perfect' depending on the percentage of missingness <70%, <80%, <90%, <99%, or 100%}
+#' \item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 'Good', 'Perfect' depending on the percentage of missingness <70\%, <80\%, <90\%, <99\%, or 100\%}
 #' \item{type}{Type of the variable binary, categorical, integer, or real}
-#' \item{entropy}{Entropy estimated, eventually by package entropy function, for the variable. This value describes the information content of the variable distribution. The more the better.}
+#' \item{entropy}{Entropy estimated, eventually by package entropy function, for the variable. This value describes the information content in bits of the variable distribution. The more the better.}
+#' \item{mutual_information}{Mutual information between variable and response (if provided) in bits. For survival endpoints, the event flag (Yes/No) is used.}
 #' \item{check_entropy}{Variables with entropy close to 0.0 (<0.001) are recommended to be dropped.}
 #' \item{rot.nmin}{Number of samples lower than Robust Outlier Test cut-off of Q1 - c_out x IQR.}
 #' \item{rot.nmax}{Number of samples lower than Robust Outlier Test cut-off of Q3 + c_out x IQR.}
@@ -208,17 +233,33 @@ check_variable <- function( dat, var, min_cases = 35L, c_out = 1.5 ) {
 #' }
 #' 
 #' @export 
-check_variables <- function( dat, resp, vars, min_cases = 35L, c_out = 1.5 ) {
+check_variables <- function( dat, resp, vars, min_cases = 25L, c_out = 1.5 ) {
   
+  resp_cat <- NULL
   ret <- list()
   if( !is.null(resp) ) {
-    evl <- check_variable( dat, resp, min_cases = min_cases, c_out = c_out )
+    evl <- check_variable( dat, resp, min_cases = min_cases, c_out = c_out, resp_cat = NULL )
     evl$is_response <- TRUE
     ret[[resp]] <- evl
+    
+    fo <- formula( sprintf( "%s ~ 1", re ) )
+    mf <- model.frame( fo, dat, na.action = na.pass )
+    
+    if( is.Surv( mf[[1]] ) ) {
+      # TODO For now take Event/No-Event as category
+      mf$resp_cat <- as.factor( mf[[1]][,"status"] )
+    } else if( is.integer(mf[[1]]) | is.double(mf[[1]]) ) {
+      bb <- bins_ucv( mf[[1]] )
+      mf <- mf %>% mutate( resp_cat = factor( cut( resp, breaks = bb, include.lowest = TRUE ) ) )
+    } else if( is.character(mf[[1]]) | is.factor(mf[[1]]) | is.logical(mf[[1]]) ) {
+      mf$resp_cat <- as.factor( mf[,1] )
+    } 
+    resp_cat <- mf$resp_cat
+    stopifnot( length(resp_cat)==nrow(dat) )
   }
   
   for( var in vars ) {
-    evl <- check_variable( dat, var, min_cases = min_cases, c_out = c_out )
+    evl <- check_variable( dat, var, min_cases = min_cases, c_out = c_out, resp_cat = resp_cat )
     evl$is_response <- FALSE
     ret[[var]] <- evl
   }

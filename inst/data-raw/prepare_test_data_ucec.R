@@ -131,10 +131,21 @@ df_cnv <- longFormat( mae[["UCEC_CNVSNP-20160128_simplified"]] ) %>% as_tibble %
   dplyr::rename( SampleID_cnv = colname )
 df_cnv
 
-dat <- cod %>%
-  dplyr::left_join( df_cna, "patientID" ) %>%
-  dplyr::left_join( df_cnv, "patientID" )
-dat 
+setequal( cod$patientID, df_cna$patientID )
+setequal( cod$patientID, df_cnv$patientID )
+
+# There are duplicate samples with different values => change merging strategy
+# dat <- cod %>%
+#   dplyr::left_join( df_cna, "patientID" ) %>%
+#   dplyr::left_join( df_cnv, "patientID" )
+df_cna %>% nrow
+df_cnv %>% nrow
+dat <- dplyr::left_join( df_cna, df_cnv, c("SampleID_cna"="SampleID_cnv","patientID"="patientID") )
+dat %>% nrow
+dat <- dplyr::left_join( dat, cod, "patientID" )
+dat %>% nrow
+dat <- dat %>% mutate( SampleID_cnv = SampleID_cna )
+dat %>% colnames %>% tail 
 
 lst_keys <- c("patientID","SampleID_cna","SampleID_cnv")
 intersect( dat %>% colnames, lst_keys )
@@ -154,6 +165,11 @@ lst_vars <- lst_clinvars %>%
   setdiff( lst_meta )
 lst_vars
 
-dat <- dat %>% dplyr::select( all_of( intersect(c(lst_keys, lst_meta, lst_outcomes, lst_clinvars), tidyr::everything() ) ) )
+dat <- dat %>% dplyr::select( all_of( c(lst_keys, lst_meta, lst_outcomes, lst_clinvars) ), tidyr::everything() )
 save( dat, lst_keys, lst_outcomes, lst_meta, lst_clinvars, lst_vars, file = file_rdata )
+
+nrow(cod)
+nrow(df_cna)
+nrow(df_cnv)
+nrow(dat)
 

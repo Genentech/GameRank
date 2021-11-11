@@ -13,8 +13,8 @@ tbl_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
     # grd.prd.cll <- log(-log(1-grd.cox) )
     # df.grd.cox <- data.frame( grd.cox, grd.prd.cll ) %>% setNames(c("prd","cll.prd"))
     # df.grd.cox$prd.cal <- 1 - predictSurvProb( cal.cox, df.grd.cox, times = u )
-    mf$obs <- 1 - predictSurvProb( cal.cox, mf, times = u )
-    res <- model.frame( formula( sprintf("%s ~ %s + %s + %s", resp1, "prd", "cll.prd", "obs") ), mf )
+    mf$obs <- as.numeric( 1 - pec::predictSurvProb( cal.cox, newdata = mf, times = u ) )
+    res <- model.frame( formula( sprintf("%s ~ %s + %s + %s", resp, "prd", "cll.prd", "obs") ), mf )
     res
   }, error = function( e ) NA )
   return( ret )

@@ -62,34 +62,36 @@ broom::tidy(mod, conf.int=TRUE ) %>%
 # Plot calication
 ## Training
 ```{r out.width="100%"}
-gplot_predictions_cox( df_train, params$resp1, params$selection, mod, u = params$u )
+gplot_predictions_cox( df_train, params$resp, params$selection, mod, u = params$u )
 ```
 
 ## Validation
 ```{r out.width="100%"}
-gplot_predictions_cox( df_eval, params$resp1, params$selection, mod, u = params$u )
+gplot_predictions_cox( df_eval, params$resp, params$selection, mod, u = params$u )
 ```
 
 ## Test
 ```{r out.width="100%"}
-gplot_predictions_cox( df_test, params$resp1, params$selection, mod, u = params$u )
+gplot_predictions_cox( df_test, params$resp, params$selection, mod, u = params$u )
 ```
 
 # Plot discrimination
 ## Training
 ```{r out.width="100%"}
-gplot_km_cox( df_train, params$resp1, params$selection, mod, u = params$u )
+gplot_km_cox( df_train, params$resp, params$selection, mod, u = params$u )
 ```
 
 ## Validation
 ```{r out.width="100%"}
-gplot_km_cox( df_eval, params$resp1, params$selection, mod, u = params$u )
+gplot_km_cox( df_eval, params$resp, params$selection, mod, u = params$u )
 ```
 
 ## Test
 ```{r out.width="100%"}
-gplot_km_cox( df_test, params$resp1, params$selection, mod, u = params$u )
+gplot_km_cox( df_test, params$resp, params$selection, mod, u = params$u )
+
+# Add a plot with Validation and Test overlaid
 ```
 
-Add a plot with Validation and Test overlaid
+
 

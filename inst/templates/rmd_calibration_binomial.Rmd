@@ -1,0 +1,77 @@
+---
+output: html_document
+params:
+  ds: !r NULL
+  dat: !r NULL
+  resp: !r NULL
+  selection: !r NULL
+  k: 1
+---
+
+```{r setup, include=FALSE}
+stopifnot( is.matrix(params$ds) & nrow(params$ds)==nrow(params$dat) )
+
+options(width=80)
+devtools::load_all("~/GameRank")
+
+theme_set(theme_minimal() +
+          theme(strip.background = element_rect(color = 'black',
+                                                fill = 'white')))
+# pal <- palette::nord
+# ggsurvplot( ... palette = pallete)
+# https://github.com/EmilHvitfeldt/r-color-palettes
+
+df_train <- params$dat[which(1==params$ds[,params$k]),]
+df_eval  <- params$dat[which(2==params$ds[,params$k]),]
+df_test  <- params$dat[which(3==params$ds[,params$k]),]
+
+mod <- fn_train_cox( df_train, params$resp, params$selection )
+
+```
+
+# Data summary
+
+## Training split
+```{r}
+summary( model.frame( as.formula(mod), df_train ) )
+```
+
+# Validation split
+```{r}
+summary( model.frame( as.formula(mod), df_eval ) )
+```
+
+# Test split
+```{r}
+summary( model.frame( as.formula(mod), df_test ) )
+```
+
+
+# Model summary
+```{r}
+summary( mod )
+```
+
+# Model parameters
+```{r}
+broom::tidy(mod, conf.int=TRUE ) %>%
+  knitr::kable( caption = "Estimated model parameters")
+```
+
+# Plot calication
+## Training
+```{r out.width="100%"}
+gplot_predictions_binomial( df_train, params$resp, params$selection, mod )
+```
+
+## Validation
+```{r out.width="100%"}
+gplot_predictions_binomial( df_eval, params$resp, params$selection, mod )
+```
+
+## Test
+```{r out.width="100%"}
+gplot_predictions_binomial( df_test, params$resp, params$selection, mod )
+```
+
+

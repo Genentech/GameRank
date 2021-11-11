@@ -1,0 +1,86 @@
+---
+output: html_document
+params:
+  vck: !r NULL
+---
+
+```{r setup, include=FALSE}
+vck <- params$vck
+
+options(width=80)
+devtools::load_all("~/GameRank")
+
+theme_set(theme_minimal() +
+          theme(strip.background = element_rect(color = 'black',
+                                                fill = 'white')))
+# pal <- palette::nord
+# ggsurvplot( ... palette = pallete)
+# https://github.com/EmilHvitfeldt/r-color-palettes
+rsp <- vck %>% filter(  is_response ) 
+vck <- vck %>% filter( !is_response ) %>% mutate_at(c("check_missing","type","check_entropy"), as.factor )
+
+```
+
+# Info
+
+```{r}
+cat( sprintf( "Response : %s \n", rsp %>% pull( variable ) ) )
+print( rsp )
+```
+
+
+# Summary
+
+```{r}
+vck %>% summary
+```
+
+# Distribution of Missing Data
+
+```{r}
+vck %>% 
+  ggplot( aes(x=p, y=..density..) ) +
+  geom_histogram( bins = 100 ) +
+  geom_density( bw = "ucv" )
+
+```
+
+# Distribution of Variable Entropies
+
+```{r}
+vck %>% 
+  ggplot( aes(x=entropy, y=..density..) ) +
+  geom_histogram( bins = 100 ) +
+  geom_density( bw = "ucv" )
+```
+
+# Distribution of Mutual Information with Response
+
+```{r}
+vck %>% 
+  ggplot( aes(x=mutual_information, y=..density..) ) +
+  geom_histogram( bins = 100 ) +
+  geom_density( bw = "ucv" )
+```
+
+# Joint distribution of variable entropy and mutual information with response
+```{r}
+vck %>% 
+  ggplot( aes(x=entropy, y=mutual_information, color = check_missing ) ) +
+  geom_point()
+```
+
+# Scatter Plot of Robust Outliers Min and max colored by Entropy
+```{r}
+vck %>%
+  ggplot( aes( x=rot.nmin, y=rot.nmax, color=entropy ) ) +
+  geom_point()
+```
+
+# Scatter Plot of Robust Outliers Min and max colored by Mutual Information
+```{r}
+vck %>%
+  ggplot( aes( x=rot.nmin, y=rot.nmax, color=mutual_information ) ) +
+  geom_point()
+```
+

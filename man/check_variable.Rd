@@ -4,7 +4,7 @@
 \alias{check_variable}
 \title{Utility function that performs high-level checks for a variable in a dataset}
 \usage{
-check_variable(dat, var, min_cases = 35L, c_out = 1.5)
+check_variable(dat, var, min_cases = 25L, c_out = 1.5, resp_cat = NULL)
 }
 \arguments{
 \item{dat}{data.frame or tibble comprising data for model generation and validation.}
@@ -14,9 +14,26 @@ check_variable(dat, var, min_cases = 35L, c_out = 1.5)
 \item{min_cases}{Minimal number of cases for which the entropy is estimated or outlier tests are performed.}
 
 \item{c_out}{Constant for the Robust Outlier Test determining the scaling of IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR.}
+
+\item{resp_cat}{Categorical array with response variable to estimate mutation information in bits.}
 }
 \value{
-
+A tibble with entries
+\describe{
+\item{N}{Overall number of values}
+\item{n}{Overall number of non-missing values}
+\item{nmiss}{Number of missing values}
+\item{p}{Percentage of non-missing values.}
+\item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 'Good', 'Perfect' depending on the percentage of missingness <70\%, <80\%, <90\%, <99\%, or 100\%}
+\item{type}{Type of the variable binary, categorical, integer, or real}
+\item{entropy}{Entropy estimated, eventually by package entropy function, for the variable. This value describes the information content in bits of the variable distribution. The more the better.}
+\item{mutual_information}{Mutual information between variable and response (if provided) in bits. For survival endpoints, the event flag (Yes/No) is used.}
+\item{check_entropy}{Variables with entropy close to 0.0 (<0.001) are recommended to be dropped.}
+\item{rot.nmin}{Number of samples lower than Robust Outlier Test cut-off of Q1 - c_out * IQR.}
+\item{rot.nmax}{Number of samples lower than Robust Outlier Test cut-off of Q3 + c_out * IQR.}
+\item{rot.p}{Percentage of outliers.}
+\item{rng_sd}{Ratio of sample range by sample standard deviation.}
+}
 }
 \description{
 Utility function that performs high-level checks for a variable in a dataset
