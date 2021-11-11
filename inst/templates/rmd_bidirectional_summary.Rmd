@@ -40,12 +40,12 @@ table( apply( 2==ds, 1, sum ) )
 ## Time consumption
 ```{r}
 dt <- difftime( res$end, res$start, units="auto" )
-cat(sprintf("Forward Selection ran from %s to %s for %1.4f [%s]. \n", res$start, res$end, dt, units(dt) ))
+cat(sprintf("Bidirectional Selection ran from %s to %s for %1.4f [%s]. \n", res$start, res$end, dt, units(dt) ))
 ```
 
 # Selection 
 ```{r}
-cat("Forward selection : \n")
+cat("Bidirectional selection : \n")
 res$variable_selections
 cat("\n")
 ```

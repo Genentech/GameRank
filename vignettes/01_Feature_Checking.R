@@ -15,19 +15,39 @@ library( dplyr )
 library( tidyr )
 library( purrr )
 
-library( numDeriv )
-library( pec )
-
 library( survival )
 library( survminer )
 
 devtools::load_all("~/GameRank/")
-load("~/GameRank/data/tcga_ucec_cna_cnv.Rdata")
+
+# setting outputs 
+dir_varchk <- "out/vig1/"
+file_varchk <- file.path( dir_varchk, "tcga_ucec_cna_cnv_varchk.rds" )
+
+# load data
+load( "data/tcga_ucec_cna_cnv.Rdata" )
+
+# Brush up Overall Survival endpoint by imputing missing days by 1+max days survival
+max_days <- 1 + max( dat$days_to_death, na.rm=TRUE )
+dat <- dat %>% mutate( days_to_death = ifelse( is.na(days_to_death), max_days, days_to_death ) )
+re <- "Surv( days_to_death, vital_status )"
+va <- lst_vars
+
+# Run variable checks
+start_time <- Sys.time()
+vck <- check_variables( dat, re, va )
+end_time <- Sys.time()
+dt <- difftime( end_time, start_time )
+cat( sprintf( "Variable checking ran from %s to %s (%1.2f %s) \n", start_time, end_time, dt, units(dt) ) )
+
+# Save results and render report
+saveRDS( vck, file = file_varchk )
+render_variable_checks_summary( vck, dir_varchk )
+
 
 #' # Introduction
 #' 
-#' Building predictive models requires as an immediate first step the check of
-#' available data:
+#' Building predictive models requires as an immediate first step the inpsection of available data:
 #' \describe{
 #' \item{Missing values}{It's key to understand the level of *missing values* per variable. Multi-variate
 #' models may fail to train as the number of complete cases may drop. Alternatively, approaches for
@@ -35,7 +55,7 @@ load("~/GameRank/data/tcga_ucec_cna_cnv.Rdata")
 #' be indicative of a relevant process or also of data quality.}
 #' \item{Data type and Information Content}{Regardless of data type, a variable should comprise a certain level
 #' of information, that is should attain more than one value or not be constant except for a few cases. This
-#' property can be estimated as the variable *Entropy*.}
+#' property can be estimated as the variable *Entropy* and the *Mutual Information* with respect to a response.}
 #' \item{Outliers and Extreme Cases}{For numerical variables, it is essential to understand the propability and
 #' extend of potential *outliers*. Some modelling approaches may be severely impacted by those. We can use two
 #' approaches: 1) is based on the so-called _Robust Outlier Test_ using the range outsider [Q1 - c * IQR, Q3 + c * IQR]} 
@@ -45,32 +65,4 @@ load("~/GameRank/data/tcga_ucec_cna_cnv.Rdata")
 #' }
 #' 
 
-re <- "Surv( days_to_death, vital_status )"
-va <- setdiff( lst_vars, c( lst_meta, "days_to_last_followup", "days_to_last_known_alive"  )  )
 
-se <- c("gender","years_to_birth")
-mod <- fn_train_cox( dat, re, se )
-ev  <- fn_eval_cox( dat, re, se, mod, u = 365 )
-
-vck <- check_variables( dat,re, va, min_cases = 35 )
-vck <- vck %>%
-  mutate( is_cnv = grepl( "_cnv$", variable ), is_cna = grepl( "_cna$", variable ) ) %>% 
-  mutate_at(c("check_missing","type","check_entropy"), as.factor )
-vck %>% summary
-
-vck %>% 
-  ggplot( aes(x=nmiss_pct, y=..density..) ) +
-  geom_histogram( bins = 100 ) +
-  geom_density( bw = "ucv" ) +
-  theme_classic()
-
-vck %>% 
-  ggplot( aes(x=entropy, y=..density..) ) +
-  geom_histogram( bins = 100 ) +
-  geom_density( bw = "ucv" ) +
-  theme_classic()
-
-vck %>% 
-  ggplot( aes(x=entropy) ) +
-  stat_ecdf() + 
-  theme_classic()

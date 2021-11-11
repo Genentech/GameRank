@@ -128,7 +128,7 @@ fn_train_cox <- function( dat, resp, selection, ... ) {
 #' @export
 fn_eval_cox <- function( dat, resp, selection, mod, u = NULL, ... ) {
   if( is.null(mod) ) return( NA )
-  stopifnot( !is.null(u) & is.numeric(u) & (0<=u) )
+  stopifnot( is.numeric(u) & (0<=u) )
   ret <- NA
   ret <- tryCatch({
     mod$coefficients[which(is.na(mod$coefficients))] <- 0

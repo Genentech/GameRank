@@ -127,7 +127,7 @@ game_rank <- function( dat,
   stopifnot( is.function(fn_eval) ) 
   
   if( is.null(m) ) { stop( "Please provide number m of features to select.\n" ) }
-  stopifnot( is.vector(dsi) & is.integer(dsi) & setequal(intersect(c(1L,2L),dsi), dsi) )
+  stopifnot( is.vector(dsi) & is.integer(dsi) & all( dsi %in% c(1,2) ) )
   stopifnot( is.integer(team_size) )
   stopifnot( is.integer(rounds) ) 
   stopifnot( is.integer(min_matches_per_var) )

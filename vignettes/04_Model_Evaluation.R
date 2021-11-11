@@ -15,7 +15,22 @@ library( dplyr )
 library( tidyr )
 library( purrr )
 
+library( survival )
+library( survminer )
+
 devtools::load_all("~/GameRank/")
 
-#' Example code
-load("data/tcga_dlbcl_cna_cnv.Rdata")
+# setting outputs 
+dir_varsel <- "out/vig4/"
+file_varchk <- system.file( "data", "luad_nopckyrssmked_varchk.rds", package = "GameRank" )
+file_gmr <- file.path( dir_varsel, "luad__gmrsel.rds")
+
+# load data
+load( "data/tcga_luad_cna_cnv.Rdata" )
+dat <- dat %>% filter( grepl( "01A-11D", dat$SampleID_cna ) ) # Filter only one half of samples 
+vck <- readRDS( file = file_varchk )
+
+# Prepare variable selection
+re <- vck %>% filter( is_response ) %>% pull( variable )
+va <- vck %>% filter( "Perfect"==check_missing ) %>% arrange( desc(mutual_information), desc(entropy), rot.p ) %>% head( 200 ) %>% pull( variable ) %>% unique
+

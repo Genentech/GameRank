@@ -166,6 +166,11 @@ lst_vars <- lst_clinvars %>%
   setdiff( lst_meta )
 lst_vars
 
+source( "inst/data-raw/util_barcode_encoding.R" )
+dat <- dat %>% process_sample_ids( "SampleID_cna" )
+lst_meta <- c( lst_meta, lst_meta_cols )
+dat %>% dplyr::select( lst_meta_cols ) %>% summary
+
 dat <- dat %>% dplyr::select( all_of( c(lst_keys, lst_meta, lst_outcomes, lst_clinvars) ), tidyr::everything() )
 save( dat, lst_keys, lst_outcomes, lst_meta, lst_clinvars, lst_vars, file = file_rdata )
 

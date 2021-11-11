@@ -52,7 +52,7 @@ cat(sprintf("Time to fit maximum-likelihood ranking model was %1.4f [%s]. \n", d
 
 # Selection 
 ```{r}
-cat("GroupRank selection : \n")
+cat("GameRank selection : \n")
 cat( gmr$game_rank_selection)
 cat("\n")
 ```
@@ -60,7 +60,7 @@ cat("\n")
 # Variable Ranking
 ```{r}
 gmr$variable_ranking %>%
-  knitr::kable(caption = "GroupRank variable ranking")
+  knitr::kable(caption = "GameRank variable ranking")
 ```
 
 # Optimization

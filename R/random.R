@@ -112,18 +112,18 @@ random_selection <- function( dat,
   samps <- build_sample_matrix( vars = vars, m = m, nevals = nevals )
   
   # Evaluate random combinations
-  results <- NULL
+  df_evl <- NULL
   for( r in 1:nrow(samps) ) {
     cat( sprintf( "Evaluating selection %d \n", r )  )
     sel <- as.character( samps[r, ] )
-    evl <- eval_splits( ds, dat, resp, sel, fn_train, fn_eval, ... )
-    evl$row <- r
-    results <- bind_rows( results, evl )
+    evl <- mutate( eval_splits( ds, dat, resp, sel, fn_train, fn_eval, ... ), row = r )
+    df_evl <- bind_rows( df_evl, evl )
   }
   end_time <- Sys.time()
   
-  agg <-  agg_evals( evl, "row", maximize )
-  best_selections <- best_selection( agg )
+  # Determine best selection(s)
+  df_agg <- agg_evals( df_evl, "row", maximize )
+  best_selections <- best_selection( df_agg )
   
   ret <- list( 
     algorithm = "random",
@@ -131,9 +131,10 @@ random_selection <- function( dat,
     # data = dat,
     response = resp,
     variables = vars,
+    m = m,
     
     # Input parameters
-    m = m,
+    splits = ds, 
     nevals = nevals,
     maximize = maximize,
     
@@ -142,8 +143,8 @@ random_selection <- function( dat,
     
     # Results
     variable_selections = best_selections,
-    selection_results = agg,
-    results = evl
+    results = df_evl,
+    agg_results = df_agg
   )
   return( ret )
 }

@@ -9,6 +9,9 @@
 \alias{render_random_summary}
 \alias{render_game_rank_summary}
 \alias{render_variable_checks_summary}
+\alias{render_model_calibration_normal}
+\alias{render_model_calibration_binomial}
+\alias{render_model_calibration_cox}
 \title{Render a standard template reports for a given objects.}
 \usage{
 render_backward_summary(bwd, output_dir = NULL)
@@ -24,6 +27,19 @@ render_random_summary(rnd, output_dir = NULL)
 render_game_rank_summary(gmr, output_dir = NULL)
 
 render_variable_checks_summary(vck, output_dir = NULL)
+
+render_model_calibration_normal(ds, dat, resp, selection, k, output_dir = NULL)
+
+render_model_calibration_binomial(
+  ds,
+  dat,
+  resp,
+  selection,
+  k,
+  output_dir = NULL
+)
+
+render_model_calibration_cox(ds, dat, resp, selection, k, u, output_dir = NULL)
 }
 \arguments{
 \item{output_dir}{Output directory for the report to be saved to.}

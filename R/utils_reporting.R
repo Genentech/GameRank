@@ -92,3 +92,50 @@ render_variable_checks_summary <- function( vck, output_dir = NULL ) {
                         output_file = NULL, envir = new.env() )
 }
 
+#' @rdname utils_reporting
+#' @export
+render_model_calibration_normal <- function( ds, 
+                                             dat, 
+                                             resp, 
+                                             selection, 
+                                             k, 
+                                             output_dir = NULL ) {
+  render_std_template(  template_name = "rmd_calibration_normal.Rmd", 
+                        output_dir = output_dir, 
+                        params = list( ds = ds, dat = dat, resp = resp, selection = selection, k = k ), 
+                        output_file = NULL, envir = new.env() )
+}
+
+
+#' @rdname utils_reporting
+#' @export
+render_model_calibration_binomial <- function( ds, 
+                                               dat, 
+                                               resp, 
+                                               selection, 
+                                               k, 
+                                               output_dir = NULL ) {
+  render_std_template(  template_name = "rmd_calibration_binomial.Rmd", 
+                        output_dir = output_dir, 
+                        params = list( ds = ds, dat = dat, resp = resp, selection = selection, k = k ), 
+                        output_file = NULL, envir = new.env() )
+}
+
+
+#' @rdname utils_reporting
+#' @export
+render_model_calibration_cox <- function( ds, 
+                                          dat, 
+                                          resp, 
+                                          selection, 
+                                          k, 
+                                          u,
+                                          output_dir = NULL ) {
+  render_std_template(  template_name = "rmd_calibration_cox.Rmd", 
+                        output_dir = output_dir, 
+                        params = list( ds = ds, dat = dat, resp = resp, selection = selection, k = k, u = u ), 
+                        output_file = NULL, envir = new.env() )
+}
+
+
+

@@ -112,6 +112,7 @@ ff_fn_eval_bootstrap <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n
     function( dat, resp, selection, mod, ... ) {
       if( is.null(mod) ) return( NA )
       if( "DummyModel"!=class(mod) ) return( NA )
+      if( 0==nrow(dat) ) return( NA )
       ret <- NA
       
       #

@@ -89,8 +89,6 @@ gplot_km_cox( df_eval, params$resp, params$selection, mod, u = params$u )
 ## Test
 ```{r out.width="100%"}
 gplot_km_cox( df_test, params$resp, params$selection, mod, u = params$u )
-
-# Add a plot with Validation and Test overlaid
 ```
 
 

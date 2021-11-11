@@ -94,7 +94,7 @@ prepare_splits <- function( ds, dat, resp, vars, fn_train, fn_eval, ... ) {
     if( ret ) return( ds ) else return( NULL )
   }
   # 2) if ds is matrix with enough rows and columns check and return it
-  if( is.matrix(ds) && nrow(ds)==nrow(dat) && 1<=ncol(ds) && setequal( c(1,2), as.integer(unique(unlist(ds))) ) ) {
+  if( is.matrix(ds) && nrow(ds)==nrow(dat) && 1<=ncol(ds) && all(unique(unlist(ds) %in% c(1,2)) ) ) {
     ret <- TRUE
     for( k in 1:ncol(ds) ) {
       ret <- ret & check_split( ds[,k], dat, resp, vars, fn_train, fn_eval, ... )  

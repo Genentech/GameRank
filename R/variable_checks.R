@@ -187,7 +187,7 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
       rot.nmin <- length( which( x < q1 - c_out * iqr ) )
       rot.nmax <- length( which( x > q3 + c_out * iqr ) )
       rot.p <- (rot.nmin+rot.nmax) / n * 100.0
-      rng_sd <- range( x ) / sd( x )
+      rng_sd <- abs( max(x) - min(x) ) / sd( x )
       # tst <- outliers::dixon.test( x=x, type=22 )
       # tst_stat <- tst$statistic
       # tst_pval <- tst$p.value
@@ -250,9 +250,9 @@ check_variables <- function( dat, resp, vars, min_cases = 25L, c_out = 1.5 ) {
       mf$resp_cat <- as.factor( mf[[1]][,"status"] )
     } else if( is.integer(mf[[1]]) | is.double(mf[[1]]) ) {
       bb <- bins_ucv( mf[[1]] )
-      mf <- mf %>% mutate( resp_cat = factor( cut( resp, breaks = bb, include.lowest = TRUE ) ) )
+      mf$resp_cat = factor( cut( mf[[1]], breaks = bb, include.lowest = TRUE ) ) 
     } else if( is.character(mf[[1]]) | is.factor(mf[[1]]) | is.logical(mf[[1]]) ) {
-      mf$resp_cat <- as.factor( mf[,1] )
+      mf$resp_cat <- as.factor( mf[[1]] )
     } 
     resp_cat <- mf$resp_cat
     stopifnot( length(resp_cat)==nrow(dat) )
