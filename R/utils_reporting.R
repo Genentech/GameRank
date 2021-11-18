@@ -31,111 +31,103 @@ render_std_template <- function( template_name, output_dir = NULL, params, outpu
 
 #' @rdname utils_reporting
 #' @export
-render_backward_summary <- function( bwd, output_dir = NULL ) {
+render_backward_summary <- function( bwd, output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_backward_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( bwd = bwd ), 
-                        output_file = NULL, envir = new.env() )
+                        output_file = output_file, envir = new.env() )
 }
 
 #' @rdname utils_reporting
 #' @export
-render_forward_summary <- function( fwd, output_dir = NULL ) {
+render_forward_summary <- function( fwd, output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_backward_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( fwd = fwd ), 
-                        output_file = NULL, envir = new.env() )
+                        output_file = output_file, envir = new.env() )
 }
 
 #' @rdname utils_reporting
 #' @export
-render_bidirectional_summary <- function( bds, output_dir = NULL ) {
+render_bidirectional_summary <- function( bds, output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_bidirectional_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( bds = bds ), 
-                        output_file = NULL, envir = new.env() )
+                        output_file = output_file, envir = new.env() )
 }
 
 #' @rdname utils_reporting
 #' @export
-render_lrsearch_summary <- function( lrs, output_dir = NULL ) {
+render_lrsearch_summary <- function( lrs, output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_lrsearch_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( lrs = lrs ), 
-                        output_file = NULL, envir = new.env() )
+                        output_file = output_file, envir = new.env() )
 }
 
 #' @rdname utils_reporting
 #' @export
-render_random_summary <- function( rnd, output_dir = NULL ) {
+render_random_summary <- function( rnd, output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_random_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( rnd = rnd ), 
-                        output_file = NULL, envir = new.env() )
+                        output_file = output_file, envir = new.env() )
 }
 
 #' @rdname utils_reporting
 #' @export
-render_game_rank_summary <- function( gmr, output_dir = NULL ) {
+render_game_rank_summary <- function( gmr, output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_game_rank_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( gmr = gmr ), 
-                        output_file = NULL, envir = new.env() )
+                        output_file = output_file, envir = new.env() )
 }
 
 #' @rdname utils_reporting
 #' @export
-render_variable_checks_summary <- function( vck, output_dir = NULL ) {
+render_variable_checks_summary <- function( vck, output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_variable_checks.Rmd", 
                         output_dir = output_dir, 
                         params = list( vck = vck ), 
-                        output_file = NULL, envir = new.env() )
+                        output_file = output_file, envir = new.env() )
 }
 
 #' @rdname utils_reporting
 #' @export
-render_model_calibration_normal <- function( ds, 
-                                             dat, 
-                                             resp, 
-                                             selection, 
-                                             k, 
-                                             output_dir = NULL ) {
+render_model_calibration_normal <- function( ds, dat, resp, selection, k, 
+                                             output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_calibration_normal.Rmd", 
                         output_dir = output_dir, 
                         params = list( ds = ds, dat = dat, resp = resp, selection = selection, k = k ), 
-                        output_file = NULL, envir = new.env() )
+                        output_file = output_file, envir = new.env() )
 }
 
 
 #' @rdname utils_reporting
 #' @export
-render_model_calibration_binomial <- function( ds, 
-                                               dat, 
-                                               resp, 
-                                               selection, 
-                                               k, 
-                                               output_dir = NULL ) {
+render_model_calibration_binomial <- function( ds, dat, resp, selection, k, 
+                                               output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_calibration_binomial.Rmd", 
                         output_dir = output_dir, 
                         params = list( ds = ds, dat = dat, resp = resp, selection = selection, k = k ), 
-                        output_file = NULL, envir = new.env() )
+                        output_file = output_file, envir = new.env() )
 }
 
 
 #' @rdname utils_reporting
 #' @export
-render_model_calibration_cox <- function( ds, 
-                                          dat, 
-                                          resp, 
-                                          selection, 
-                                          k, 
-                                          u,
-                                          output_dir = NULL ) {
+render_model_calibration_cox <- function( ds, dat, resp, selection, k, u,
+                                          output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_calibration_cox.Rmd", 
                         output_dir = output_dir, 
                         params = list( ds = ds, dat = dat, resp = resp, selection = selection, k = k, u = u ), 
-                        output_file = NULL, envir = new.env() )
+                        output_file = output_file, envir = new.env() )
 }
 
-
+render_influence_summary <- function( tinf, output_dir = NULL, output_file = NULL ) {
+  render_std_template(  template_name = "rmd_influence_summary.Rmd", 
+                        output_dir = output_dir, 
+                        params = list( tinf = tinf ), 
+                        output_file = output_file, envir = new.env() )
+}
 

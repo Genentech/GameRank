@@ -27,7 +27,7 @@ file_rnd <- file.path( dir_varsel, "ucec_surv_rndsel.rds")
 
 # load data
 load( "data/tcga_ucec_cna_cnv.Rdata" )
-dat <- dat %>% filter( grepl( "01A-11D", dat$SampleID_cna ) ) # Filter only one half of samples 
+dat <- dat %>% filter( Sample %in% c("01","02") )  # Filter only tumor samples 
 vck <- readRDS( file = file_varchk )
 
 # Brush up Overall Survival endpoint by imputing missing days by 1+max days survival

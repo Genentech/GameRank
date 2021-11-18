@@ -35,7 +35,7 @@ simple_transforms <- function( dat, vars,
     if( is.numeric(dat[[var]]) ) {
       w <- shapiro.test( x = as.numeric(dat[[var]]) )$statistic
       cat( sprintf( "Evaluating %s with W = %1.4f \n", var, w ))
-      var_label(ret[,var]) <- sprintf( "original variable: identity (W=%1.4f)", w )
+      labelled::var_label(ret[,var]) <- sprintf( "original variable: identity (W=%1.4f)", w )
       lst[[length(lst)+1]] <- list( variable = var, transformed_var = "", term = sprintf( "( %s )", var ), W = w, transform = "identity" )
       
       # sqrt transforms
@@ -47,7 +47,7 @@ simple_transforms <- function( dat, vars,
         if( is.nan(wn) || (wn < w) ) {
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
-          var_label(ret[,nwname]) <- sprintf( "simple_transforms: sqrt (W=%1.4f)", wn )
+          labelled::var_label(ret[,nwname]) <- sprintf( "simple_transforms: sqrt (W=%1.4f)", wn )
           lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, term = sprintf( "sqrt( %s )", var ), W = wn, transform = "sqrt" )
         }
       }
@@ -60,7 +60,7 @@ simple_transforms <- function( dat, vars,
         if( is.nan(wn) || (wn < w) ) {
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
-          var_label(ret[,nwname]) <- sprintf( "simple_transforms: cubert (W=%1.4f)", wn )
+          labelled::var_label(ret[,nwname]) <- sprintf( "simple_transforms: cubert (W=%1.4f)", wn )
           lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, term = sprintf( "( %s )^(1/3)", var ), W = wn, transform = "cube root" )
         }
       }
@@ -73,7 +73,7 @@ simple_transforms <- function( dat, vars,
         if( is.nan(wn) || (wn < w) ) {
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
-          var_label(ret[,nwname]) <- sprintf( "simple_transforms: log (W=%1.4f)", wn )
+          labelled::var_label(ret[,nwname]) <- sprintf( "simple_transforms: log (W=%1.4f)", wn )
           lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, term = sprintf( " log( %s ) ", var ), W = wn, transform = "log" )
         }
       }
@@ -85,8 +85,13 @@ simple_transforms <- function( dat, vars,
         mn <- mean( ret[[var]], na.rm=TRUE )
         st <- sd( ret[[var]], na.rm=TRUE )
         ret[,nwname] <- pnorm( q = ret[[var]], mean = mn, sd = st )
-        var_label(ret[,nwname]) <- sprintf( "simple_transforms: zscore (mean=%1.4f, sd=%1.4f)", mn, st )
-        lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, term = sprintf( "qnorm( %s, mean=%1.4f, sd=%1.4f )", var, mn, st ), W = NA, transform = "zscore" )
+        wn <- shapiro.test(ret[[nwname]])$statistic
+        if( is.nan(wn) || (wn < w) ) {
+          ret[,nwname] <- NULL # Delete as it is not better
+        } else {
+          labelled::var_label(ret[,nwname]) <- sprintf( "simple_transforms: zscore (mean=%1.4f, sd=%1.4f)", mn, st )
+          lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, term = sprintf( "pnorm( %s, mean=%1.4f, sd=%1.4f )", var, mn, st ), W = wn, transform = "zscore" )
+        }
       }
     }
   }
@@ -109,7 +114,7 @@ simple_transforms <- function( dat, vars,
 #' @return list with two elements
 #' \describe{
 #' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
-#' \item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the transforms.}
+#' \item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the formula terms.}
 #' } 
 #' @export
 box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
@@ -124,7 +129,7 @@ box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
       px <- 1.0/py
       nvar <- sprintf("%s_bc_reg",var)
       mod[[nvar]] <- dat[[var]]^px
-      trans[[nvar]] <- list( var = var, new_var = nvar, boxcox_result = bc, py = py, px = px, transform = sprintf("(%s)^%1.4f",var,px) )
+      trans[[nvar]] <- list( var = var, new_var = nvar, boxcox_result = bc, py = py, px = px, term = sprintf("(%s)^%1.4f",var,px) )
     }
   }
   return( list( transforms = trans, data = mod ) )
@@ -179,7 +184,7 @@ box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
 #' @return list with two elements
 #' \describe{
 #' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
-#' \item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the transforms.}
+#' \item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the formula terms.}
 #' } 
 #' @export
 box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
@@ -194,9 +199,12 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   mod <- dat
   trans <- list()
   for( var in vars ) {
-    if( is.numeric( dat[[var]]) ) {
-      dd <- dat[,c(resp, var)]
-      dd <- dd[which(complete.cases(dd)),]
+    # Note: Formula is lhs var (such that it is evaluated, if containing expressions) and rhs is response (not evaluated)
+    mf <- model.frame( formula( sprintf( "%s ~ %s", var, resp )), dat, na.action = na.pass ) %>% as_tibble %>% setNames( c("x","y") )
+    if( is.numeric( mf[["x"]]) ) {
+      # dd <- dat %>% dplyr::select( all_of( c(resp,var ) ) ) %>% setNames( c("y","x") )
+      # dd <- dd[which(complete.cases(dd)),]
+      dd <- mf[complete.cases(mf),]
       fu_opt <- local( {
         function( px ) {
           beta <- px[1]; lambda <- px[2]
@@ -205,12 +213,17 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
           re
         }
       } )
-      or <- optim( par = c(0,0), fn = fu_opt, method="CG" ) # TODO: Try BFGS
-      or
-      beta0 <- round( or$par[2], 4 )
-      nvar <- sprintf( "%s_bc_bin", var )
-      mod[[nvar]] <- mod[[var]]^beta0
-      trans[[nvar]] <- list( var = var, new_var = nvar, boxcox_result = or, py = 1.0/beta0, px = beta0, transform = sprintf("(%s)^%1.4f",var,beta0) )
+      beta0 <- tryCatch({
+        or <- optim( par = c(0,0), fn = fu_opt, method="CG" ) # TODO: Try BFGS
+        or
+        beta0 <- round( or$par[2], 4 )
+        beta0        
+      }, error = function(e) NA )
+      if( !is.na(beta0) ) {
+        nvar <- sprintf( "%s_bc_bin", var )
+        mod[[nvar]] <- mf[["x"]]^beta0
+        trans[[nvar]] <- list( var = var, new_var = nvar, boxcox_result = or, py = 1.0/beta0, px = beta0, term = sprintf("(%s)^%1.4f",var,beta0) )
+      }
     }
   }
   return( list( transforms = trans, data = mod ) )

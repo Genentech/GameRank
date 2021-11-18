@@ -33,7 +33,8 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
   ret <- list()
   ret[["variable"]] <- var
   
-  xval <- dat[[var]]
+  # xval <- dat[[var]]
+  xval <- model.frame(formula(sprintf("%s ~ 1",var)), dat, na.action = na.pass)[[1]]
   N <- length( xval )
   n <- length( which(!is.na(xval)) )
   p <- n / N
@@ -54,7 +55,9 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
   # Entropy H(x) = sum( p(x) * log( p(x) ) )
   epsi <- 1E-3
   if( min_cases < length( x ) ) { # Only check entropy if there are enough non-missing values
-    if( is.logical(x) )  {
+    if( is.Surv(x) ) {
+      # Do nothing
+    } else if( is.logical(x) )  {
       
       # x <- c( TRUE, TRUE, FALSE, FALSE, FALSE )
       # x <- c( TRUE, TRUE,TRUE, TRUE )
@@ -242,7 +245,7 @@ check_variables <- function( dat, resp, vars, min_cases = 25L, c_out = 1.5 ) {
     evl$is_response <- TRUE
     ret[[resp]] <- evl
     
-    fo <- formula( sprintf( "%s ~ 1", re ) )
+    fo <- formula( sprintf( "%s ~ 1", resp ) )
     mf <- model.frame( fo, dat, na.action = na.pass )
     
     if( is.Surv( mf[[1]] ) ) {

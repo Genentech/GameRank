@@ -1,0 +1,49 @@
+---
+output: html_document
+params:
+  tinf: !r NULL
+---
+
+```{r setup, include=FALSE}
+tinf <- params$tinf
+
+options(width=80)
+devtools::load_all("~/GameRank")
+
+theme_set(theme_minimal() +
+          theme(strip.background = element_rect(color = 'black',
+                                                fill = 'white')))
+# pal <- palette::nord
+# ggsurvplot( ... palette = pallete)
+# https://github.com/EmilHvitfeldt/r-color-palettes
+
+```
+
+# Influential data points
+
+```{r}
+
+tinf %>% 
+  filter( is_influential ) %>% 
+  dplyr::select(  "row","is_influential","is_influential_co", tidyr::everything() ) %>% 
+  knitr::kable( caption = "Most influential rows")
+
+```
+
+# Distribution of differences to full data model for evaluation, dffits and dfbetas
+
+```{r}
+
+val_cols <- c("deval", "dffit", grep( "_dfbeta$", colnames(tips), value=TRUE ) )
+tinf %>%
+  filter( !is.na(row) ) %>%
+  dplyr::select( all_of( c("row", val_cols ) ) ) %>%
+  tidyr::pivot_longer( cols = val_cols, names_to = "measure" ) %>%
+  filter( !is.na(value) ) %>%
+  ggplot( aes( x=value, y=..density.., color=measure, group=measure ) ) +
+  facet_wrap( c("measure"), ncol=2 ) +
+  geom_density( bw = "ucv" ) +
+  geom_rug( aes( x=value, y=NA ), sides = "t" )
+
+```
+
