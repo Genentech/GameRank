@@ -32,7 +32,7 @@ simple_transforms <- function( dat, vars,
   ret <- dat
   lst <- list()
   for( var in vars ) {
-    if( is.numeric(dat[[var]]) ) {
+    if( is.numeric(dat[[var]]) & 3 < length(na.omit(dat[[var]])) ) {
       w <- shapiro.test( x = as.numeric(dat[[var]]) )$statistic
       cat( sprintf( "Evaluating %s with W = %1.4f \n", var, w ))
       labelled::var_label(ret[,var]) <- sprintf( "original variable: identity (W=%1.4f)", w )

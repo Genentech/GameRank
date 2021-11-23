@@ -268,5 +268,9 @@ check_variables <- function( dat, resp, vars, min_cases = 25L, c_out = 1.5 ) {
   }
   
   ret <- Reduce( bind_rows, ret, NULL )
+  ret <- ret %>% 
+    mutate( check_missing = factor( check_missing, levels = c("Drop","Bad","Try","Good","Perfect") ), 
+            check_entropy = factor( check_entropy, levels = c("Entropy too low", "Entropy ok") ),
+            type = factor( ifelse( is.na(type), "Entropy not done", type ), levels = c("Entropy not done","real", "integer", "categorical", "binary" ) ) )
   return( ret )  
 }

@@ -19,7 +19,7 @@ box_cox_regression(dat, resp, vars, lambda = seq(-2, +2, 0.1))
 list with two elements
 \describe{
 \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
-\item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the transforms.}
+\item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the formula terms.}
 }
 }
 \description{

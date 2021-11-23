@@ -1,10 +1,12 @@
 
 
 
-#' @title Basic get_params function for lm and glm models calling coefficients
+#' @rdname utils_influential
+#' @export
 fn_infl_coefficients <- function( mod, ... ) coefficients(mod)
 
-#' @title Linear predictor function for Cox PH models
+#' @rdname utils_influential
+#' @export
 fn_predict_cox <- function( mod, dat, ... ) predict( mod, newdata = dat, type = "lp" )
 
 #' @title Determine influential points for the current selection
@@ -20,6 +22,9 @@ fn_predict_cox <- function( mod, dat, ... ) predict( mod, newdata = dat, type = 
 #' 
 #' @return Returns a tibble with columns for observation (row), evaluation without observation i (ei), difference to full dataset, difference 
 #' between prediction from full model vs model without observation i (y0, yi and deval), as well as differences between parameters (_dfbeta).
+#' 
+#' @name utils_influential
+#' @export
 influential_observations <- function( dat, resp, selection, 
                                       fn_train, fn_eval,
                                       fn_get_params, fn_predict, ... ) 
