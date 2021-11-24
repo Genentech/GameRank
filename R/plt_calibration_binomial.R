@@ -4,7 +4,7 @@ tbl_predictions_binomial <- function( dat, resp, selection, mod, ... ) {
   ret <- tryCatch({
     mf <- dat
     mf$prd <- predict( mod, newdata = dat, type="response", ... ) 
-    mf$obs <- as.logical( dat[,resp] )
+    mf$obs <- as.logical( dat[[resp]] )
     res <- mf[,c("obs","prd")]
     res
   }, error = function( e ) NA )
@@ -14,7 +14,7 @@ tbl_predictions_binomial <- function( dat, resp, selection, mod, ... ) {
 gplot_predictions_binomial <- function( dat, resp, selection, mod, ... ) {
   res <- tbl_predictions_binomial(  dat, resp, selection, mod, ... )
   ret <- res %>%
-    ggplot( aes( x=prd, y=obs ) ) +
+    ggplot( aes( x=prd, y=as.numeric( obs ) ) ) +
     geom_point() +
     geom_smooth( method = "loess", se = TRUE, color = "blue" ) +
     # theme_classic() +

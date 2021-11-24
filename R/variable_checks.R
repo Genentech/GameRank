@@ -76,7 +76,7 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
       ret[["type"]] <- "binary"
       ret[["entropy"]] <- en
       ret[["mutual_information"]] <- mi
-      ret[["check_entropy"]] <- ifelse( entropy < epsi, "Entropy too low", "Entropy ok" )
+      ret[["check_entropy"]] <- ifelse( en < epsi, "Entropy too low", "Entropy ok" )
       
     } else if( is.factor(x) | is.character(x) ) {
       

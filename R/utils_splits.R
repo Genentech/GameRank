@@ -29,9 +29,12 @@
 build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, ... ) {
   rr <- c( 1,1,2 ) # Use 2/3 train and 1/3 validation
   
+  fo <- formula( sprintf( "%s ~ %s ", resp, paste( vars, collapse = " + ")) )
+  mf <- model.frame( formula = fo, data = dat, na.action = na.pass ) 
+  
   # Check number of complete cases
   min_cc <- 25
-  idx_cc <- which( complete.cases( dat[,vars] ) )
+  idx_cc <- which( complete.cases( mf ) )
   if( 0==length(idx_cc) | length(idx_cc) < min_cc ) { 
     warning( sprintf( "Not enough complete cases! (%d < %d)", length(idx_cc), min_cc ) )
     return( NULL ) 
