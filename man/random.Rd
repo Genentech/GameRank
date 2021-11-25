@@ -40,7 +40,7 @@ model formula.}
 
 \item{vars}{Character vector defining the list of variables for selection. 
 Those are concatenated by '+' 
-as the right hand side (rhs) of the modelling formula.}
+as the right hand side (rhs) of the modeling formula.}
 
 \item{fn_train}{Function with signature function( dat, resp, selection, ... )
 that returns a model or NULL in any other case on the given data dat.}
@@ -104,7 +104,8 @@ The random search algorithm runs as follows:
 \examples{
 vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
 resp <- "resp"
-res <- random( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, 1L, TRUE )
+res <- random_selection( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, 1L, TRUE )
 res$variable_selections
 res$agg_results \%>\% filter( opt ) \%>\% arrange( desc(mean_validation) )
+
 }
