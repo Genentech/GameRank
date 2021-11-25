@@ -102,6 +102,6 @@ gmr <- game_rank( dat = toy_data, resp = resp, vars = vars, fn_train = fn_train_
 gmr$variable_ranking \%>\% as.data.frame
 gmr_fsel <- gmr$game_rank_selection
   
-\dontrun{  render_game_rank_summary( gmr, getwd() ) }
+\donttest{  render_game_rank_summary( gmr, getwd() ) }
 
 }

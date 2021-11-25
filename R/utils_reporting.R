@@ -17,7 +17,7 @@
 #' gmr$variable_ranking %>% as.data.frame
 #' gmr_fsel <- gmr$game_rank_selection
 #'   
-#' \dontrun{  render_game_rank_summary( gmr, getwd() ) }
+#' \donttest{  render_game_rank_summary( gmr, getwd() ) }
 #' 
 #' @name utils_reporting
 NULL
