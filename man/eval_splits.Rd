@@ -7,22 +7,28 @@
 eval_splits(ds, dat, resp, selection, fn_train, fn_eval, ..., var_sep = ",")
 }
 \arguments{
-\item{ds}{Matrix with n rows and k columns containing only 1s and 2s. n must equal nrow(dat) and 1<=k.}
+\item{ds}{Matrix with n rows and k columns containing only 1s and 2s. n must 
+equal nrow(dat) and 1<=k.}
 
-\item{dat}{data.frame or tibble comprising data for model generation and validation.}
+\item{dat}{data.frame or tibble comprising data for model generation 
+and validation.}
 
 \item{resp}{Character string defining the response (lhs) of the model formula.}
 
-\item{selection}{Character vector defining the list of variables for selection. Those are concatenated by '+' 
-as the right hand side (rhs) of the modelling formula.}
+\item{selection}{Character vector defining the list of variables for 
+selection. Those are concatenated by '+' 
+as the right hand side (rhs) of the modeling formula.}
 
-\item{fn_train}{Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.}
+\item{fn_train}{Function with signature function( dat, resp, selection, ... ) 
+that returns a model or NULL in any other case on the given data dat.}
 
-\item{fn_eval}{Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.}
+\item{fn_eval}{Function with signature function( dat, resp, selection, ... ) 
+that returns a real number or NA in any other case, e.g. when model is NULL.}
 
 \item{...}{Further arguments passed to fn_train and fn_eval.}
 
-\item{var_sep}{Separating character used to build unique concatenated string for selection, which is saved in column ch_selection of the output.}
+\item{var_sep}{Separating character used to build unique concatenated string 
+for selection, which is saved in column ch_selection of the output.}
 }
 \value{
 tibble with elements
@@ -33,12 +39,16 @@ tibble with elements
  \item{response}{As from input parameters}
  \item{split}{index into ds columns determining split evaluated}
  \item{eval_train}{result of model evaluation on training}
- \item{eval_validation}{result of model evaluation on validation (this is used for optimization)}
- \item{bias}{square root of squared difference between training and validation values}
+ \item{eval_validation}{result of model evaluation on validation (this is 
+ used for optimization)}
+ \item{bias}{square root of squared difference between training and 
+ validation values}
 }
 }
 \description{
-Function receives a matrix with one or more training:validation splits, defined by 1 as training and
-2 as validation. This matrix has nrow(dat) rows and evaluates fn_train and fn_eval for each parallel defined split
-for a given selection. All wraper algorithms except GroupRank make use of this function.
+Function receives a matrix with one or more training:validation 
+splits, defined by 1 as training and 2 as validation. This matrix has 
+nrow(dat) rows and evaluates fn_train and fn_eval for each parallel defined 
+split for a given selection. All wraper algorithms except GroupRank make use 
+of this function.
 }

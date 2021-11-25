@@ -12,7 +12,7 @@
 #+ setup, eval=TRUE, include=FALSE
 rm( list=ls() )
 library( dplyr )
-library( tidyr )
+# library( tidyr )
 library( purrr )
 library( ggplot2 )
 

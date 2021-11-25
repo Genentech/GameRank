@@ -18,29 +18,33 @@
 #' Model function should return NULL if the model cannot be fit or determined or
 #' other reasons exist for why it cannot be generated.
 #' 
-#' The interface for evaluation functions is \strong{function( dat, resp, selection, mod, ... )}
-#' with the same parameters as model generating functions but extended by the model mod. 
-#' Evaluation functions should return a numeric value and NA in case of the model is NULL
-#' or any other failure preventing evaluation.
+#' The interface for evaluation functions is \strong{function( dat, resp, 
+#' selection, mod, ... )} with the same parameters as model generating functions 
+#' but extended by the model mod. Evaluation functions should return a numeric 
+#' value and NA in case of the model is NULL or any other failure preventing
+#' evaluation.
 #' 
-#' Model functions ending with _imp modify the selection variables to perform a maximum-likelihood
-#' imputation for missing values. Precisely, let \eqn{x} be the variable it is replaced by
-#' \eqn{\phi(x) + \psi(x)} where \eqn{\phi(x) = x if x is not missing, and 0 otherwise} and
-#' \eqn{\psi(x) = 1 if x is missing, and 0 otherwise}. This equates to a 0-1-Dummy coding for
-#' missing values and the effect for \eqn{\psi} can be interpreted as the maximum-likelihood
-#' imputation value to be used if \eqn{x} is missing.
+#' Model functions ending with _imp modify the selection variables to perform a
+#' maximum-likelihood imputation for missing values. Precisely, let \eqn{x} be 
+#' the variable it is replaced by \eqn{\phi(x) + \psi(x)} where 
+#' \eqn{\phi(x) = x if x is not missing, and 0 otherwise} and
+#' \eqn{\psi(x) = 1 if x is missing, and 0 otherwise}. This equates to 
+#' a 0-1-Dummy coding for missing values and the effect for \eqn{\psi} can be
+#' interpreted as the maximum-likelihood imputation value to be used if \eqn{x} 
+#' is missing.
 #' 
 #' 
-#' @param dat data.frame or tibble rows from the full dataseet provided to the wrapper that should
-#' be used for generating or evaluating models.
+#' @param dat data.frame or tibble rows from the full dataseet provided to the
+#' wrapper that should be used for generating or evaluating models.
 #' @param resp Response variable being the lhs of the model formula
 #' @param selection Current selection for model generation or evaluation
 #' @param mod For evaluation functions the model to be evaluated on dat
-#' @param ... Any other arguments passed to both types of functions, e.g. 'u = 365' to define the
-#' landmark day for survival probability evaluation.
+#' @param ... Any other arguments passed to both types of functions, 
+#' e.g. 'u = 365' to define the landmark day for survival probability evaluation.
 #'
-#' @return fn_train_... functions return a fitted model object or NULL if that fails. fn_eval_... functions
-#' return a numeric real value measuring the validation performance on the given data, or NA if that fails.
+#' @return fn_train_... functions return a fitted model object or NULL if that 
+#' fails. fn_eval_... functions return a numeric real value measuring the 
+#' validation performance on the given data, or NA if that fails.
 #' @name model_functions
 NULL
 
@@ -127,7 +131,8 @@ fn_train_cox <- function( dat, resp, selection, ... ) {
 }
 
 #
-# Following Austin et al., "Graphical calibration curves and the integration calibration index (ICI) for survival models, Statistics in Medicine, 2020
+# Following Austin et al., "Graphical calibration curves and the integration 
+# calibration index (ICI) for survival models, Statistics in Medicine, 2020
 #
 #' @rdname model_functions
 #' @export

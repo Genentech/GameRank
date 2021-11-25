@@ -7,13 +7,16 @@
 bins_ucv(x)
 }
 \arguments{
-\item{x}{A numeric vector of variables for which the set of breaks should be computed.}
+\item{x}{A numeric vector of variables for which the set of breaks should 
+be computed.}
 }
 \value{
-A numeric vector of cut-points points that will define an optimal histogram density estimator for the sample.
+A numeric vector of cut-points points that will define an optimal 
+histogram density estimator for the sample.
 }
 \description{
-This function determines the optimal set of breaks for a histogram for numerical sample
+This function determines the optimal set of breaks for a 
+histogram for numerical sample
 by leave-one-out cross-validation minimizing the empirical risk.
 }
 \examples{
@@ -21,5 +24,6 @@ library( ggplot2 )
 xv <- rnorm( 100 )
 bk <- bins_ucv( xv )
 # Plot histogram with properly selected smoothed bin widths
-ggplot( aes( x=xv, y=..density.. ), data = data.frame( xv = xv ) ) + geom_histogram( breaks = bk )
+ggplot( aes( x=xv, y=..density.. ), data = data.frame( xv = xv ) ) + 
+   geom_histogram( breaks = bk )
 }

@@ -18,13 +18,13 @@ check_multimodality(
 
 \item{resp}{A response term for the lhs of a formula}
 
-\item{vars}{A character vector of variables to secreen}
+\item{vars}{A character vector of variables to screen}
 
 \item{n_comp}{Integer determining the maximum number of components to check}
 
 \item{m_fits}{Each GMM is fitted multiple times to avoid local minima. m_fits determines how many GMMs are generated each time.}
 
-\item{min_prop_converged}{Minimal proportion of GMM that need to converge before considering their AIC for model selection.}
+\item{min_fits_converged}{Minimal number of GMMs that need to converge before considering their AIC for model selection.}
 }
 \value{
 list with two elements

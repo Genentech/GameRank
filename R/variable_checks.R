@@ -4,11 +4,15 @@
 
 #' @title Utility function that performs high-level checks for a variable in a dataset
 #' 
-#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param dat data.frame or tibble comprising data for model generation and 
+#' validation.
 #' @param var Character indicating the variable to check.
-#' @param min_cases Minimal number of cases for which the entropy is estimated or outlier tests are performed.
-#' @param c_out Constant for the Robust Outlier Test determining the scaling of IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR.
-#' @param resp_cat Categorical array with response variable to estimate mutation information in bits.
+#' @param min_cases Minimal number of cases for which the entropy is estimated or
+#' outliers are evaluated.
+#' @param c_out Constant for the Robust Outlier Test determining the scaling 
+#' of IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR.
+#' @param resp_cat Categorical array with response variable to estimate 
+#' mutation information in bits.
 #' 
 #' @return A tibble with entries
 #' \describe{
@@ -16,13 +20,22 @@
 #' \item{n}{Overall number of non-missing values}
 #' \item{nmiss}{Number of missing values}
 #' \item{p}{Percentage of non-missing values.}
-#' \item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 'Good', 'Perfect' depending on the percentage of missingness <70\%, <80\%, <90\%, <99\%, or 100\%}
+#' \item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 
+#' 'Good', 'Perfect' depending on the percentage of 
+#' missingness <70\%, <80\%, <90\%, <99\%, or 100\%}
 #' \item{type}{Type of the variable binary, categorical, integer, or real}
-#' \item{entropy}{Entropy estimated, eventually by package entropy function, for the variable. This value describes the information content in bits of the variable distribution. The more the better.}
-#' \item{mutual_information}{Mutual information between variable and response (if provided) in bits. For survival endpoints, the event flag (Yes/No) is used.}
-#' \item{check_entropy}{Variables with entropy close to 0.0 (<0.001) are recommended to be dropped.}
-#' \item{rot.nmin}{Number of samples lower than Robust Outlier Test cut-off of Q1 - c_out * IQR.}
-#' \item{rot.nmax}{Number of samples lower than Robust Outlier Test cut-off of Q3 + c_out * IQR.}
+#' \item{entropy}{Entropy estimated, eventually by package entropy function, for
+#' the variable. This value describes the information content in bits of the 
+#' variable distribution. The more the better.}
+#' \item{mutual_information}{Mutual information between variable and response 
+#' (if provided) in bits. For survival endpoints, the event flag (Yes/No) is 
+#' used.}
+#' \item{check_entropy}{Variables with entropy close to 0.0 (<0.001) are 
+#' recommended to be dropped.}
+#' \item{rot.nmin}{Number of samples lower than Robust Outlier Test cut-off
+#'  of Q1 - c_out * IQR.}
+#' \item{rot.nmax}{Number of samples lower than Robust Outlier Test cut-off 
+#' of Q3 + c_out * IQR.}
 #' \item{rot.p}{Percentage of outliers.}
 #' \item{rng_sd}{Ratio of sample range by sample standard deviation.}
 #' }
@@ -142,7 +155,7 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
       # x <- rnorm( 100 )
       # x <- rep.int( 1.0, 100 )
       
-      # In the continuous variable case, we first need to determine the optimal binwidht by Leave-One-Out cross-validation
+      # In the continuous variable case, we first need to determine the optimal binwidth by Leave-One-Out cross-validation
       # before we can use it to estimate the entropy.
       bb <- bins_ucv( x )
       tab <- as.integer( table( cut( x, breaks = bb, include.lowest = TRUE ) ) )
@@ -207,13 +220,17 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
 
 #' @title Utility function that applies check_variable to a dataset
 #' 
-#' @description Applies check_variable to each response and each variable in vars, and returns a merged dataset.
+#' @description Applies check_variable to each response and each variable in 
+#' vars, and returns a merged dataset.
 #' 
-#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param dat data.frame or tibble comprising data for model generation and 
+#' validation.
 #' @param resp Character string defining the response (lhs) of the model formula.
 #' @param vars Character indicating the variables to check.
-#' @param min_cases Minimal number of cases for which the entropy is estimated or outlier tests are performed.
-#' @param c_out Constant for the Robust Outlier Test determining the scaling of IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR.
+#' @param min_cases Minimal number of cases for which the entropy is estimated 
+#' or outliers are evaluated.
+#' @param c_out Constant for the Robust Outlier Test determining the scaling of 
+#' IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR.
 #' 
 #' @return A tibble with entries
 #' \describe{
@@ -221,13 +238,22 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
 #' \item{n}{Overall number of non-missing values}
 #' \item{nmiss}{Number of missing values}
 #' \item{p}{Percentage of non-missing values.}
-#' \item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 'Good', 'Perfect' depending on the percentage of missingness <70\%, <80\%, <90\%, <99\%, or 100\%}
+#' \item{check_missing}{Categorization of variable into to 'Drop','Bad', 'Try', 
+#' 'Good', 'Perfect' depending on the percentage of 
+#' missingness <70\%, <80\%, <90\%, <99\%, or 100\%}
 #' \item{type}{Type of the variable binary, categorical, integer, or real}
-#' \item{entropy}{Entropy estimated, eventually by package entropy function, for the variable. This value describes the information content in bits of the variable distribution. The more the better.}
-#' \item{mutual_information}{Mutual information between variable and response (if provided) in bits. For survival endpoints, the event flag (Yes/No) is used.}
-#' \item{check_entropy}{Variables with entropy close to 0.0 (<0.001) are recommended to be dropped.}
-#' \item{rot.nmin}{Number of samples lower than Robust Outlier Test cut-off of Q1 - c_out x IQR.}
-#' \item{rot.nmax}{Number of samples lower than Robust Outlier Test cut-off of Q3 + c_out x IQR.}
+#' \item{entropy}{Entropy estimated, eventually by package entropy function, 
+#' for the variable. This value describes the information content in bits of 
+#' the variable distribution. The more the better.}
+#' \item{mutual_information}{Mutual information between variable and response 
+#' (if provided) in bits. For survival endpoints, the event flag (Yes/No) 
+#' is used.}
+#' \item{check_entropy}{Variables with entropy close to 0.0 (<0.001) are 
+#' recommended to be dropped.}
+#' \item{rot.nmin}{Number of samples lower than Robust Outlier Test cut-off 
+#' of Q1 - c_out x IQR.}
+#' \item{rot.nmax}{Number of samples lower than Robust Outlier Test cut-off 
+#' of Q3 + c_out x IQR.}
 #' \item{rng_sd}{Ratio of sample range by sample standard deviation.}
 #' }
 #' 

@@ -39,35 +39,52 @@ game_rank.formula(
 )
 }
 \arguments{
-\item{dat}{data.frame or tibble comprising data for model generation and validation.}
+\item{dat}{data.frame or tibble comprising data for model generation and 
+validation.}
 
-\item{resp}{Character string defining the response (lhs) of the model formula.}
+\item{resp}{Character string defining the response (lhs) of the 
+model formula.}
 
-\item{vars}{Character vector defining the list of variables for selection. Those are concatenated by '+' 
-as the right hand side (rhs) of the modelling formula.}
+\item{vars}{Character vector defining the list of variables for selection. 
+Those are concatenated by '+' as the right hand side (rhs) of the 
+modeling formula.}
 
-\item{fn_train}{Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.}
+\item{fn_train}{Function with signature function( dat, resp, selection, ... )
+that returns a model or NULL in any other case on the given data dat.}
 
-\item{fn_eval}{Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.}
+\item{fn_eval}{Function with signature function( dat, resp, selection, ... ) 
+that returns a real number or NA in any other case, e.g. when model is NULL.}
 
 \item{m}{Size of final partition size.}
 
-\item{dsi}{Integer array of 1s and 2s to determine the proportion of training vs validation splits during match rounds. Default is c(1,2) to use 50:50 splits. 
-Can be set to c(2,2) if only validation should be used, e.g. in the case of bootstrapping the validation performance.}
+\item{dsi}{Integer array of 1s and 2s to determine the proportion of training 
+vs validation splits during match rounds. Default is c(1,2) to 
+use 50:50 splits.  Can be set to c(2,2) if only validation should be used,
+e.g. in the case of bootstrapping the validation performance.}
 
-\item{team_size}{Selection sizes that are evaluated during match phase against each other}
+\item{maximize}{A logic value determining if fn_eval is maximized (set to 
+TRUE) or minimized (set to FALSE).}
 
-\item{rounds}{Number of rounds each pair of selections is evaluated on randomly selected train/eval sets}
+\item{team_size}{Selection sizes that are evaluated during match phase 
+against each other}
 
-\item{min_matches_per_var}{Minimum number of matches each variable needs to be part of before the match phase can end}
+\item{rounds}{Number of rounds each pair of selections is evaluated on 
+randomly selected train/eval sets}
 
-\item{opt_method}{Should be either 'BFGS' or 'CG', the latter in case Hessian-based optimization is infeasible for the match data}
+\item{min_matches_per_var}{Minimum number of matches each variable needs to 
+be part of before the match phase can end}
 
-\item{max_iter}{Maximum number of optimization iterations for group rank model fit, passed to optim( ... ).}
+\item{opt_method}{Should be either 'BFGS' or 'CG', the latter in case 
+Hessian-based optimization is infeasible for the match data}
 
-\item{...}{An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.}
+\item{max_iter}{Maximum number of optimization iterations for group rank 
+model fit, passed to optim( ... ).}
 
-\item{fo}{Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )}
+\item{...}{An other arguments passed to fn_train or fn_eval during calls, 
+e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.}
+
+\item{fo}{Only for call with formula as first argument. Extracts lhs ~ rhs 
+into resp and vars, and calls backward( dat, resp, vars, ... )}
 }
 \value{
 List with elements
@@ -84,35 +101,50 @@ List with elements
  \item{max_iter}{As from input parameters}
  \item{start}{Start time of core algorithm loop}
  \item{end}{End time of core algorithm loop}
- \item{match_matrix_time}{Time after start when the match matrix has been sampled.}
- \item{match_played_time}{Time after start when the match comparisons have been completed.}
- \item{fit_time}{Time after start when the maximum-likelihood model has been fit, excluding time to compute the score vector and Hessian matrix.}
- \item{match_results}{The match matrix with scoring results that was used to determine the feature selection comparisons.}
- \item{variable_ranking}{Tibble with variable ranking, including standard errors}
- \item{game_rank_selection}{Best m variables as final selection per maximum likelihood estimate.}
+ \item{match_matrix_time}{Time after start when the match matrix has 
+ been sampled.}
+ \item{match_played_time}{Time after start when the match comparisons have 
+ been completed.}
+ \item{fit_time}{Time after start when the maximum-likelihood model has been 
+ fit, excluding time to compute the score vector and Hessian matrix.}
+ \item{match_results}{The match matrix with scoring results that was used to
+ determine the feature selection comparisons.}
+ \item{variable_ranking}{Tibble with variable ranking, including 
+ standard errors}
+ \item{game_rank_selection}{Best m variables as final selection per maximum 
+ likelihood estimate.}
  \item{optimization_result}{Result of optimization call.}
  \item{solution}{Optimization solution vector.}
  \item{score_vector}{Gradient at optimal solution (score vector)}
- \item{inv_hessian}{Inverse Hessian matrix at optimal solution. Can be used for Delta method.}
+ \item{inv_hessian}{Inverse Hessian matrix at optimal solution. Can be used 
+ for Delta method.}
 }
 }
 \description{
-GameRank is an two phase algorithm that first builds a comparison of feature set pairs and evaluates them
-on repeated 50:50 random training:validation splits. In the second phase it uses those evaluations to estimate a maximum
-likelihood ranking model for feature combinations.
+GameRank is an two phase algorithm that first builds a 
+comparison of feature set pairs and evaluates them
+on repeated 50:50 random training:validation splits. In the second phase it 
+uses those evaluations to estimate a maximum likelihood ranking model for 
+feature combinations.
 }
 \details{
 The Game Rank algorithm runs as follows:
-\code{ \cr
-1. Build a sampling matrix of disjoint and unique feature combinations \cr
-2. For each combination evaluate the model per training:validation splits. \cr
-3. Return the best selection. \cr
+\preformatted{ 
+1. Build a sampling matrix of disjoint and unique feature combinations 
+   for two teams
+2. For each combination evaluate the model per training:validation splits
+   and recorde a score for the winning team
+3. Estimate the feature contribution to team performance using the group
+   ranking model from Huang et al. (2008, JMLR)
+3. Return the feature ranking and best selection
 }
 }
 \examples{
 vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
 resp <- "resp"
-res <- game_rank( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, c(1L,2L), TRUE, 3L, 7L, 3L )
+res <- game_rank( toy_data, resp, vars, 
+                  fn_train_binomial, fn_eval_binomial_auroc, 
+                  4L, c(1L,2L), TRUE, 3L, 7L, 3L )
 res$game_rank_selection
 res$variable_ranking
 }

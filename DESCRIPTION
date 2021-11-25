@@ -12,8 +12,7 @@ Depends: R,
   purrr,
   formula.tools,
   survival,
-  ggplot2,
-  yaml
+  ggplot2
 Imports:
   labelled,
   rlang,
@@ -26,14 +25,12 @@ Imports:
   flexmix,
   rms,
   pec,
-  labelled,
   broom,
-  gridExtra,
   survminer,
   knitr,
   rmarkdown,
-  boot,
-  ggExtra
+  ggExtra,
+  yaml
 Suggests:
     RcppAlgos,
     curatedTCGAData,

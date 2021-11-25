@@ -6,45 +6,56 @@
 
 #' @title Plus-L, Minus-R search algorithm
 #' 
-#' @description Performs L forward and R backward selection steps per iteration until a
-#' desired partition size is reached. Depending on L<R or L>R it starts with either the
-#' full set of variables or the empty set of variables.
+#' @description Performs L forward and R backward selection steps per iteration
+#' until a desired partition size is reached. Depending on L<R or L>R it starts 
+#' with either the full set of variables or the empty set of variables.
 #' 
 #' @details The Plus-L, Minus-R algorithm runs as follows:
-#' \code{ \cr
-#' 1. if L > R then  \cr
-#'      Y0 = {} \cr
-#'    else  \cr
-#'      Y0 = X; go to step 3 \cr
-#'    fi \cr
-#' 2. repeat L times \cr
-#'      x+ = arg max_{x not in Yk} J( Yk + x ) \cr
-#'      Yk+1 = Yk + x+; k = k + 1 \cr
-#' 3. repeat R times \cr
-#'      x- = arg max_{x in Yk} J( Yk - x ) \cr
-#'      Yk+1 = Yk - x-; k = k + 1 \cr
-#' 4. go to step 2 \cr
+#' \preformatted{ 
+#' 1. if L > R then  
+#'      Y0 = {} 
+#'    else  
+#'      Y0 = X; go to step 3 
+#'    fi 
+#' 2. repeat L times 
+#'      x+ = arg max_{x not in Yk} J( Yk + x ) 
+#'      Yk+1 = Yk + x+; k = k + 1 
+#' 3. repeat R times 
+#'      x- = arg max_{x in Yk} J( Yk - x ) 
+#'      Yk+1 = Yk - x-; k = k + 1 
+#' 4. go to step 2 
 #' }
 #' 
-#' @param fo Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )
-#' @param dat data.frame or tibble comprising data for model generation and validation.
-#' @param resp Character string defining the response (lhs) of the model formula.
-#' @param vars Character vector defining the list of variables for selection. Those are concatenated by '+' 
-#' as the right hand side (rhs) of the modelling formula.
-#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
-#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param fo Only for call with formula as first argument. Extracts lhs ~ rhs 
+#' into resp and vars, and calls backward( dat, resp, vars, ... )
+#' @param dat data.frame or tibble comprising data for model generation and 
+#' validation.
+#' @param resp Character string defining the response (lhs) of the 
+#' model formula.
+#' @param vars Character vector defining the list of variables for selection. 
+#' Those are concatenated by '+' as the right hand side (rhs) of the 
+#' modeling formula.
+#' @param fn_train Function with signature function( dat, resp, selection, ... )
+#' that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) 
+#' that returns a real number or NA in any other case, e.g. when model is NULL.
 #' @param m Size of final partition size. 
-#' Note this parameter is used for stopping only. Best selection will be determined by whole set of evaluated selections, i.e., can be larger than m.
+#' Note this parameter is used for stopping only. Best selection will be 
+#' determined by whole set of evaluated selections, i.e., can be larger than m.
 #' @param ds Definition of (parallel) training:validation splits
-#'  - a matrix with d columns containing 1s and 2s, where 1 denotes sample is used for training the model and 2 denotes sample used for validation.
+#'  - a matrix with d columns containing 1s and 2s, where 1 denotes sample is 
+#'    used for training the model and 2 denotes sample used for validation.
 #'    The average of all d training:validation results is used for selection.
-#'  - an integer number determing the number of random training:validation splits that should be generated. The sampling will ensure a sufficient number
-#'    of complete cases in the training split.
-#' @param maximize A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).
+#'  - an integer number determining the number of random training:validation 
+#'    splits that should be generated. The sampling will ensure a sufficient 
+#'    number of complete cases in the training split.
+#' @param maximize A logic value determining if fn_eval is maximized (set to 
+#' TRUE) or minimized (set to FALSE).
 #' @param L Number of forward steps per iteration.
 #' @param R Number of backward steps per iteration.
 #' @param kmax Limit number of iterations
-#' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
+#' @param ... An other arguments passed to fn_train or fn_eval during calls, 
+#' e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
 #'
 #' @return List with elements
 #' \describe{
@@ -69,7 +80,9 @@ NULL
 #' @examples 
 #' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
 #' resp <- "resp"
-#' res <- lrsearch( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, 1L, TRUE, 3L, 5L )
+#' res <- lrsearch( toy_data, resp, vars, 
+#'                  fn_train_binomial, fn_eval_binomial_auroc, 
+#'                  4L, 1L, TRUE, 3L, 5L )
 #' res$variable_selections
 #' res$agg_results %>% filter( opt ) %>% arrange( desc(mean_validation) )
 #' @export

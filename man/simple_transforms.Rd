@@ -31,7 +31,8 @@ list with two elements
 }
 }
 \description{
-This function adds some simple transformations, as described in \link{following https://rcompanion.org/handbook/I_12.html}
+This function adds some simple transformations, as described in 
+\link{following https://rcompanion.org/handbook/I_12.html}
 to a dataset for a set of given variables. However, variables are only added if they improve Normality as measured by an
 increase in Shapiro-Wilk W statistic.
 }

@@ -77,16 +77,20 @@ render_influence_summary(tinf, output_dir = NULL, output_file = NULL)
 
 \item{output_dir}{Output directory to which to render}
 
-\item{params}{The Rmd parameter list. Needs to match the expected parameter definitions of the Rmd template.}
+\item{params}{The Rmd parameter list. Needs to match the expected 
+parameter definitions of the Rmd template.}
 
-\item{output_file}{Output filename (with or without suffix). Default NULL. If not NULL, it is appended to output_dir}
+\item{output_file}{Output filename (with or without suffix). Default NULL. 
+If not NULL, it is appended to output_dir}
 
 \item{...}{Further parameters passed to rmarkdown::render(...) function.}
 
-\item{obj}{Algorithm results output from forward, backward and other selection methods}
+\item{obj}{Algorithm results output from forward, backward and other 
+selection methods}
 }
 \value{
-render_... functions don't have return values. They generated the required output documents.
+render_... functions don't have return values. They generated the 
+required output documents.
 }
 \description{
 Render a standard template reports for a given objects.
@@ -97,7 +101,9 @@ Render a standard template report for a given object. (Internal function)
 
 vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
 resp <- "resp"
-gmr <- game_rank( dat = toy_data, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc, m = 6L, dsi = c(1L,2L), maximize = TRUE, 
+gmr <- game_rank( dat = toy_data, resp = resp, vars = vars, 
+                  fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc,
+                  m = 6L, dsi = c(1L,2L), maximize = TRUE, 
                   team_size = 3L, rounds = 10L, min_matches_per_var = 5L )
 gmr$variable_ranking \%>\% as.data.frame
 gmr_fsel <- gmr$game_rank_selection

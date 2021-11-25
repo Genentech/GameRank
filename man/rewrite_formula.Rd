@@ -12,11 +12,13 @@ rewrite_formula(fo, dat)
 \item{dat}{data.frame or tibble that contains data for the model formula}
 }
 \value{
-Formula object that includes dummy terms and transforms for variables with missing data.
+Formula object that includes dummy terms and transforms for variables 
+with missing data.
 }
 \description{
-Missing values are dummy-encoded such that maximum-likelihood estimation
-via lm or glm models will identify a value maximizing the model likelihood for missing observations.
+Missing values are dummy-encoded such that maximum-likelihood 
+estimation via lm or glm models will identify a value maximizing the model 
+likelihood for missing observations.
 }
 \examples{
 

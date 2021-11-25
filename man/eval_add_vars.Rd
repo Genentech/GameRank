@@ -19,35 +19,47 @@ eval_add_vars(
 )
 }
 \arguments{
-\item{ds}{Definition of (parallel) training:validation splits by a matrix with d columns containing 1s and 2s, where 1 denotes sample is used for training the model and 2 denotes sample used for validation.}
+\item{ds}{Definition of (parallel) training:validation splits by a matrix 
+with d columns containing 1s and 2s, where 1 denotes sample is used for 
+training the model and 2 denotes sample used for validation.}
 
-\item{dat}{data.frame or tibble comprising data for model generation and validation.}
+\item{dat}{data.frame or tibble comprising data for model generation 
+and validation.}
 
 \item{resp}{Character string defining the response (lhs) of the model formula.}
 
-\item{vars}{Character vector defining the list of variables for selection. Those are concatenated by '+' 
-as the right hand side (rhs) of the modelling formula.}
+\item{vars}{Character vector defining the list of variables for selection. 
+Those are concatenated by '+' as the right hand side (rhs) of the
+ modeling formula.}
 
-\item{fn_train}{Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.}
+\item{fn_train}{Function with signature function( dat, resp, selection, ... ) 
+that returns a model or NULL in any other case on the given data dat.}
 
-\item{fn_eval}{Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.}
+\item{fn_eval}{Function with signature function( dat, resp, selection, ... ) 
+that returns a real number or NA in any other case, e.g. when model is NULL.}
 
-\item{maximize}{A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).}
+\item{maximize}{A logic value determining if fn_eval is maximized (set to 
+TRUE) or minimized (set to FALSE).}
 
 \item{selection}{Character vector of currently selected variables.}
 
-\item{add_vars}{Character vector of variables that should be used to extend and evaluate selection.}
+\item{add_vars}{Character vector of variables that should be used to extend 
+and evaluate selection.}
 
-\item{...}{An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.}
+\item{...}{An other arguments passed to fn_train or fn_eval during calls, 
+e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.}
 
-\item{var_sep}{Character used to generated standardized string for selection by concatenation}
+\item{var_sep}{Character used to generated standardized string for selection 
+by concatenation}
 }
 \value{
 List with elements
 \describe{
 \item{df_evl}{tibble with all results from eval_split calls being concatenated}
-\item{agg_evl}{tibble with aggregated evaluations by (ch_)selection and additional column 'added'. Best selections are flagged by 'opt'} 
-\item{best_selections}{List of selections that were identified best on validation split.}
+\item{agg_evl}{tibble with aggregated evaluations by (ch_)selection and 
+additional column 'added'. Best selections are flagged by 'opt'} 
+\item{best_selections}{List of selections that were identified best on 
+validation split.}
 }
 }
 \description{

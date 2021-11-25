@@ -7,11 +7,13 @@
 agg_evals(df_evl, var, maximize)
 }
 \arguments{
-\item{var}{Additional grouping variable for results aggregation, e.g. may be variable 'added' or 'removed' during forward or backward selection.}
+\item{df_evl}{Results from one or more eval_splits calls.}
 
-\item{maximize}{Logical value indicating if optimal result is largest (TRUE) or smallest result (FALSE)}
+\item{var}{Additional grouping variable for results aggregation, e.g. may be 
+variable 'added' or 'removed' during forward or backward selection.}
 
-\item{df_eval}{Results from one or more eval_splits calls.}
+\item{maximize}{Logical value indicating if optimal result is largest (TRUE) 
+or smallest result (FALSE)}
 }
 \value{
 tibble with aggregated (averaged) training and validation errors
@@ -26,6 +28,7 @@ tibble with aggregated (averaged) training and validation errors
 }
 }
 \description{
-Aggregates results from eval_splits call by considering additional grouping variables and
-whether a maximization or minimization is required. Flags optimal selection across all results.
+Aggregates results from eval_splits call by considering 
+additional grouping variables and whether a maximization or minimization is 
+required. Flags optimal selection across all results.
 }

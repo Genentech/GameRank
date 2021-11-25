@@ -1,4 +1,5 @@
 
+#' @import purrr
 #' @importFrom rlang .data
 
 #' @rdname utils_influential
@@ -15,27 +16,39 @@ fn_predict_glm <- function( mod, dat, ... ) predict( mod, newdata = dat, type = 
 
 #' @title Determine influential points for the current selection
 #' 
-#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param dat data.frame or tibble comprising data for model generation and 
+#' validation.
 #' @param resp Character string defining the response (lhs) of the model formula.
-#' @param selection Character vector defining the list of variables for selection. Those are concatenated by '+' 
+#' @param selection Character vector defining the list of variables for 
+#' selection. Those are concatenated by '+' 
 #' as the right hand side (rhs) of the modeling formula.
-#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
-#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
-#' @param fn_get_params Function with signature function( model ) that returns an 1-row tibble of model parameters
-#' @param fn_predict Function with signature function( model, data ) that returns an 1-column tibble of model predictions
+#' @param fn_train Function with signature function( dat, resp, selection, ... ) 
+#' that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) 
+#' that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param fn_get_params Function with signature function( model ) that returns 
+#' an 1-row tibble of model parameters
+#' @param fn_predict Function with signature function( model, data ) that 
+#' returns an 1-column tibble of model predictions
 #' 
-#' @return Returns a tibble with columns for observation (row), evaluation without observation i (ei), difference to full dataset, difference 
-#' between prediction from full model vs model without observation i (y0, yi and deval), as well as differences between parameters (_dfbeta).
+#' @return Returns a tibble with columns for observation (row), evaluation 
+#' without observation i (ei), difference to full dataset, difference 
+#' between prediction from full model vs model without observation i (y0, yi and 
+#' deval), as well as differences between parameters (_dfbeta).
 #' 
 #' @examples 
 #' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
 #' resp <- "resp"
-#' gmr <- game_rank( dat = toy_data, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc, m = 6L, dsi = c(1L,2L), maximize = TRUE, 
+#' gmr <- game_rank( dat = toy_data, resp = resp, vars = vars, 
+#'                   fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc, 
+#'                   m = 6L, dsi = c(1L,2L), maximize = TRUE, 
 #'                   team_size = 3L, rounds = 10L, min_matches_per_var = 5L )
 #' gmr$variable_ranking %>% as.data.frame
 #' gmr_fsel <- gmr$game_rank_selection
 #' 
-#' ifo <- influential_observations( toy_data, resp, gmr_fsel, fn_train_binomial, fn_eval_binomial_auroc, fn_infl_coefficients, fn_predict_glm )
+#' ifo <- influential_observations( toy_data, resp, gmr_fsel, 
+#'                                  fn_train_binomial, fn_eval_binomial_auroc, 
+#'                                  fn_infl_coefficients, fn_predict_glm )
 #' ifo 
 #' 
 #' @name utils_influential

@@ -3,16 +3,20 @@
 
 #' @title Render a standard template reports for a given objects.
 #' 
-#' @param obj Algorithm results output from forward, backward and other selection methods
+#' @param obj Algorithm results output from forward, backward and other 
+#' selection methods
 #' @param output_dir Output directory for the report to be saved to.
 #' 
-#' @return render_... functions don't have return values. They generated the required output documents.
+#' @return render_... functions don't have return values. They generated the 
+#' required output documents.
 #' 
 #' @examples 
 #' 
 #' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
 #' resp <- "resp"
-#' gmr <- game_rank( dat = toy_data, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc, m = 6L, dsi = c(1L,2L), maximize = TRUE, 
+#' gmr <- game_rank( dat = toy_data, resp = resp, vars = vars, 
+#'                   fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc,
+#'                   m = 6L, dsi = c(1L,2L), maximize = TRUE, 
 #'                   team_size = 3L, rounds = 10L, min_matches_per_var = 5L )
 #' gmr$variable_ranking %>% as.data.frame
 #' gmr_fsel <- gmr$game_rank_selection
@@ -27,8 +31,10 @@ NULL
 #' 
 #' @param template_name File name of the standard template
 #' @param output_dir Output directory to which to render
-#' @param params The Rmd parameter list. Needs to match the expected parameter definitions of the Rmd template.
-#' @param output_file Output filename (with or without suffix). Default NULL. If not NULL, it is appended to output_dir
+#' @param params The Rmd parameter list. Needs to match the expected 
+#' parameter definitions of the Rmd template.
+#' @param output_file Output filename (with or without suffix). Default NULL. 
+#' If not NULL, it is appended to output_dir
 #' @param ... Further parameters passed to rmarkdown::render(...) function.
 #' 
 #' @rdname utils_reporting

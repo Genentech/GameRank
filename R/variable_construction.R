@@ -1,12 +1,15 @@
 #
 # Utils and Analysis functions for variable construction
 #
+
+#' @import purrr
 #' @importFrom rlang .data
 
 # Simple transformations ----
 #' @title Function to evaluate and add simple variable tranformations
 #' 
-#' @description This function adds some simple transformations, as described in \link{following https://rcompanion.org/handbook/I_12.html}
+#' @description This function adds some simple transformations, as described in 
+#' \link{following https://rcompanion.org/handbook/I_12.html}
 #' to a dataset for a set of given variables. However, variables are only added if they improve Normality as measured by an
 #' increase in Shapiro-Wilk W statistic.
 #' 
@@ -296,13 +299,13 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
     summarise( min_aic = min(.data$aic), sum_converged = sum( .data$converged ) )
 
   best <- agg %>%
-    filter( .data$min_fits_converged <= .data$sum_converged ) %>%
+    filter( min_fits_converged <= .data$sum_converged ) %>%
     filter( min(.data$min_aic) == .data$min_aic ) %>%
     filter( min(.data$k) == .data$k )
   kmin <- best %>% pull( .data$k )
   maic <- best %>% pull( .data$min_aic )
   
-  best_idx <- tab %>% filter( .data$k == .data$kmin & .data$maic == .data$aic & .data$converged ) %>% pull( .data$midx )
+  best_idx <- tab %>% filter( .data$k == kmin & maic == .data$aic & .data$converged ) %>% pull( .data$midx )
   momin <- models[[ best_idx[1] ]]
 
   ret <- list( var = var, 
@@ -359,10 +362,10 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
 #' 
 #' @param dat A data.frame or tibble
 #' @param resp A response term for the lhs of a formula
-#' @param vars A character vector of variables to secreen
+#' @param vars A character vector of variables to screen
 #' @param n_comp Integer determining the maximum number of components to check
 #' @param m_fits Each GMM is fitted multiple times to avoid local minima. m_fits determines how many GMMs are generated each time.
-#' @param min_prop_converged Minimal proportion of GMM that need to converge before considering their AIC for model selection.
+#' @param min_fits_converged Minimal number of GMMs that need to converge before considering their AIC for model selection.
 #' 
 #' @return list with two elements
 #' \describe{

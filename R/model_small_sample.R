@@ -8,30 +8,36 @@
 #' @title Small Sample Variable Selection helper functions
 #' 
 #' @description Wrapper-based variable selection makes use of two functions, one
-#' for model training and one for model evaluation. This roots in the assumption of
-#' using the split set method for measuring generalization performance on true hold-out
-#' data. However, when you have a very small sample set this might seem problematic.
+#' for model training and one for model evaluation. This roots in the assumption
+#' of using the split set method for measuring generalization performance on 
+#' true hold-out data. However, when you have a very small sample set this might 
+#' seem problematic.
 #' 
-#' An way out then could be to estimate generalization performance using **cross-validation**
-#' or the **bootstrap**. In both approaches, the training function must be called on
-#' repeated subsamples (folds) such that the error can be estimated by combining 
-#' predictions from the excluded samples across all folds.
+#' An way out then could be to estimate generalization performance using 
+#' **cross-validation** or the **bootstrap**. In both approaches, the training 
+#' function must be called on repeated subsamples (folds) such that the error
+#' can be estimated by combining predictions from the excluded samples across 
+#' all folds.
 #' 
-#' Here we'll provide two function factory methods, ie functions that take a training
-#' or a validation function and wrap it into one of these algorithms such that the
-#' call to the wrapper functions keeps the same interface. 
+#' Here we'll provide two function factory methods, ie functions that take a 
+#' training or a validation function and wrap it into one of these algorithms 
+#' such that the call to the wrapper functions keeps the same interface. 
 #' The idea will be to replace fn_train by a dummy method that just returns a 
-#' dummy model. The fn_eval parameter will then consist of a function that incorporates
-#' the right fn_train function and applies it within the estimation proceedure.
+#' dummy model. The fn_eval parameter will then consist of a function that
+#' incorporates the right fn_train function and applies it within the estimation 
+#' procedure.
 #' 
 #' \describe{
-#' \item{fn_train_dummy}{Dummy train function that just returns and class "DummyModel" object.}
-#' \item{ff_fn_eval_cross_validation}{Function generator (ff_) function that takes an fn_train and fn_eval function 
-#' together with n_folds parameter, and returns a function that calls fn_train and fn_eval to return a n_fold
+#' \item{fn_train_dummy}{Dummy train function that just returns and 
+#' class "DummyModel" object.}
+#' \item{ff_fn_eval_cross_validation}{Function generator (ff_) function that 
+#' takes an fn_train and fn_eval function together with n_folds parameter, and 
+#' returns a function that calls fn_train and fn_eval to return a n_fold
 #' cross-validated estimate.}
 #' }
-#' @return fn_train_... functions return a fitted model object or NULL if that fails. fn_eval_... functions
-#' return a numeric real value measuring the validation performance on the given data, or NA if that fails.
+#' @return fn_train_... functions return a fitted model object or NULL if that
+#' fails. fn_eval_... functions return a numeric real value measuring the 
+#' validation performance on the given data, or NA if that fails.
 #' 
 #' @examples 
 #' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
@@ -44,14 +50,14 @@
 #' )
 #' smtoy
 #' 
-#' # ff_fn_eval_bootstrap and ff_fn_eval_cross_validation are function factories that return a created
-#' # function which makes use of the supplied fn_train and fn_eval function during bootstrap or 
-#' # cross-validation.
+#' # ff_fn_eval_bootstrap and ff_fn_eval_cross_validation are function factories
+#' # that return a created function which makes use of the supplied fn_train and
+#' # fn_eval function during bootstrap or cross-validation.
 #' fn_bt_eval_binomial_auroc <- ff_fn_eval_bootstrap( fn_train_binomial, fn_eval_binomial_auroc, 25L )
 #' 
-#' # For small sample sizes, the GameRank index vector dsi needs to be set to c(2L,2L) such that all
-#' # observations are used for validation. Similarly, the training:validation split matrix then also
-#' # completely consists of 2s.
+#' # For small sample sizes, the GameRank index vector dsi needs to be set 
+#' # to c(2L,2L) such that all observations are used for validation. Similarly, 
+#' # the training:validation split matrix then also completely consists of 2s.
 #' res <- game_rank( smtoy, resp, vars, fn_train_dummy, fn_bt_eval_binomial_auroc, 4L, c(2L,2L), TRUE, 3L, 5L, 3L )
 #' res$game_rank_selection
 #' res$variable_ranking

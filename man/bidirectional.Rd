@@ -29,31 +29,41 @@ bidirectional.formula(
 )
 }
 \arguments{
-\item{dat}{data.frame or tibble comprising data for model generation and validation.}
+\item{dat}{data.frame or tibble comprising data for model generation and 
+validation.}
 
 \item{resp}{Character string defining the response (lhs) of the model formula.}
 
-\item{vars}{Character vector defining the list of variables for selection. Those are concatenated by '+' 
+\item{vars}{Character vector defining the list of variables for selection. 
+Those are concatenated by '+' 
 as the right hand side (rhs) of the modelling formula.}
 
-\item{fn_train}{Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.}
+\item{fn_train}{Function with signature function( dat, resp, selection, ... )
+that returns a model or NULL in any other case on the given data dat.}
 
-\item{fn_eval}{Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.}
+\item{fn_eval}{Function with signature function( dat, resp, selection, ... ) 
+that returns a real number or NA in any other case, e.g. when model is NULL.}
 
 \item{m}{Size of final partition size. 
-Note this parameter is used for stopping only. Best selection will be determined by whole set of evaluated selections, i.e., can be larger than m.}
+Note this parameter is used for stopping only. Best selection will be 
+determined by whole set of evaluated selections, i.e., can be larger than m.}
 
 \item{ds}{Definition of (parallel) training:validation splits
-- a matrix with d columns containing 1s and 2s, where 1 denotes sample is used for training the model and 2 denotes sample used for validation.
+- a matrix with d columns containing 1s and 2s, where 1 denotes sample is 
+  used for training the model and 2 denotes sample used for validation.
   The average of all d training:validation results is used for selection.
-- an integer number determing the number of random training:validation splits that should be generated. The sampling will ensure a sufficient number
-  of complete cases in the training split.}
+- an integer number determining the number of random training:validation 
+splits that should be generated. The sampling will ensure a sufficient 
+number of complete cases in the training split.}
 
-\item{maximize}{A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).}
+\item{maximize}{A logic value determining if fn_eval is maximized 
+(set to TRUE) or minimized (set to FALSE).}
 
-\item{...}{An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.}
+\item{...}{An other arguments passed to fn_train or fn_eval during calls, 
+e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.}
 
-\item{fo}{Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )}
+\item{fo}{Only for call with formula as first argument. Extracts lhs ~ rhs 
+into resp and vars, and calls backward( dat, resp, vars, ... )}
 }
 \value{
 List with elements
@@ -76,23 +86,25 @@ the same, consistent variable selection set.
 }
 \details{
 The Bidirectional Search algorithm runs as follows:
-\code{ \cr
-1) Start SFS with Yf = {} \cr
-2) Start SBS with Yb = X \cr
-3) Select the best feature \cr
-        x+ = arg max_{x not in Yfk; x in Ybk} J( Yfk + x ) \cr
-        Yfk+1 = Yfk + x+ \cr
-4) Remove the worst feature \cr
-        x- = arg max_{x in Ybk; x not in Yfk+1} J( Ybk - x ) \cr
-        Ybk+1 = Ybk - x-; \cr
-        k = k + 1 \cr
-5) Go to 3 \cr
+\preformatted{ 
+1) Start SFS with Yf = {} 
+2) Start SBS with Yb = X 
+3) Select the best feature 
+        x+ = arg max_{x not in Yfk; x in Ybk} J( Yfk + x ) 
+        Yfk+1 = Yfk + x+ 
+4) Remove the worst feature 
+        x- = arg max_{x in Ybk; x not in Yfk+1} J( Ybk - x ) 
+        Ybk+1 = Ybk - x-; 
+        k = k + 1 
+5) Go to 3 
 }
 }
 \examples{
 vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
 resp <- "resp"
-res <- bidirectional( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, 1L, TRUE )
+res <- bidirectional( toy_data, resp, vars, 
+                      fn_train_binomial, fn_eval_binomial_auroc, 
+                      4L, 1L, TRUE )
 res$variable_selections
 res$agg_results \%>\% filter( opt ) \%>\% arrange( desc(mean_validation) )
 }

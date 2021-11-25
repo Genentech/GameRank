@@ -32,19 +32,23 @@ nbins_ucv <-  function( x ) {
 
 #' @title Helper function to determine the optimal number of breaks for a histogram
 #' 
-#' @description This function determines the optimal set of breaks for a histogram for numerical sample
+#' @description This function determines the optimal set of breaks for a 
+#' histogram for numerical sample
 #' by leave-one-out cross-validation minimizing the empirical risk.
 #' 
-#' @param x A numeric vector of variables for which the set of breaks should be computed.
+#' @param x A numeric vector of variables for which the set of breaks should 
+#' be computed.
 #' 
-#' @return A numeric vector of cut-points points that will define an optimal histogram density estimator for the sample.
+#' @return A numeric vector of cut-points points that will define an optimal 
+#' histogram density estimator for the sample.
 #' 
 #' @examples 
 #' library( ggplot2 )
 #' xv <- rnorm( 100 )
 #' bk <- bins_ucv( xv )
 #' # Plot histogram with properly selected smoothed bin widths
-#' ggplot( aes( x=xv, y=..density.. ), data = data.frame( xv = xv ) ) + geom_histogram( breaks = bk )
+#' ggplot( aes( x=xv, y=..density.. ), data = data.frame( xv = xv ) ) + 
+#'    geom_histogram( breaks = bk )
 #' @export
 bins_ucv <-  function( x ) {
   n <- length( x )

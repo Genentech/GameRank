@@ -6,34 +6,46 @@
 
 #' @title Random search algorithm
 #' 
-#' @description First constructs a random sampling plan of disjoint feature selections
-#' that are covering all provided features for a predefined number of evaluations. Then
-#' run training:validation evaluation for each selection, and returns the best combination.
+#' @description First constructs a random sampling plan of disjoint 
+#' feature selections that are covering all provided features for a predefined 
+#' number of evaluations. Then run training:validation evaluation for each 
+#' selection, and returns the best combination.
 #' 
 #' @details The random search algorithm runs as follows:
-#' \code{ \cr
-#' 1. Build a sampling matrix of disjoint and unique feature combinations \cr
-#' 2. For each combination evaluate the model per training:validation splits. \cr
-#' 3. Return the best selection. \cr
+#' \preformatted{ 
+#' 1. Build a sampling matrix of disjoint and unique feature combinations 
+#' 2. For each combination evaluate the model per training:validation splits 
+#' 3. Return the best selection
 #' }
 #' 
-#' @param fo Only for call with formula as first argument. Extracts lhs ~ rhs into resp and vars, and calls backward( dat, resp, vars, ... )
-#' @param dat data.frame or tibble comprising data for model generation and validation.
-#' @param resp Character string defining the response (lhs) of the model formula.
-#' @param vars Character vector defining the list of variables for selection. Those are concatenated by '+' 
+#' @param fo Only for call with formula as first argument. Extracts lhs ~ rhs 
+#' into resp and vars, and calls backward( dat, resp, vars, ... )
+#' @param dat data.frame or tibble comprising data for model generation 
+#' and validation.
+#' @param resp Character string defining the response (lhs) of the 
+#' model formula.
+#' @param vars Character vector defining the list of variables for selection. 
+#' Those are concatenated by '+' 
 #' as the right hand side (rhs) of the modelling formula.
-#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
-#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param fn_train Function with signature function( dat, resp, selection, ... )
+#' that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) 
+#' that returns a real number or NA in any other case, e.g. when model is NULL.
 #' @param m Size of final partition size. 
-#' Note this parameter is used for stopping only. Best selection will be determined by whole set of evaluated selections, i.e., can be larger than m.
+#' Note this parameter is used for stopping only. Best selection will be 
+#' determined by whole set of evaluated selections, i.e., can be larger than m.
 #' @param ds Definition of (parallel) training:validation splits
-#'  - a matrix with d columns containing 1s and 2s, where 1 denotes sample is used for training the model and 2 denotes sample used for validation.
+#'  - a matrix with d columns containing 1s and 2s, where 1 denotes sample is 
+#'    used for training the model and 2 denotes sample used for validation.
 #'    The average of all d training:validation results is used for selection.
-#'  - an integer number determing the number of random training:validation splits that should be generated. The sampling will ensure a sufficient number
-#'    of complete cases in the training split.
-#' @param maximize A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).
+#'  - an integer number determining the number of random training:validation 
+#'    splits that should be generated. The sampling will ensure a 
+#'    sufficient number of complete cases in the training split.
+#' @param maximize A logic value determining if fn_eval is maximized (set to 
+#' TRUE) or minimized (set to FALSE).
 #' @param nevals Number of training:validation evaluations.
-#' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
+#' @param ... An other arguments passed to fn_train or fn_eval during calls, 
+#' e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
 #'
 #' @return List with elements
 #' \describe{

@@ -1,25 +1,33 @@
 #
 # Utility evaluation
 #
-#' @import labelled dplyr
+#' @import labelled dplyr purrr
 #' @importFrom rlang .data
 
 
 #' @title Split evaluation function
 #' 
-#' @description Function receives a matrix with one or more training:validation splits, defined by 1 as training and
-#' 2 as validation. This matrix has nrow(dat) rows and evaluates fn_train and fn_eval for each parallel defined split
-#' for a given selection. All wraper algorithms except GroupRank make use of this function.
+#' @description Function receives a matrix with one or more training:validation 
+#' splits, defined by 1 as training and 2 as validation. This matrix has 
+#' nrow(dat) rows and evaluates fn_train and fn_eval for each parallel defined 
+#' split for a given selection. All wraper algorithms except GroupRank make use 
+#' of this function.
 #' 
-#' @param ds Matrix with n rows and k columns containing only 1s and 2s. n must equal nrow(dat) and 1<=k.
-#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param ds Matrix with n rows and k columns containing only 1s and 2s. n must 
+#' equal nrow(dat) and 1<=k.
+#' @param dat data.frame or tibble comprising data for model generation 
+#' and validation.
 #' @param resp Character string defining the response (lhs) of the model formula.
-#' @param selection Character vector defining the list of variables for selection. Those are concatenated by '+' 
-#' as the right hand side (rhs) of the modelling formula.
-#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
-#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param selection Character vector defining the list of variables for 
+#' selection. Those are concatenated by '+' 
+#' as the right hand side (rhs) of the modeling formula.
+#' @param fn_train Function with signature function( dat, resp, selection, ... ) 
+#' that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) 
+#' that returns a real number or NA in any other case, e.g. when model is NULL.
 #' @param ... Further arguments passed to fn_train and fn_eval.
-#' @param var_sep Separating character used to build unique concatenated string for selection, which is saved in column ch_selection of the output.
+#' @param var_sep Separating character used to build unique concatenated string 
+#' for selection, which is saved in column ch_selection of the output.
 #' 
 #' @return tibble with elements
 #' \describe{
@@ -29,8 +37,10 @@
 #'  \item{response}{As from input parameters}
 #'  \item{split}{index into ds columns determining split evaluated}
 #'  \item{eval_train}{result of model evaluation on training}
-#'  \item{eval_validation}{result of model evaluation on validation (this is used for optimization)}
-#'  \item{bias}{square root of squared difference between training and validation values}
+#'  \item{eval_validation}{result of model evaluation on validation (this is 
+#'  used for optimization)}
+#'  \item{bias}{square root of squared difference between training and 
+#'  validation values}
 #' }
 #' 
 eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ..., var_sep = "," ) 
@@ -74,12 +84,15 @@ eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ..., var_s
 
 #' @title Aggregation function for eval_splits results
 #' 
-#' @description Aggregates results from eval_splits call by considering additional grouping variables and
-#' whether a maximization or minimization is required. Flags optimal selection across all results.
+#' @description Aggregates results from eval_splits call by considering 
+#' additional grouping variables and whether a maximization or minimization is 
+#' required. Flags optimal selection across all results.
 #' 
-#' @param df_eval Results from one or more eval_splits calls.
-#' @param var Additional grouping variable for results aggregation, e.g. may be variable 'added' or 'removed' during forward or backward selection.
-#' @param maximize Logical value indicating if optimal result is largest (TRUE) or smallest result (FALSE)
+#' @param df_evl Results from one or more eval_splits calls.
+#' @param var Additional grouping variable for results aggregation, e.g. may be 
+#' variable 'added' or 'removed' during forward or backward selection.
+#' @param maximize Logical value indicating if optimal result is largest (TRUE) 
+#' or smallest result (FALSE)
 #' 
 #' @return tibble with aggregated (averaged) training and validation errors
 #' \describe{
@@ -123,24 +136,36 @@ best_selection <- function( agg ) {
 
 #' @title Generic helper function that evaluates a set of variables for extending a selection
 #' 
-#' @param ds Definition of (parallel) training:validation splits by a matrix with d columns containing 1s and 2s, where 1 denotes sample is used for training the model and 2 denotes sample used for validation.
-#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param ds Definition of (parallel) training:validation splits by a matrix 
+#' with d columns containing 1s and 2s, where 1 denotes sample is used for 
+#' training the model and 2 denotes sample used for validation.
+#' @param dat data.frame or tibble comprising data for model generation 
+#' and validation.
 #' @param resp Character string defining the response (lhs) of the model formula.
-#' @param vars Character vector defining the list of variables for selection. Those are concatenated by '+' 
-#' as the right hand side (rhs) of the modelling formula.
-#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
-#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
-#' @param maximize A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).
+#' @param vars Character vector defining the list of variables for selection. 
+#' Those are concatenated by '+' as the right hand side (rhs) of the
+#'  modeling formula.
+#' @param fn_train Function with signature function( dat, resp, selection, ... ) 
+#' that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) 
+#' that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param maximize A logic value determining if fn_eval is maximized (set to 
+#' TRUE) or minimized (set to FALSE).
 #' @param selection Character vector of currently selected variables.
-#' @param add_vars Character vector of variables that should be used to extend and evaluate selection.
-#' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
-#' @param var_sep Character used to generated standardized string for selection by concatenation
+#' @param add_vars Character vector of variables that should be used to extend 
+#' and evaluate selection.
+#' @param ... An other arguments passed to fn_train or fn_eval during calls, 
+#' e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
+#' @param var_sep Character used to generated standardized string for selection 
+#' by concatenation
 #' 
 #' @return List with elements
 #' \describe{
 #' \item{df_evl}{tibble with all results from eval_split calls being concatenated}
-#' \item{agg_evl}{tibble with aggregated evaluations by (ch_)selection and additional column 'added'. Best selections are flagged by 'opt'} 
-#' \item{best_selections}{List of selections that were identified best on validation split.}
+#' \item{agg_evl}{tibble with aggregated evaluations by (ch_)selection and 
+#' additional column 'added'. Best selections are flagged by 'opt'} 
+#' \item{best_selections}{List of selections that were identified best on 
+#' validation split.}
 #' }
 #' 
 eval_add_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, selection, add_vars = NULL, ..., var_sep = ","  ) {
@@ -156,24 +181,36 @@ eval_add_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, sel
 
 #' @title Generic helper function that evaluates a set of variables for reducing a selection
 #' 
-#' @param ds Definition of (parallel) training:validation splits by a matrix with d columns containing 1s and 2s, where 1 denotes sample is used for training the model and 2 denotes sample used for validation.
-#' @param dat data.frame or tibble comprising data for model generation and validation.
+#' @param ds Definition of (parallel) training:validation splits by a matrix 
+#' with d columns containing 1s and 2s, where 1 denotes sample is used for 
+#' training the model and 2 denotes sample used for validation.
+#' @param dat data.frame or tibble comprising data for model generation 
+#' and validation.
 #' @param resp Character string defining the response (lhs) of the model formula.
-#' @param vars Character vector defining the list of variables for selection. Those are concatenated by '+' 
-#' as the right hand side (rhs) of the modelling formula.
-#' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
-#' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
-#' @param maximize A logic value determining if fn_eval is maximized (set to TRUE) or minimized (set to FALSE).
+#' @param vars Character vector defining the list of variables for selection. 
+#' Those are concatenated by '+' as the right hand side (rhs) of the 
+#' modeling formula.
+#' @param fn_train Function with signature function( dat, resp, selection, ... ) 
+#' that returns a model or NULL in any other case on the given data dat.
+#' @param fn_eval Function with signature function( dat, resp, selection, ... ) 
+#' that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param maximize A logic value determining if fn_eval is maximized (set to 
+#' TRUE) or minimized (set to FALSE).
 #' @param selection Character vector of currently selected variables.
-#' @param remove_vars Character vector of variables that should be used to reduce and evaluate selection.
-#' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
-#' @param var_sep Character used to generated standardized string for selection by concatenation
+#' @param remove_vars Character vector of variables that should be used to 
+#' reduce and evaluate selection.
+#' @param ... An other arguments passed to fn_train or fn_eval during calls, 
+#' e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
+#' @param var_sep Character used to generated standardized string for selection 
+#' by concatenation
 #' 
 #' @return List with elements
 #' \describe{
 #' \item{df_evl}{tibble with all results from eval_split calls being concatenated}
-#' \item{agg_evl}{tibble with aggregated evaluations by (ch_)selection and additional column 'removed'. Best selections are flagged by 'opt'} 
-#' \item{best_selections}{List of selections that were identified best on validation split.}
+#' \item{agg_evl}{tibble with aggregated evaluations by (ch_)selection and 
+#' additional column 'removed'. Best selections are flagged by 'opt'} 
+#' \item{best_selections}{List of selections that were identified best on 
+#' validation split.}
 #' }
 #' 
 eval_remove_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, selection, remove_vars = NULL, ..., var_sep = ","  ) {
