@@ -59,6 +59,10 @@ landmark day for survival probability evaluation.}
 
 \item{mod}{For evaluation functions the model to be evaluated on dat}
 }
+\value{
+fn_train_... functions return a fitted model object or NULL if that fails. fn_eval_... functions
+return a numeric real value measuring the validation performance on the given data, or NA if that fails.
+}
 \description{
 The interface for model generating functions is
 \strong{function( dat, resp, selection, ... )}

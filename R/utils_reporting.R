@@ -6,6 +6,8 @@
 #' @param obj Algorithm results output from forward, backward and other selection methods
 #' @param output_dir Output directory for the report to be saved to.
 #' 
+#' @return render_... functions don't have return values. They generated the required output documents.
+#' 
 #' @name utils_reporting
 NULL
 
@@ -17,7 +19,8 @@ NULL
 #' @param params The Rmd parameter list. Needs to match the expected parameter definitions of the Rmd template.
 #' @param output_file Output filename (with or without suffix). Default NULL. If not NULL, it is appended to output_dir
 #' @param ... Further parameters passed to rmarkdown::render(...) function.
-#'
+#' 
+#' @rdname utils_reporting
 render_std_template <- function( template_name, output_dir = NULL, params, output_file = NULL, envir = new.env(), ... ) {
   stopifnot(!is.null(output_dir))
   stopifnot( is.list(params))

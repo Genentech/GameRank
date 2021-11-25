@@ -37,7 +37,9 @@
 #' @param mod For evaluation functions the model to be evaluated on dat
 #' @param ... Any other arguments passed to both types of functions, e.g. 'u = 365' to define the
 #' landmark day for survival probability evaluation.
-#'  
+#'
+#' @return fn_train_... functions return a fitted model object or NULL if that fails. fn_eval_... functions
+#' return a numeric real value measuring the validation performance on the given data, or NA if that fails.
 #' @name model_functions
 NULL
 

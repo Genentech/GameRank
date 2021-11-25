@@ -2,6 +2,7 @@
 % Please edit documentation in R/utils_reporting.R
 \name{utils_reporting}
 \alias{utils_reporting}
+\alias{render_std_template}
 \alias{render_backward_summary}
 \alias{render_forward_summary}
 \alias{render_bidirectional_summary}
@@ -14,6 +15,15 @@
 \alias{render_model_calibration_cox}
 \title{Render a standard template reports for a given objects.}
 \usage{
+render_std_template(
+  template_name,
+  output_dir = NULL,
+  params,
+  output_file = NULL,
+  envir = new.env(),
+  ...
+)
+
 render_backward_summary(bwd, output_dir = NULL, output_file = NULL)
 
 render_forward_summary(fwd, output_dir = NULL, output_file = NULL)
@@ -60,10 +70,23 @@ render_model_calibration_cox(
 )
 }
 \arguments{
-\item{output_dir}{Output directory for the report to be saved to.}
+\item{template_name}{File name of the standard template}
+
+\item{output_dir}{Output directory to which to render}
+
+\item{params}{The Rmd parameter list. Needs to match the expected parameter definitions of the Rmd template.}
+
+\item{output_file}{Output filename (with or without suffix). Default NULL. If not NULL, it is appended to output_dir}
+
+\item{...}{Further parameters passed to rmarkdown::render(...) function.}
 
 \item{obj}{Algorithm results output from forward, backward and other selection methods}
 }
+\value{
+render_... functions don't have return values. They generated the required output documents.
+}
 \description{
 Render a standard template reports for a given objects.
+
+Render a standard template report for a given object. (Internal function)
 }

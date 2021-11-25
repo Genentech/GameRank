@@ -29,6 +29,8 @@
 #' together with n_folds parameter, and returns a function that calls fn_train and fn_eval to return a n_fold
 #' cross-validated estimate.}
 #' }
+#' @return fn_train_... functions return a fitted model object or NULL if that fails. fn_eval_... functions
+#' return a numeric real value measuring the validation performance on the given data, or NA if that fails.
 #' 
 #' @name model_small_sample
 NULL

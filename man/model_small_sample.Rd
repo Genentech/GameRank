@@ -21,6 +21,10 @@ ff_fn_eval_bootstrap(
   arg_n_boots = 25L
 )
 }
+\value{
+fn_train_... functions return a fitted model object or NULL if that fails. fn_eval_... functions
+return a numeric real value measuring the validation performance on the given data, or NA if that fails.
+}
 \description{
 Wrapper-based variable selection makes use of two functions, one
 for model training and one for model evaluation. This roots in the assumption of
