@@ -268,14 +268,14 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
 # Mixture models ----
 
 eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 24 ) {
-  ks <- 1:n_comp
+  ks <- seq_len( n_comp )
   idx <- which(!is.na(dat[,var]))
 
   models <- list()
   tab <- NULL
   midx <- 1
-  for( k in 1:n_comp ) {
-    for( j in 1:m_fits ) {
+  for( k in seq_len( n_comp ) ) {
+    for( j in seq_len( m_fits ) ) {
       mo <- NULL
       mo <- tryCatch({
         flexmix::flexmix( stats::formula( sprintf( "%s ~ 1", var ) ), 
@@ -399,7 +399,7 @@ check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_f
       nvar <- sprintf( "%s_resp_grp", resp )
       mod[[nvar]] <- as.character( cut( mod[[resp]], 
                                         breaks = evl$cut_points, 
-                                        labels = sprintf( "resp_group[%d]", 1:(length(evl$cut_points)-1) ), 
+                                        labels = sprintf( "resp_group[%d]", seq_len(length(evl$cut_points)-1) ), 
                                         include.lowest = TRUE ) )
       evl$transformed_var <- nvar
     }
@@ -415,7 +415,7 @@ check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_f
         nvar <- sprintf( "%s_grp", var )
         mod[[nvar]] <- as.character( cut( mod[[var]], 
                                           breaks = evl$cut_points, 
-                                          labels = sprintf( "group[%d]", 1:(length(evl$cut_points)-1) ), 
+                                          labels = sprintf( "group[%d]", seq_len(length(evl$cut_points)-1) ), 
                                           include.lowest = TRUE ) )
         evl$transformed_var <- nvar
       }

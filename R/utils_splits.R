@@ -56,7 +56,7 @@ build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, ... ) {
     }
   }
 
-  idx_ncc <- setdiff( 1:nrow(dat), idx_cc )
+  idx_ncc <- setdiff( seq_len( nrow(dat) ), idx_cc )
   idx <- c(idx_cc,idx_ncc)
   rr_cc  <- rep_len( rr, length(idx_cc) )
   rr_ncc <- rep_len( rr, length(idx_ncc) )
@@ -105,7 +105,7 @@ prepare_splits <- function( ds, dat, resp, vars, fn_train, fn_eval, ... ) {
   # 2) if ds is matrix with enough rows and columns check and return it
   if( is.matrix(ds) && nrow(ds)==nrow(dat) && 1<=ncol(ds) && all(unique(unlist(ds) %in% c(1,2)) ) ) {
     ret <- TRUE
-    for( k in 1:ncol(ds) ) {
+    for( k in seq_len( ncol(ds) ) ) {
       ret <- ret & check_split( ds[,k], dat, resp, vars, fn_train, fn_eval, ... )  
     }
     if( ret ) return( ds ) else return( NULL )

@@ -53,7 +53,7 @@ influential_observations <- function( dat, resp, selection,
                  ei = e0, deval = NA_real_, yi = NA_real_, dffit = NA_real_ ) %>%
     bind_cols( as_tibble( matrix( c0, nrow=1 ) ) %>% stats::setNames( sprintf( "%s_dfbeta", names(c0)) ) )
   
-  ret <- purrr::map_dfr( 1:nrow(dat),
+  ret <- purrr::map_dfr( seq_len( nrow(dat) ),
                   function(i) {
                     # browser()
                     mm <- fn_train( dat[-i,], resp, selection )

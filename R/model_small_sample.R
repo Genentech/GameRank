@@ -100,10 +100,10 @@ ff_fn_eval_cross_validation <- function( arg_fn_train = NULL, arg_fn_eval = NULL
       # sampled. This may seem less robust but prevents variable selection to favor
       # a specific fixed fold configuration.
       n <- nrow(dat)
-      ds <- rep_len( x = 1:.env$n_folds, length.out = n )
+      ds <- rep_len( x = seq_len( .env$n_folds ), length.out = n )
       ds <- ds[ order( stats::runif( length(ds) ) ) ]
       theta <- rep_len( NA, length.out = length(ds) )
-      for( k in 1:.env$n_folds ) {
+      for( k in seq_len( .env$n_folds ) ) {
         idx <- which( k == ds )
         cvmod <- .env$fn_train( dat[-idx,], resp, selection, ... )
         cvevl <- .env$fn_eval(  dat[ idx,], resp, selection, cvmod, ...  )
@@ -147,7 +147,7 @@ ff_fn_eval_bootstrap <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n
       # Ch. 17 "Cross-validation and other estimates of prediction error", p. 237ff
       # Ch. 17.6-7 Bootstrap estimates of prediction error / The .632 bootstrap estimator, p. 247f
       #
-      didx <- 1:nrow(dat)
+      didx <- seq_len( nrow(dat) )
       the_statistic <- function( dd,ii ) {
         # browser()
         mm  <- .env$fn_train( dd[ii,], resp, selection, ... )

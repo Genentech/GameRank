@@ -15,7 +15,7 @@ Jhat <- function( x, m ) {
 Jloss_ucv <- function( x ) {
   n <- length( x )
   mmax <- sqrt( n )
-  hh <- 1:mmax
+  hh <- seq_len( mmax )
   jj <- vapply( hh, FUN=function( mm ) Jhat( x, mm ), 1.0 )
   oo <- which.min( jj ) 
   return( list( bins = hh, loss = jj, bins.opt = hh[ oo ], loss.opt = jj[ oo ] ) )
@@ -24,7 +24,7 @@ Jloss_ucv <- function( x ) {
 nbins_ucv <-  function( x ) {
   n <- length( x )
   mmax <- sqrt( n )
-  hh <- 1:mmax
+  hh <- seq_len( mmax )
   jj <- vapply( hh, FUN=function( mm ) Jhat( x, mm ), 1.0 )
   oo <- which.min( jj ) 
   return( hh[ oo ] )
@@ -49,7 +49,7 @@ nbins_ucv <-  function( x ) {
 bins_ucv <-  function( x ) {
   n <- length( x )
   mmax <- sqrt( n )
-  hh <- 1:mmax
+  hh <- seq_len( mmax )
   jj <- vapply( hh, FUN=function( mm ) Jhat( x, mm ), 1.0 )
   oo <- which.min( jj ) 
   bb <- graphics::hist( x=x, breaks = hh[ oo ], plot=FALSE )

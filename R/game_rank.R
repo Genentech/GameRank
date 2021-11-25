@@ -81,17 +81,17 @@ NULL
 #
 build_match_matrix <- function( sel, team_size, min_matches_per_var ) {
   
-  sel[1:length(sel)] <- 0 # Set all elements to 0
+  sel[seq_along(sel)] <- 0 # Set all elements to 0
   match_matrix <- matrix( NA, nrow=0, ncol = length(sel) )
   colnames(match_matrix) <- names(sel)
   while( is.null(match_matrix) | !all( min_matches_per_var < colSums( abs( match_matrix ) )  ) ) {
-    idx <- 1:length(sel)
+    idx <- seq_along(sel)
     idx <- idx[ order( stats::runif( length(idx) ) ) ]
     while( 2*team_size < length(idx)  ) {
-      idxp <- idx[1:team_size]
-      idx <- idx[-c(1:team_size)]
-      idxn <- idx[1:team_size]
-      idx <- idx[-c(1:team_size)]
+      idxp <- idx[seq_len(team_size)]
+      idx <- idx[-seq_len(team_size)]
+      idxn <- idx[seq_len(team_size)]
+      idx <- idx[-seq_len(team_size)]
       Tpm <- sel
       Tpm[idxp] <- +1L
       Tpm[idxn] <- -1L
@@ -182,8 +182,8 @@ game_rank <- function( dat,
     
     np <- 0L
     nn <- 0L
-    for( r in 1:rounds ) {
-      ds[ 1:length(ds) ] <- ds[ order( stats::runif( length( ds ) ) ) ] # Shuffle rows to development and validation
+    for( r in seq_len(rounds) ) {
+      ds[ seq_along(ds) ] <- ds[ order( stats::runif( length( ds ) ) ) ] # Shuffle rows to development and validation
       
       scop <- eval_team( dat, resp, fop, ds, ... )
       scon <- eval_team( dat, resp, fon, ds, ... )
@@ -227,8 +227,8 @@ game_rank <- function( dat,
   # Huang et al., 2008, p.10, Eq.31
   ll_gr <- local({
     function( vs ) {
-      Tp <- ( ( res_matches[,-c(1:2)] > 0 ) %*% vs )
-      Tm <- ( ( res_matches[,-c(1:2)] < 0 ) %*% vs )
+      Tp <- ( ( res_matches[,-c(1,2)] > 0 ) %*% vs )
+      Tm <- ( ( res_matches[,-c(1,2)] < 0 ) %*% vs )
       LL <- exp( Tp + Tm - ( res_matches$n.pos - res_matches$n.neg ) ) / ( exp( Tp - ( res_matches$n.pos - res_matches$n.neg ) ) + exp( Tm ) )^2
       ret <- -sum( log( LL ) )
       return( ret )
@@ -237,8 +237,8 @@ game_rank <- function( dat,
   # Define group rank gradient for negative log-likelihood function ----
   ll_gr_grad <- local({
     function( vs ) {
-      Tp <- ( ( res_matches[,-c(1:2)] > 0 ) %*% vs )
-      Tm <- ( ( res_matches[,-c(1:2)] < 0 ) %*% vs )
+      Tp <- ( ( res_matches[,-c(1,2)] > 0 ) %*% vs )
+      Tm <- ( ( res_matches[,-c(1,2)] < 0 ) %*% vs )
       
       pp <- exp( Tp + res_matches[,2] )/ ( exp( Tp + res_matches[,2] ) + exp( Tm + res_matches[,1] ) )
       pn <- exp( Tp + res_matches[,1] )/ ( exp( Tp + res_matches[,2] ) + exp( Tm + res_matches[,1] ) )
@@ -280,7 +280,7 @@ game_rank <- function( dat,
     mutate( selected = (.data$vs > 0) ) %>%
     arrange( desc( .data$vs ), .data$vs.var )
   
-  var_selection <- vsel_result$variable[1:m]
+  var_selection <- vsel_result$variable[seq_len(m)]
   
   # Return list object with parameters and results
   ret <- list(
@@ -383,7 +383,7 @@ estimate_T_matches <- function( Tm, vs, HH, alpha = 0.05 ) {
   zz <- stats::qnorm( 1 - alpha / 2.0 )
   rr <- matrix( NA, ncol = 4, nrow = nrow(Tm) )
   colnames(rr) <- c("dT","dT.se","dT.LCL","dT.UCL")
-  for( i in 1:nrow(rr) ) {
+  for( i in seq_len( nrow(rr) ) ) {
     rr[i,"dT"] <- Tscore( Tm[i,] )
     rr[i,"dT.se"] <- se_Tscore( Tm[i,] )
   }

@@ -58,16 +58,16 @@ build_sample_matrix <- function( vars, m, nevals ) {
   
   sm <- matrix( NA_character_, nrow=0, ncol=m )
   while( nrow(sm) < nevals ) {
-    idx <- 1:length(vars)
+    idx <- seq_len( length(vars) )
     idx <- idx[ order( stats::runif( length(idx) )) ]
     while( m < length(idx) ) {
-      r <- sort( vars[ idx[ 1:m ] ] )
-      idx <- idx[-c(1:m)]
+      r <- sort( vars[ idx[ seq_len(m) ] ] )
+      idx <- idx[-seq_len(m)]
       sm <- rbind( sm, r )
     }
     sm <- unique( sm )
   }
-  sm <- sm[1:nevals,]
+  sm <- sm[seq_len(nevals),]
   rownames(sm) <- NULL
   colnames(sm) <- NULL
   
@@ -121,7 +121,7 @@ random_selection <- function( dat,
   
   # Evaluate random combinations
   df_evl <- NULL
-  for( r in 1:nrow(samps) ) {
+  for( r in seq_len( nrow(samps) ) ) {
     cat( sprintf( "Evaluating selection %d \n", r )  )
     sel <- as.character( samps[r, ] )
     evl <- mutate( eval_splits( ds, dat, resp, sel, fn_train, fn_eval, ... ), row = r )

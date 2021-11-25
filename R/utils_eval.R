@@ -36,7 +36,7 @@
 eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ..., var_sep = "," ) 
 {
   ret <- NULL
-  ret <- purrr::map_dfr( 1:ncol(ds), function(k) {
+  ret <- purrr::map_dfr( seq_len( ncol(ds) ), function(k) {
       mod  <- fn_train( dat[which(1==ds[,k]),], resp, selection, ... )   # Obtain model from data in 1-fold
       evl1 <- fn_eval(  dat[which(1==ds[,k]),], resp, selection, mod, ... ) # Evaluate model on data in 1-fold
       evl2 <- fn_eval(  dat[which(2==ds[,k]),], resp, selection, mod, ... ) # Evaluate model on data in 2-fold
