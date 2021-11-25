@@ -9,7 +9,7 @@ library( random )
 
 load.module("mix")
 
-file_tdata <- "inst/data-raw/toy_data.Rdata"
+file_tdata <- "inst/data-raw/toy_data.rda"
 file_toy <- "inst/data-raw/toy_model.jags"
 the_data <- list(
   mu =          c(  1.0,  1.2,  0.7,  0.3,  2.1,  1.3 ),
@@ -125,7 +125,7 @@ random::randomQuota()
 
 toy_data <- dat
 save( toy_data, file = file_tdata  )
-save( toy_data, file = "~/GameRank/data/toy_data.Rdata"  )
+save( toy_data, file = "~/GameRank/data/toy_data.rda"  )
 
 # https://docs.google.com/presentation/d/1bc5ktbty1BOLV6J_Z4P-_WlW6aaQ1xE7hHGKq0pYPPA/edit#slide=id.g6ffbf95dbd_0_111
 # https://www.nature.com/articles/s41586-021-03430-5
