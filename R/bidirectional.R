@@ -101,8 +101,10 @@ bidirectional <- function( dat, resp, vars,
         df_evl <- bind_rows( df_evl, purrr::pluck( best_vars,'df_evl') %>% mutate( k = k ) )
         agg_evl <- bind_rows( agg_evl, purrr::pluck( best_vars, 'agg_evl' ) %>% mutate( k = k ) )
         bs <- purrr::pluck( best_vars, 'best_selections' )
-        Y <- purrr::pluck( bs,1L )
-        Yf <- union( Y, Yf )
+        if( 0 < length( bs ) ) {
+          Y <- purrr::pluck( bs,1L )
+          Yf <- union( Y, Yf )  
+        }
       }
     }
     # Backward step
@@ -112,8 +114,10 @@ bidirectional <- function( dat, resp, vars,
         df_evl <- bind_rows( df_evl, purrr::pluck( best_vars,'df_evl') %>% mutate( k = k ) )
         agg_evl <- bind_rows( agg_evl, purrr::pluck( best_vars, 'agg_evl' ) %>% mutate( k = k ) )
         bs <- purrr::pluck( best_vars, 'best_selections' )
-        Y <- purrr::pluck( bs,1L )
-        Yb <- intersect( Yb, Y ) # Y is Yb removed by one variable
+        if( 0 < length(bs) ) {
+          Y <- purrr::pluck( bs,1L )
+          Yb <- intersect( Yb, Y ) # Y is Yb removed by one variable
+        }
       }
     }
     k <- k + 1

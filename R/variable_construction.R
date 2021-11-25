@@ -256,7 +256,7 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
 
 # Mixture models ----
 
-eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_prop_converged = 0.99, epsi = 1E-3 ) {
+eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 24 ) {
   ks <- 1:n_comp
   idx <- which(!is.na(dat[,var]))
 
@@ -278,14 +278,14 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_prop_converged = 0
       midx <- midx + 1
     }
   }
-
+  
   agg <- tab %>% 
+    filter( converged ) %>%
     group_by(k) %>% 
-    summarise( min_aic = min(aic), sum_converged = sum( converged ) ) %>%
-    mutate( p_converged = sum_converged / m_fits )
+    summarise( min_aic = min(aic), sum_converged = sum( converged ) )
 
   best <- agg %>%
-    filter( min_prop_converged <= p_converged ) %>%
+    filter( min_fits_converged <= sum_converged ) %>%
     filter( min(min_aic) == min_aic ) %>%
     filter( min(k) == k )
   kmin <- best %>% pull( k )
@@ -295,7 +295,7 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_prop_converged = 0
   momin <- models[[ best_idx[1] ]]
 
   ret <- list( var = var, 
-               n_comp = n_comp, m_fits = m_fits, min_prop_converged = min_prop_converged,
+               n_comp = n_comp, m_fits = m_fits, min_fits_converged = min_fits_converged,
                aic_tab = tab, aic_aggregate = agg, min_k = kmin, best_model = momin, cut_points = NULL )
   
   if( 1 < kmin ) {
@@ -359,21 +359,21 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_prop_converged = 0
 #' \item{transformations}{A list of check_aic results for each variable.}
 #' } 
 #' @export
-check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_prop_converged = 0.99 ) {
+check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_fits_converged = 24 ) {
 
   ret <- list()
   # Check response, if numeric, if it is bimodal
   mod <- dat
   if( ! is.null(resp) && is.numeric( dat[[resp]] ) ) {
     cat( sprintf( "Processing response %s \n", resp ))
-    evl <- eval_aics( dat, resp, n_comp = n_comp, m_fits = m_fits, min_prop_converged = min_prop_converged )
+    evl <- eval_aics( dat, resp, n_comp = n_comp, m_fits = m_fits, min_fits_converged = min_fits_converged )
     if( !is.null(evl$cut_points) ) {
       nvar <- sprintf( "%s_resp_grp", resp )
       mod[[nvar]] <- as.character( cut( mod[[resp]], 
                                         breaks = evl$cut_points, 
                                         labels = sprintf( "resp_group[%d]", 1:(length(evl$cut_points)-1) ), 
                                         include.lowest = TRUE ) )
-      evl$nvar <- nvar
+      evl$transformed_var <- nvar
     }
     ret[[resp]] <- evl
   }
@@ -382,14 +382,14 @@ check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_p
   for( var in vars ) {
     if( is.numeric(dat[[var]]) ) {
       cat( sprintf( "Processing %s \n", var ))
-      evl <- eval_aics( dat, var, n_comp = n_comp, m_fits = m_fits, epsi = epsi )
+      evl <- eval_aics( dat, var, n_comp = n_comp, m_fits = m_fits, min_fits_converged = min_fits_converged )
       if( !is.null(evl$cut_points) ) {
         nvar <- sprintf( "%s_grp", var )
         mod[[nvar]] <- as.character( cut( mod[[var]], 
                                           breaks = evl$cut_points, 
                                           labels = sprintf( "group[%d]", 1:(length(evl$cut_points)-1) ), 
                                           include.lowest = TRUE ) )
-        evl$nvar <- nvar
+        evl$transformed_var <- nvar
       }
       ret[[var]] <- evl
     }
