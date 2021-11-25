@@ -1,5 +1,5 @@
 
-
+#' @importFrom rlang .data
 
 #' @rdname utils_influential
 #' @export
@@ -63,7 +63,7 @@ influential_observations <- function( dat, resp, selection,
                     y0 <- fn_predict( m0, dat[i,], ... ) # predict( m0, newdata = dat[i,], type = "lp" )
                     yy <- fn_predict( mm, dat[i,], ... ) # predict( mm, newdata = dat[i,], type = "lp" )
                     
-                    res <- tibble( row = i, ei = ee, deval = e0 - ei, yi = yy, dffit = y0 - yi ) %>%
+                    res <- tibble( row = i, ei = ee, deval = e0 - ee, yi = yy, dffit = y0 - yy ) %>%
                       bind_cols( as_tibble( matrix( c0 - cc, nrow=1 ) ) %>% stats::setNames( sprintf( "%s_dfbeta", names(c0)) ) )
                   })
   
@@ -78,6 +78,6 @@ influential_observations <- function( dat, resp, selection,
     ret$is_influential_co[ idx ] <- sprintf( "%s %s", ret$is_influential_co[ idx ], co )
   }
   
-  ret <- bind_rows(res, ret) %>% mutate( is_influential_co = trimws( is_influential_co ))
+  ret <- bind_rows(res, ret) %>% mutate( is_influential_co = trimws( .data$is_influential_co ))
   return( ret )
 }

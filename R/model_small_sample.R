@@ -3,6 +3,7 @@
 #
 # 
 
+#' @importFrom rlang .env
 
 #' @title Small Sample Variable Selection helper functions
 #' 
@@ -90,8 +91,8 @@ ff_fn_eval_cross_validation <- function( arg_fn_train = NULL, arg_fn_eval = NULL
       #
       
       # 1) Estimate Tn
-      mod <- fn_train( dat, resp, selection, ... )
-      Tn <- fn_eval( dat, resp, selection, mod, ... )
+      mod <- .env$fn_train( dat, resp, selection, ... )
+      Tn <- .env$fn_eval( dat, resp, selection, mod, ... )
       
       # 2) Estimate bias theta of Tn via jackknife / cross-validation
       # Perform n_fold Cross-Validation here. Note: to avoid over-fitting to the
@@ -99,13 +100,13 @@ ff_fn_eval_cross_validation <- function( arg_fn_train = NULL, arg_fn_eval = NULL
       # sampled. This may seem less robust but prevents variable selection to favor
       # a specific fixed fold configuration.
       n <- nrow(dat)
-      ds <- rep_len( x = 1:n_folds, length.out = n )
+      ds <- rep_len( x = 1:.env$n_folds, length.out = n )
       ds <- ds[ order( stats::runif( length(ds) ) ) ]
       theta <- rep_len( NA, length.out = length(ds) )
-      for( k in 1:n_folds ) {
+      for( k in 1:.env$n_folds ) {
         idx <- which( k == ds )
-        cvmod <- fn_train( dat[-idx,], resp, selection, ... )
-        cvevl <- fn_eval(  dat[ idx,], resp, selection, cvmod, ...  )
+        cvmod <- .env$fn_train( dat[-idx,], resp, selection, ... )
+        cvevl <- .env$fn_eval(  dat[ idx,], resp, selection, cvmod, ...  )
         theta[idx] <- cvevl
       }
       # 3) Adjust estimate Tn by bias theta
@@ -149,14 +150,14 @@ ff_fn_eval_bootstrap <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n
       didx <- 1:nrow(dat)
       the_statistic <- function( dd,ii ) {
         # browser()
-        mm  <- fn_train( dd[ii,], resp, selection, ... )
-        vv  <- fn_eval( dd, resp, selection, mm, ... )
-        vvb <- fn_eval( dd[ii,], resp, selection, mm, ... )
+        mm  <- .env$fn_train( dd[ii,], resp, selection, ... )
+        vv  <- .env$fn_eval( dd, resp, selection, mm, ... )
+        vvb <- .env$fn_eval( dd[ii,], resp, selection, mm, ... )
         jj  <- setdiff( didx, ii )
         vvo <- NA
         err0 <- NA
         if( 0 < length(jj) ) {
-          vvo <- fn_eval( dd[jj,], resp, selection, mm, ... )  
+          vvo <- .env$fn_eval( dd[jj,], resp, selection, mm, ... )  
           err0 <- vvo / length(jj)
         }
         
@@ -171,7 +172,7 @@ ff_fn_eval_bootstrap <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n
       
       bt <- boot::boot( data = dat,
                         statistic = the_statistic, 
-                        R = n_boots,
+                        R = .env$n_boots,
                         sim = "ordinary",
                         stype = "i" )
       # bt_ci <- lapply( 1:length(bt$t0), function(i) as.data.frame( boot::norm.ci( bt, index = as.integer(i) ) ) ) 

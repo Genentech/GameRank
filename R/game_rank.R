@@ -8,6 +8,7 @@
 #
 
 #' @import numDeriv
+#' @importFrom rlang .data
 
 #' @title GameRank algorithm
 #' 
@@ -276,8 +277,8 @@ game_rank <- function( dat,
   vsel_result <- tibble( variable = names( oo$par ),
                          vs = as.numeric( oo$par),
                          vs.var = diag( vv ) ) %>%
-    mutate( selected = (vs > 0) ) %>%
-    arrange( desc( vs ), vs.var )
+    mutate( selected = (.data$vs > 0) ) %>%
+    arrange( desc( .data$vs ), .data$vs.var )
   
   var_selection <- vsel_result$variable[1:m]
   

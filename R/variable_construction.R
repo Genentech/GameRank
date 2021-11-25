@@ -1,6 +1,7 @@
 #
 # Utils and Analysis functions for variable construction
 #
+#' @importFrom rlang .data
 
 # Simple transformations ----
 #' @title Function to evaluate and add simple variable tranformations
@@ -218,8 +219,8 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
       fu_opt <- local( {
         function( px ) {
           beta <- px[1]; lambda <- px[2]
-          dd <- dd %>% mutate( pi = ll_binomial( x, beta, lambda ), pi2 = 2 * pi^y * (1-pi)^(2-y) )
-          re <- -sum( dd %>% pull( pi2 ) %>% log )
+          dd <- dd %>% mutate( pi = ll_binomial( .data$x, beta, lambda ), pi2 = 2 * pi^.data$y * (1-pi)^(2-.data$y) )
+          re <- -sum( dd %>% pull( .data$pi2 ) %>% log )
           re
         }
       } )
@@ -290,18 +291,18 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
   }
   
   agg <- tab %>% 
-    filter( converged ) %>%
+    filter( .data$converged ) %>%
     group_by(k) %>% 
-    summarise( min_aic = min(aic), sum_converged = sum( converged ) )
+    summarise( min_aic = min(.data$aic), sum_converged = sum( .data$converged ) )
 
   best <- agg %>%
-    filter( min_fits_converged <= sum_converged ) %>%
-    filter( min(min_aic) == min_aic ) %>%
-    filter( min(k) == k )
-  kmin <- best %>% pull( k )
-  maic <- best %>% pull( min_aic )
+    filter( .data$min_fits_converged <= .data$sum_converged ) %>%
+    filter( min(.data$min_aic) == .data$min_aic ) %>%
+    filter( min(.data$k) == .data$k )
+  kmin <- best %>% pull( .data$k )
+  maic <- best %>% pull( .data$min_aic )
   
-  best_idx <- tab %>% filter( k == kmin & maic == aic & converged ) %>% pull( midx )
+  best_idx <- tab %>% filter( .data$k == .data$kmin & .data$maic == .data$aic & .data$converged ) %>% pull( .data$midx )
   momin <- models[[ best_idx[1] ]]
 
   ret <- list( var = var, 

@@ -3,7 +3,8 @@
 #
 
 #' @import tibble dplyr formula.tools
-
+#' @importFrom rlang .data
+#' 
 #' @title Bidirectional search algorithm
 #' 
 #' @description Performs forward and backward selection steps per iteration to converge to
@@ -104,7 +105,7 @@ bidirectional <- function( dat, resp, vars,
   while( !setequal( Yb, intersect(Yb,Yf) ) & (length(intersect( Yf, Yb )) <= m) ) {
     # Forward step
     if( 0 < length(setdiff(Yb,Yf))) {
-      best_vars <- eval_add_vars( ds, dat, resp, lst_vars, fn_train, fn_eval, maximize, Yf, setdiff( Yb, Yf ), ...  )
+      best_vars <- eval_add_vars( ds, dat, resp, vars, fn_train, fn_eval, maximize, Yf, setdiff( Yb, Yf ), ...  )
       if(!is.null(best_vars)) {
         df_evl <- bind_rows( df_evl, purrr::pluck( best_vars,'df_evl') %>% mutate( k = k ) )
         agg_evl <- bind_rows( agg_evl, purrr::pluck( best_vars, 'agg_evl' ) %>% mutate( k = k ) )
@@ -117,7 +118,7 @@ bidirectional <- function( dat, resp, vars,
     }
     # Backward step
     if( 0 < length(setdiff(Yb,Yf))) {
-      best_vars <- eval_remove_vars( ds, dat, resp, lst_vars, fn_train, fn_eval, maximize, Yb, setdiff( Yb, Yf ), ...  )
+      best_vars <- eval_remove_vars( ds, dat, resp, vars, fn_train, fn_eval, maximize, Yb, setdiff( Yb, Yf ), ...  )
       if(!is.null(best_vars)) {
         df_evl <- bind_rows( df_evl, purrr::pluck( best_vars,'df_evl') %>% mutate( k = k ) )
         agg_evl <- bind_rows( agg_evl, purrr::pluck( best_vars, 'agg_evl' ) %>% mutate( k = k ) )

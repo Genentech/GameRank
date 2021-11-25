@@ -99,7 +99,7 @@ forward <- function(  dat, resp, vars,
     queue[[1]] <- NULL
     
     if( length(Y) <= m ) {
-      best_vars <- eval_add_vars( ds, dat, resp, lst_vars, fn_train, fn_eval, maximize, Y, setdiff( vars, Y ), ...  )
+      best_vars <- eval_add_vars( ds, dat, resp, vars, fn_train, fn_eval, maximize, Y, setdiff( vars, Y ), ...  )
       if( !is.null(best_vars) ) {
         df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
         agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )

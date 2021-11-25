@@ -1,5 +1,6 @@
 
 #' @import ggplot2 ggExtra
+#' @importFrom rlang .data
 
 # Plot Normal Calibration
 tbl_predictions_normal <- function( dat, resp, selection, mod, ... ) {
@@ -16,8 +17,7 @@ tbl_predictions_normal <- function( dat, resp, selection, mod, ... ) {
 
 gplot_predictions_normal <- function( dat, resp, selection, mod, ... ) {
   res <- tbl_predictions_normal(  dat, resp, selection, mod, ... )
-  ret <- res %>%
-    ggplot( aes( x=prd, y=obs ) ) +
+  ret <- ggplot( data = res, aes( x=.data$prd, y=.data$obs ) ) +
     geom_point() +
     geom_smooth( method = "loess", se = TRUE, color = "blue" ) +
     # theme_classic() +

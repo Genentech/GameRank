@@ -3,6 +3,7 @@
 #
 
 #' @import flexmix rms
+#' @importFrom rlang .data
 
 #' @title Functions for Model fitting and evaluation
 #' 
@@ -63,8 +64,8 @@ fn_eval_normal <- function( dat, resp, selection, mod, ... ) {
   ret <- tryCatch({
     tibble( y = dat %>% pull( resp ), 
             yhat = as.numeric( predict(mod, newdata=dat, type="response" ) ) ) %>%
-      mutate( sq = (yhat-y)^2 ) %>%
-      pull( sq ) %>%
+      mutate( sq = (.data$yhat - .data$y)^2 ) %>%
+      pull( .data$sq ) %>%
       mean
   }, error = function(e) NA )
   return( ret )
@@ -90,8 +91,8 @@ fn_eval_binomial <- function( dat, resp, selection, mod, ... ) {
   ret <- tryCatch({
     tibble( y = dat %>% pull( resp ), 
             yhat = as.numeric( predict(mod, newdata=dat, type="response" ) ) ) %>%
-      mutate( di = abs( y-yhat ) ) %>% 
-      pull( di ) %>%
+      mutate( di = abs( .data$y - .data$yhat ) ) %>% 
+      pull( .data$di ) %>%
       mean 
   }, error = function( e ) NA )
   return( ret )  
@@ -171,8 +172,8 @@ fn_eval_lda <- function( dat, resp, selection, mod, lda_pred_type = "plug-in", .
   ret <- tryCatch({
     tibble( y = dat %>% pull( resp ) %>% as.character, 
             yhat = as.character( predict(mod, newdata=dat, method = lda_pred_type, ... )$class ) ) %>%
-      mutate( di = abs( y == yhat ) ) %>% 
-      pull( di ) %>%
+      mutate( di = abs( .data$y == .data$yhat ) ) %>% 
+      pull( .data$di ) %>%
       mean 
   }, error = function( e ) NA )
   return( ret )
@@ -198,8 +199,8 @@ fn_eval_qda <- function( dat, resp, selection, mod, qda_pred_type = "plug-in", .
   ret <- tryCatch({
     tibble( y = dat %>% pull( resp ) %>% as.character, 
             yhat = as.character( predict(mod, newdata=dat, method = qda_pred_type, ... )$class ) ) %>%
-      mutate( di = abs( y == yhat ) ) %>% 
-      pull( di ) %>%
+      mutate( di = abs( .data$y == .data$yhat ) ) %>% 
+      pull( .data$di ) %>%
       mean 
   }, error = function( e ) NA )
   return( ret )

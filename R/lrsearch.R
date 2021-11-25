@@ -129,7 +129,7 @@ lrsearch <- function(  dat, resp, vars,
   while( (k <= kmax) & (m!=length(Y)) & (d != 0) ) {
     # L forward steps
     while( (k <= kmax) & (m!=length(Y)) & (d < 0) ) {
-      best_vars <- eval_add_vars( ds, dat, resp, lst_vars, fn_train, fn_eval, maximize, Y, setdiff( vars, Y ), ...  )
+      best_vars <- eval_add_vars( ds, dat, resp, vars, fn_train, fn_eval, maximize, Y, setdiff( vars, Y ), ...  )
       if(!is.null(best_vars))  {
         df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
         agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
@@ -143,7 +143,7 @@ lrsearch <- function(  dat, resp, vars,
     
     # R backward steps
     while( (k <= kmax) & (m!=length(Y)) & (0 < d) ) {
-      best_vars <- eval_remove_vars( ds, dat, resp, lst_vars, fn_train, fn_eval, maximize, Y, Y, ...  )
+      best_vars <- eval_remove_vars( ds, dat, resp, vars, fn_train, fn_eval, maximize, Y, Y, ...  )
       if(!is.null(best_vars)) {
         df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
         agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )

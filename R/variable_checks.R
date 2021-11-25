@@ -1,5 +1,6 @@
 
 #' @import survival entropy
+#' @importFrom rlang .data
 
 #' @title Utility function that performs high-level checks for a variable in a dataset
 #' 
@@ -126,7 +127,7 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
       rot.nmin <- length( which( x < q1 - c_out * iqr ) )
       rot.nmax <- length( which( x > q3 + c_out * iqr ) )
       rot.p <- (rot.nmin+rot.nmax) / n * 100.0
-      rng_sd <- abs( max(x) - min(x) ) / sd( x )
+      rng_sd <- abs( max(x) - min(x) ) / stats::sd( x )
       # tst <- outliers::dixon.test( x=x, type=22 )
       # tst_stat <- tst$statistic
       # tst_pval <- tst$p.value
@@ -187,7 +188,7 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
       rot.nmin <- length( which( x < q1 - c_out * iqr ) )
       rot.nmax <- length( which( x > q3 + c_out * iqr ) )
       rot.p <- (rot.nmin+rot.nmax) / n * 100.0
-      rng_sd <- abs( max(x) - min(x) ) / sd( x )
+      rng_sd <- abs( max(x) - min(x) ) / stats::sd( x )
       # tst <- outliers::dixon.test( x=x, type=22 )
       # tst_stat <- tst$statistic
       # tst_pval <- tst$p.value
@@ -276,8 +277,8 @@ check_variables <- function( dat, resp, vars, min_cases = 25L, c_out = 1.5 ) {
   
   ret <- Reduce( bind_rows, ret, NULL )
   ret <- ret %>% 
-    mutate( check_missing = factor( check_missing, levels = c("Drop","Bad","Try","Good","Perfect") ), 
-            check_entropy = factor( check_entropy, levels = c("Entropy too low", "Entropy ok") ),
-            type = factor( ifelse( is.na(type), "Entropy not done", type ), levels = c("Entropy not done","real", "integer", "categorical", "binary" ) ) )
+    mutate( check_missing = factor( .data$check_missing, levels = c("Drop","Bad","Try","Good","Perfect") ), 
+            check_entropy = factor( .data$check_entropy, levels = c("Entropy too low", "Entropy ok") ),
+            type = factor( ifelse( is.na(.data$type), "Entropy not done", .data$type ), levels = c("Entropy not done","real", "integer", "categorical", "binary" ) ) )
   return( ret )  
 }

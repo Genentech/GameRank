@@ -1,5 +1,6 @@
 
 #' @import ggplot2 survival survminer ggExtra
+#' @importFrom rlang .data
 
 # Plot Survival Calibration
 tbl_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
@@ -29,8 +30,7 @@ gplot_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
   co <- stats::cor.test( x = res$prd, y = res$obs, method = "pearson" )
   epsi <- 0.0001
   msg <- sprintf( "Pearson Correlation %1.4f (%1.4f, %1.4f; %s)", co$estimate, co$conf.int[1], co$conf.int[2], ifelse( epsi < co$p.value, sprintf("p=%1.4f",co$p.value), "p<.0001" ) )
-  ret <- res %>%
-    ggplot( aes( x=prd, y=obs ) ) +
+  ret <- ggplot( data = res, aes( x=.data$prd, y=.data$obs ) ) +
     geom_abline( slope = 1, intercept = 0, color = "gray" ) +
     geom_point() +
     geom_smooth( method = "loess", se = TRUE, color = "blue" ) +
@@ -46,7 +46,7 @@ gplot_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
 gplot_km_cox <- function( dat, resp, selection, mod, u, cutpoint = NULL, ... ) {
   plt <- dat
   plt$prd <- as.numeric( 1 - pec::predictSurvProb( mod, newdata = dat, times = u, ... ) )
-  if( is.null(cutpoint) ) cutpoint <- median(plt$prd, na.rm=TRUE)
+  if( is.null(cutpoint) ) cutpoint <- stats::median(plt$prd, na.rm=TRUE)
   plt$cut <- factor( cut( plt$prd, breaks = c(-Inf,cutpoint,+Inf), labels = c("Low","High"), include.lowest = TRUE  ) )
   fo <- stats::formula( sprintf( "%s ~ cut", resp ) )
   fit <- survminer::surv_fit( fo, plt )

@@ -2,6 +2,7 @@
 # Utility evaluation
 #
 #' @import labelled dplyr
+#' @importFrom rlang .data
 
 
 #' @title Split evaluation function
@@ -94,15 +95,15 @@ eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ..., var_s
 agg_evals <- function( df_evl, var, maximize ) {
   agg <- df_evl %>%
     group_by( across( c("ch_selection",  as.character( var ), "selection") ) ) %>%
-    summarise( m = unique(m),
-               mean_train = mean( eval_train, na.rm=TRUE ),
-               mean_validation = mean( eval_validation, na.rm=TRUE ),
-               mean_bias = mean( bias, na.rm=TRUE ) ) %>%
+    summarise( m = unique(.data$m),
+               mean_train = mean( .data$eval_train, na.rm=TRUE ),
+               mean_validation = mean( .data$eval_validation, na.rm=TRUE ),
+               mean_bias = mean( .data$bias, na.rm=TRUE ) ) %>%
     ungroup
   if( maximize ) {
-    agg <- agg %>% dplyr::mutate( opt = ( mean_validation >= max(mean_validation, na.rm=TRUE) ) )
+    agg <- agg %>% dplyr::mutate( opt = ( .data$mean_validation >= max(.data$mean_validation, na.rm=TRUE) ) )
   } else if( !maximize ) {
-    agg <- agg %>% dplyr::mutate( opt = ( mean_validation <= min(mean_validation, na.rm=TRUE) ) )
+    agg <- agg %>% dplyr::mutate( opt = ( .data$mean_validation <= min(.data$mean_validation, na.rm=TRUE) ) )
   } else {
     agg <- agg %>% dplyr::mutate( opt = NA )
   }
@@ -116,7 +117,7 @@ agg_evals <- function( df_evl, var, maximize ) {
 #' 
 #' @return selection column for rows flagged as opt (=TRUE)
 best_selection <- function( agg ) {
-  sel <- agg %>% filter( !is.na(opt) & (TRUE==opt) ) %>% pull( selection )
+  sel <- agg %>% filter( !is.na(.data$opt) & (TRUE==.data$opt) ) %>% pull( .data$selection )
   return( sel )
 }
 
