@@ -24,6 +24,12 @@
 #' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
 #' 
 #' @return Matrix with nrow(dat) rows and m columns comprising 1s and 2s to indicate if sample is part of training or validation split.
+#' @examples 
+#' resp <- "resp"
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' 
+#' ds <- build_splits( 3L, toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc )
+#' ds
 #' 
 #' @export
 build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, ... ) {

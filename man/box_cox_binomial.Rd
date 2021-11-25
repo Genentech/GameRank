@@ -25,3 +25,8 @@ list with two elements
 \description{
 Determines Box-Cox transformed variables for a binary outcome modelling.
 }
+\examples{
+res <- box_cox_binomial( toy_data, "resp", c("the_squared","the_cubed","rnd01"), lambda = seq( -2, +2, 0.1 ) )
+res$transforms \%>\% map_dfr( function(ee) { ee[["boxcox_result"]] <- NULL; return( ee )}) 
+res$data[,purrr::map_chr( res$transforms, "new_var")]
+}

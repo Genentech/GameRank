@@ -31,7 +31,7 @@
 #'  \item{eval_validation}{result of model evaluation on validation (this is used for optimization)}
 #'  \item{bias}{square root of squared difference between training and validation values}
 #' }
-#' @export
+#' 
 eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ..., var_sep = "," ) 
 {
   ret <- NULL
@@ -90,7 +90,7 @@ eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ..., var_s
 #' \item{mean_validation}{Averaged eval_validation results, ignoring NAs}
 #' \item{mean_bias}{Averaged bias results, ignoring NAs}
 #' }
-#' @export
+#'
 agg_evals <- function( df_evl, var, maximize ) {
   agg <- df_evl %>%
     group_by( across( c("ch_selection",  as.character( var ), "selection") ) ) %>%
@@ -142,7 +142,6 @@ best_selection <- function( agg ) {
 #' \item{best_selections}{List of selections that were identified best on validation split.}
 #' }
 #' 
-#' @export
 eval_add_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, selection, add_vars = NULL, ..., var_sep = ","  ) {
   if( is.null(add_vars) ) add_vars <- base::setdiff( vars, selection )
   if( 0 == base::length(add_vars) ) return( NULL )
@@ -176,7 +175,6 @@ eval_add_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, sel
 #' \item{best_selections}{List of selections that were identified best on validation split.}
 #' }
 #' 
-#' @export
 eval_remove_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, selection, remove_vars = NULL, ..., var_sep = ","  ) {
   if( is.null(remove_vars) ) remove_vars <- selection
   if( 0 == length(remove_vars) ) return( NULL )

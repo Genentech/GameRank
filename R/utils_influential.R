@@ -27,6 +27,17 @@ fn_predict_glm <- function( mod, dat, ... ) predict( mod, newdata = dat, type = 
 #' @return Returns a tibble with columns for observation (row), evaluation without observation i (ei), difference to full dataset, difference 
 #' between prediction from full model vs model without observation i (y0, yi and deval), as well as differences between parameters (_dfbeta).
 #' 
+#' @examples 
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' resp <- "resp"
+#' gmr <- game_rank( dat = toy_data, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc, m = 6L, dsi = c(1L,2L), maximize = TRUE, 
+#'                   team_size = 3L, rounds = 10L, min_matches_per_var = 5L )
+#' gmr$variable_ranking %>% as.data.frame
+#' gmr_fsel <- gmr$game_rank_selection
+#' 
+#' ifo <- influential_observations( toy_data, resp, gmr_fsel, fn_train_binomial, fn_eval_binomial_auroc, fn_infl_coefficients, fn_predict_glm )
+#' ifo 
+#' 
 #' @name utils_influential
 #' @export
 influential_observations <- function( dat, resp, selection, 

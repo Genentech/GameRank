@@ -13,6 +13,7 @@
 \alias{render_model_calibration_normal}
 \alias{render_model_calibration_binomial}
 \alias{render_model_calibration_cox}
+\alias{render_influence_summary}
 \title{Render a standard template reports for a given objects.}
 \usage{
 render_std_template(
@@ -68,6 +69,8 @@ render_model_calibration_cox(
   output_dir = NULL,
   output_file = NULL
 )
+
+render_influence_summary(tinf, output_dir = NULL, output_file = NULL)
 }
 \arguments{
 \item{template_name}{File name of the standard template}
@@ -89,4 +92,16 @@ render_... functions don't have return values. They generated the required outpu
 Render a standard template reports for a given objects.
 
 Render a standard template report for a given object. (Internal function)
+}
+\examples{
+
+vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+resp <- "resp"
+gmr <- game_rank( dat = toy_data, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc, m = 6L, dsi = c(1L,2L), maximize = TRUE, 
+                  team_size = 3L, rounds = 10L, min_matches_per_var = 5L )
+gmr$variable_ranking \%>\% as.data.frame
+gmr_fsel <- gmr$game_rank_selection
+  
+\dontrun{  render_game_rank_summary( gmr, getwd() ) }
+
 }

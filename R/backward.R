@@ -48,16 +48,16 @@
 #'  \item{results}{Dataset with one record per train:validation evaluation}
 #'  \item{agg_results}{Dataset with averaged performance over splits}
 #' }
+#' @name backward
+NULL
+
+#' @rdname backward
 #' @examples
 #' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
 #' resp <- "resp"
 #' res <- backward( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, 1L, TRUE )
 #' res$variable_selections
 #' res$agg_results %>% filter( opt ) %>% arrange( desc(mean_validation) )
-#' @name backward
-NULL
-
-#' @rdname backward
 #' @export
 backward <- function( dat, resp, vars, 
                       fn_train = fn_train_binomial,

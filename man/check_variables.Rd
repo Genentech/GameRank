@@ -37,3 +37,16 @@ A tibble with entries
 \description{
 Applies check_variable to each response and each variable in vars, and returns a merged dataset.
 }
+\examples{
+library( ggplot2 )
+resp <- "resp"
+vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+
+vck <- check_variables( toy_data, resp, vars )
+vck \%>\% summary
+vck \%>\% filter( !is_response ) \%>\% arrange( desc(entropy) )
+
+vck \%>\% 
+  ggplot(aes(x=entropy, y=mutual_information) ) +
+  geom_point()
+}

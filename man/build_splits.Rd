@@ -34,3 +34,11 @@ Therefore this function first separates the complete and incomplete cases, and t
 randomly samples and distributes them into training and validation splits. This ensures that
 both splits include 2/3rds and 1/3rd complete cases each.
 }
+\examples{
+resp <- "resp"
+vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+
+ds <- build_splits( 3L, toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc )
+ds
+
+}

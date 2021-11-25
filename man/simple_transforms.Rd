@@ -35,3 +35,10 @@ This function adds some simple transformations, as described in \link{following 
 to a dataset for a set of given variables. However, variables are only added if they improve Normality as measured by an
 increase in Shapiro-Wilk W statistic.
 }
+\examples{
+vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+smp <- simple_transforms( toy_data, vars = vars )
+tfs <- smp$transformations \%>\% Reduce( bind_rows, ., NULL )
+tfs \%>\% group_by( variable ) \%>\% filter( max(W)==W )
+tfs \%>\% pull( transform ) \%>\% table 
+}

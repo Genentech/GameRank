@@ -21,6 +21,12 @@
 #' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
 #' \item{transformations}{A list of lists with elements for variable, transformed variable, a formula term, Shapiro-Wilk W statistic, and the name of the transform.}
 #' } 
+#' @examples 
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' smp <- simple_transforms( toy_data, vars = vars )
+#' tfs <- smp$transformations %>% Reduce( bind_rows, ., NULL )
+#' tfs %>% group_by( variable ) %>% filter( max(W)==W )
+#' tfs %>% pull( transform ) %>% table 
 #' @export
 simple_transforms <- function( dat, vars, 
                                transforms = c("sqrt","cubert","log", "zscore" ),
@@ -186,6 +192,10 @@ box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
 #' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
 #' \item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the formula terms.}
 #' } 
+#' @examples 
+#' res <- box_cox_binomial( toy_data, "resp", c("the_squared","the_cubed","rnd01"), lambda = seq( -2, +2, 0.1 ) )
+#' res$transforms %>% map_dfr( function(ee) { ee[["boxcox_result"]] <- NULL; return( ee )}) 
+#' res$data[,purrr::map_chr( res$transforms, "new_var")]
 #' @export
 box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   stopifnot( is.logical( dat[[resp]] )  )
@@ -358,6 +368,23 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
 #' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
 #' \item{transformations}{A list of check_aic results for each variable.}
 #' } 
+#' @examples 
+#' library( ggplot2 )
+#' library( flexmix )
+#' resp <- "resp"
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' 
+#' toy_data %>%
+#'   ggplot( aes( x=the_multi, y=..density.. ) ) +
+#'   geom_histogram( bins = 100, alpha=0.5 ) +
+#'   geom_density( bw = "ucv" ) 
+#' 
+#' mumo <- check_multimodality( dat = toy_data, resp = resp, vars = c("the_multi","rnd01","rnd02"),n_comp = 3, m_fits = 25,  min_fits_converged = 20 )
+#' 
+#' mumo$transforms$the_multi$aic_aggregate
+#' mumo$transforms$the_multi$best_model
+#' parameters(mumo$transforms$the_multi$best_model)
+#' prior(mumo$transforms$the_multi$best_model)
 #' @export
 check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_fits_converged = 24 ) {
 

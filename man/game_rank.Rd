@@ -109,3 +109,10 @@ The Game Rank algorithm runs as follows:
 3. Return the best selection. \cr
 }
 }
+\examples{
+vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+resp <- "resp"
+res <- game_rank( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, c(1L,2L), TRUE, 3L, 7L, 3L )
+res$game_rank_selection
+res$variable_ranking
+}

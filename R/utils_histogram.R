@@ -39,6 +39,12 @@ nbins_ucv <-  function( x ) {
 #' 
 #' @return A numeric vector of cut-points points that will define an optimal histogram density estimator for the sample.
 #' 
+#' @examples 
+#' library( ggplot2 )
+#' xv <- rnorm( 100 )
+#' bk <- bins_ucv( xv )
+#' # Plot histogram with properly selected smoothed bin widths
+#' ggplot( aes( x=xv, y=..density.. ), data = data.frame( xv = xv ) ) + geom_histogram( breaks = bk )
 #' @export
 bins_ucv <-  function( x ) {
   n <- length( x )

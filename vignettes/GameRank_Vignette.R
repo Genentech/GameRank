@@ -168,7 +168,6 @@ gplot_predictions_binomial( dat = df_sel, resp = resp, selection = bds_fsel, mod
 #' the model fit. GameRank provides a list flagging observations that, if they are removed, reduce or increase a parameter by more than 
 #' Q1 - 1.5 x IQR and Q3 + 1.5 x IQR of the distribution of difference to the reference model.
 #' 
-debugonce(influential_observations)
 ifo <- influential_observations( df_sel, resp, gmr_fsel, fn_train_binomial, fn_eval_binomial_auroc, fn_infl_coefficients, fn_predict_glm )
 ifo 
 ifo %>% filter( is_influential ) 

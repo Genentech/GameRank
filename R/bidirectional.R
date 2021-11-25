@@ -57,6 +57,12 @@
 NULL
 
 #' @rdname bidirectional
+#' @examples 
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' resp <- "resp"
+#' res <- bidirectional( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, 1L, TRUE )
+#' res$variable_selections
+#' res$agg_results %>% filter( opt ) %>% arrange( desc(mean_validation) )
 #' @export
 bidirectional <- function( dat, resp, vars, 
                            fn_train = fn_train_binomial,

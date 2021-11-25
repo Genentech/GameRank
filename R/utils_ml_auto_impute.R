@@ -15,6 +15,19 @@ psu <- Vectorize( function( x ) ifelse(  is.na(x), 1, 0 ) )
 #' 
 #' @return Formula object that includes dummy terms and transforms for variables with missing data.
 #' 
+#' @examples 
+#' 
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' resp <- "resp"
+#' df <- toy_data[,c(resp,vars[1:8])]
+#' df$the_cubed[ sample.int(nrow(df), 5) ] <- NA
+#' fo <- as.formula(df)
+#' rfo <- rewrite_formula( fo, df )
+#' rfo
+#' glm( rfo, "binomial", df )
+#' # saf(the_cubed) denotes the effect for the non-missing variables
+#' # psu(the_cubed) denotes the maximum-likelihood imputation value for the missing data
+#' 
 #' @export
 rewrite_formula <- local( {
   function( fo, dat ) {

@@ -201,7 +201,6 @@ Q1 - 1.5 x IQR and Q3 + 1.5 x IQR of the distribution of difference to the refer
 
 
 ```{r }
-debugonce(influential_observations)
 ifo <- influential_observations( df_sel, resp, gmr_fsel, fn_train_binomial, fn_eval_binomial_auroc, fn_infl_coefficients, fn_predict_glm )
 ifo 
 ifo %>% filter( is_influential ) 

@@ -24,11 +24,7 @@
 #' \item{rot.nmax}{Number of samples lower than Robust Outlier Test cut-off of Q3 + c_out * IQR.}
 #' \item{rot.p}{Percentage of outliers.}
 #' \item{rng_sd}{Ratio of sample range by sample standard deviation.}
-# \item{dixon.Q}{Dixons Q-statistics.}
-# \item{dixon.pval}{Dixons p-value that there is an outlier in the sample.}
 #' }
-#' 
-#' @export 
 check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = NULL ) {
   cat( sprintf( "Evaluating variable %s \n", var ) )
   ret <- list()
@@ -232,10 +228,20 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
 #' \item{rot.nmin}{Number of samples lower than Robust Outlier Test cut-off of Q1 - c_out x IQR.}
 #' \item{rot.nmax}{Number of samples lower than Robust Outlier Test cut-off of Q3 + c_out x IQR.}
 #' \item{rng_sd}{Ratio of sample range by sample standard deviation.}
-# \item{dixon.Q}{Dixons Q-statistics.}
-# \item{dixon.pval}{Dixons p-value that there is an outlier in the sample.}
 #' }
 #' 
+#' @examples 
+#' library( ggplot2 )
+#' resp <- "resp"
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' 
+#' vck <- check_variables( toy_data, resp, vars )
+#' vck %>% summary
+#' vck %>% filter( !is_response ) %>% arrange( desc(entropy) )
+#' 
+#' vck %>% 
+#'   ggplot(aes(x=entropy, y=mutual_information) ) +
+#'   geom_point()
 #' @export 
 check_variables <- function( dat, resp, vars, min_cases = 25L, c_out = 1.5 ) {
   

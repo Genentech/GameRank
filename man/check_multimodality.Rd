@@ -39,3 +39,21 @@ model selection using the Akaike Information Criterion (AIC) to determine the nu
 If this process indicates more than one componet, it determines cut-points between the individual 
 mixture distributions and generates a transformed categorical variable based on those.
 }
+\examples{
+library( ggplot2 )
+library( flexmix )
+resp <- "resp"
+vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+
+toy_data \%>\%
+  ggplot( aes( x=the_multi, y=..density.. ) ) +
+  geom_histogram( bins = 100, alpha=0.5 ) +
+  geom_density( bw = "ucv" ) 
+
+mumo <- check_multimodality( dat = toy_data, resp = resp, vars = c("the_multi","rnd01","rnd02"),n_comp = 3, m_fits = 25,  min_fits_converged = 20 )
+
+mumo$transforms$the_multi$aic_aggregate
+mumo$transforms$the_multi$best_model
+parameters(mumo$transforms$the_multi$best_model)
+prior(mumo$transforms$the_multi$best_model)
+}

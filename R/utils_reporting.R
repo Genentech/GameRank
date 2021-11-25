@@ -8,6 +8,17 @@
 #' 
 #' @return render_... functions don't have return values. They generated the required output documents.
 #' 
+#' @examples 
+#' 
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' resp <- "resp"
+#' gmr <- game_rank( dat = toy_data, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc, m = 6L, dsi = c(1L,2L), maximize = TRUE, 
+#'                   team_size = 3L, rounds = 10L, min_matches_per_var = 5L )
+#' gmr$variable_ranking %>% as.data.frame
+#' gmr_fsel <- gmr$game_rank_selection
+#'   
+#' \dontrun{  render_game_rank_summary( gmr, getwd() ) }
+#' 
 #' @name utils_reporting
 NULL
 
@@ -129,6 +140,8 @@ render_model_calibration_cox <- function( ds, dat, resp, selection, k, u,
                         output_file = output_file, envir = new.env() )
 }
 
+#' @rdname utils_reporting
+#' @export
 render_influence_summary <- function( tinf, output_dir = NULL, output_file = NULL ) {
   render_std_template(  template_name = "rmd_influence_summary.Rmd", 
                         output_dir = output_dir, 

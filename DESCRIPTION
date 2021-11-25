@@ -5,7 +5,7 @@ Authors@R: person("Henneges", "Carsten", email = "hennegc1@gene.com", role = c("
 Description: The GameRank package implements functions for feature selection to create
   predictive models. In addition, it provides methods for feature construction, ie. Box-Cox
   transformation and detection of multi-modal distributed features.
-Depends: R (>= 3.1.0),
+Depends: R,
   dplyr,
   tidyr,
   tibble,

@@ -65,6 +65,7 @@
 #'  \item{score_vector}{Gradient at optimal solution (score vector)}
 #'  \item{inv_hessian}{Inverse Hessian matrix at optimal solution. Can be used for Delta method.}
 #' }
+#' 
 #' @name game_rank
 NULL
 
@@ -102,6 +103,12 @@ build_match_matrix <- function( sel, team_size, min_matches_per_var ) {
 
 # GameRank ----
 #' @rdname game_rank
+#' @examples 
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' resp <- "resp"
+#' res <- game_rank( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, c(1L,2L), TRUE, 3L, 7L, 3L )
+#' res$game_rank_selection
+#' res$variable_ranking
 #' @export
 game_rank <- function( dat,
                        resp,
