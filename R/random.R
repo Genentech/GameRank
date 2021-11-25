@@ -26,7 +26,7 @@
 #' model formula.
 #' @param vars Character vector defining the list of variables for selection. 
 #' Those are concatenated by '+' 
-#' as the right hand side (rhs) of the modelling formula.
+#' as the right hand side (rhs) of the modeling formula.
 #' @param fn_train Function with signature function( dat, resp, selection, ... )
 #' that returns a model or NULL in any other case on the given data dat.
 #' @param fn_eval Function with signature function( dat, resp, selection, ... ) 
@@ -61,6 +61,14 @@
 #'  \item{results}{Dataset with one record per train:validation evaluation}
 #'  \item{agg_results}{Dataset with averaged performance over splits}
 #' }
+#' 
+#' @examples 
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' resp <- "resp"
+#' res <- random_selection( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, 1L, TRUE )
+#' res$variable_selections
+#' res$agg_results %>% filter( opt ) %>% arrange( desc(mean_validation) )
+#' 
 #' @name random
 NULL
 
@@ -90,12 +98,6 @@ build_sample_matrix <- function( vars, m, nevals ) {
 
 
 #' @rdname random
-#' @examples 
-#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
-#' resp <- "resp"
-#' res <- random( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, 1L, TRUE )
-#' res$variable_selections
-#' res$agg_results %>% filter( opt ) %>% arrange( desc(mean_validation) )
 #' @export
 random_selection <- function( dat,
                               resp,
