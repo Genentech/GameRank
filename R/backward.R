@@ -2,6 +2,8 @@
 # Sequential Backward Selection algorithm
 #
 
+#' @import tibble dplyr formula.tools
+
 #' @title Sequential Backward Selection algorithm
 #' 
 #' @description Starts with the full set of available features and removes the worst feature
@@ -46,6 +48,12 @@
 #'  \item{results}{Dataset with one record per train:validation evaluation}
 #'  \item{agg_results}{Dataset with averaged performance over splits}
 #' }
+#' @examples
+#' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
+#' resp <- "resp"
+#' res <- backward( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, 1L, TRUE )
+#' res$variable_selections
+#' res$agg_results %>% filter( opt ) %>% arrange( desc(mean_validation) )
 #' @name backward
 NULL
 
@@ -94,7 +102,7 @@ backward <- function( dat, resp, vars,
         agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
         
         bs <- best_vars[['best_selections']]
-        if( 0==length(bs) ) bs <- list( as.character( setdiff( Y, tail(Y,1) ) ) )
+        if( 0==length(bs) ) bs <- list( as.character( setdiff( Y, utils::tail(Y,1) ) ) )
         queue <- append( queue, bs )
         cat( sprintf("No of partitions %d in search queue \n", length( queue ) ) )
       }
@@ -142,7 +150,7 @@ backward.formula <- function( fo, dat,
                               ...  ) 
 {
   # Check inputs
-  stopifnot( is.formula( fo ) ) 
+  stopifnot( "formula"==class( fo ) ) 
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
   stopifnot( is.function(fn_train) )
   stopifnot( is.function(fn_eval) )

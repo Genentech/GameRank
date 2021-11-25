@@ -2,6 +2,8 @@
 # Plus-L, Minus-R Search
 #
 
+#' @import tibble dplyr formula.tools
+
 #' @title Plus-L, Minus-R search algorithm
 #' 
 #' @description Performs L forward and R backward selection steps per iteration until a
@@ -193,7 +195,7 @@ lrsearch.formula <- function( fo, dat,
                               ...  ) 
 {
   # Check inputs
-  stopifnot( is.formula( fo ) ) 
+  stopifnot( "formula"==class( fo ) ) 
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
   stopifnot( is.function(fn_train) )
   stopifnot( is.function(fn_eval) )

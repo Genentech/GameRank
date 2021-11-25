@@ -1,3 +1,6 @@
+
+#' @import ggplot2 survival survminer ggExtra
+
 # Plot Survival Calibration
 tbl_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
   stopifnot( !is.null(mod) )
@@ -5,7 +8,7 @@ tbl_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
     mf <- dat
     mf$prd <- as.numeric( 1 - pec::predictSurvProb( mod, newdata = dat, times = u, ... ) )
     mf$cll.prd <- log( -log(1-mf$prd) ) 
-    cal.cox <- coxph( formula( sprintf( "%s ~ rms::rcs(cll.prd,3)", resp )), data = mf, x=TRUE )
+    cal.cox <- coxph( stats::formula( sprintf( "%s ~ rms::rcs(cll.prd,3)", resp )), data = mf, x=TRUE )
     # cal.cox <- coxph( formula( sprintf( "%s ~ rms::lsp(cll.prd,3)", resp )), data = bind_cols( dat, tibble( cll.prd = cll.prd )), x=TRUE )
     # grd.cox <- seq( quantile( mf$prd, probs = 0.01, na.rm=TRUE ), 
     #                 quantile( mf$prd, probs = 0.99, na.rm=TRUE ), 
@@ -14,7 +17,7 @@ tbl_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
     # df.grd.cox <- data.frame( grd.cox, grd.prd.cll ) %>% setNames(c("prd","cll.prd"))
     # df.grd.cox$prd.cal <- 1 - predictSurvProb( cal.cox, df.grd.cox, times = u )
     mf$obs <- as.numeric( 1 - pec::predictSurvProb( cal.cox, newdata = mf, times = u ) )
-    res <- model.frame( formula( sprintf("%s ~ %s + %s + %s", resp, "prd", "cll.prd", "obs") ), mf )
+    res <- stats::model.frame( stats::formula( sprintf("%s ~ %s + %s + %s", resp, "prd", "cll.prd", "obs") ), mf )
     res
   }, error = function( e ) NA )
   return( ret )
@@ -23,7 +26,7 @@ tbl_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
 gplot_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
   res <- tbl_predictions_cox(  dat, resp, selection, mod, u, ... )
   lim <- max(res$prd,res$obs, na.rm=TRUE)
-  co <- cor.test( x = res$prd, y = res$obs, method = "pearson" )
+  co <- stats::cor.test( x = res$prd, y = res$obs, method = "pearson" )
   epsi <- 0.0001
   msg <- sprintf( "Pearson Correlation %1.4f (%1.4f, %1.4f; %s)", co$estimate, co$conf.int[1], co$conf.int[2], ifelse( epsi < co$p.value, sprintf("p=%1.4f",co$p.value), "p<.0001" ) )
   ret <- res %>%
@@ -45,7 +48,7 @@ gplot_km_cox <- function( dat, resp, selection, mod, u, cutpoint = NULL, ... ) {
   plt$prd <- as.numeric( 1 - pec::predictSurvProb( mod, newdata = dat, times = u, ... ) )
   if( is.null(cutpoint) ) cutpoint <- median(plt$prd, na.rm=TRUE)
   plt$cut <- factor( cut( plt$prd, breaks = c(-Inf,cutpoint,+Inf), labels = c("Low","High"), include.lowest = TRUE  ) )
-  fo <- formula( sprintf( "%s ~ cut", resp ) )
+  fo <- stats::formula( sprintf( "%s ~ cut", resp ) )
   fit <- survminer::surv_fit( fo, plt )
   ggsurvplot( fit, plt, conf.int = TRUE, risk.table = TRUE )
 }

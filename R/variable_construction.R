@@ -32,8 +32,8 @@ simple_transforms <- function( dat, vars,
   ret <- dat
   lst <- list()
   for( var in vars ) {
-    if( is.numeric(dat[[var]]) & 3 < length(na.omit(dat[[var]])) ) {
-      w <- shapiro.test( x = as.numeric(dat[[var]]) )$statistic
+    if( is.numeric(dat[[var]]) & 3 < length(stats::na.omit(dat[[var]])) ) {
+      w <- stats::shapiro.test( x = as.numeric(dat[[var]]) )$statistic
       cat( sprintf( "Evaluating %s with W = %1.4f \n", var, w ))
       labelled::var_label(ret[,var]) <- sprintf( "original variable: identity (W=%1.4f)", w )
       lst[[length(lst)+1]] <- list( variable = var, transformed_var = "", term = sprintf( "( %s )", var ), W = w, transform = "identity" )
@@ -43,7 +43,7 @@ simple_transforms <- function( dat, vars,
         nwname <- name_pattern( var, "sqrt" )
         stopifnot( !(nwname %in% colnames(ret) ) )
         ret[,nwname] <- sqrt( ret[,var] )
-        wn <- shapiro.test(ret[[nwname]])$statistic
+        wn <- stats::shapiro.test(ret[[nwname]])$statistic
         if( is.nan(wn) || (wn < w) ) {
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
@@ -56,7 +56,7 @@ simple_transforms <- function( dat, vars,
         nwname <- name_pattern( var, "cubert" )
         stopifnot( !(nwname %in% colnames(ret) ) )
         ret[,nwname] <- ( ret[,var] )^(1/3)
-        wn <- shapiro.test(ret[[nwname]])$statistic
+        wn <- stats::shapiro.test(ret[[nwname]])$statistic
         if( is.nan(wn) || (wn < w) ) {
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
@@ -69,7 +69,7 @@ simple_transforms <- function( dat, vars,
         nwname <- name_pattern( var, "log" )
         stopifnot( !(nwname %in% colnames(ret) ) )
         ret[,nwname] <- log( ret[,var] )
-        wn <- shapiro.test(ret[[nwname]])$statistic
+        wn <- stats::shapiro.test(ret[[nwname]])$statistic
         if( is.nan(wn) || (wn < w) ) {
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
@@ -83,9 +83,9 @@ simple_transforms <- function( dat, vars,
         # browser( condition={nwname=="AGE_zscore"})
         stopifnot( !(nwname %in% colnames(ret) ) )
         mn <- mean( ret[[var]], na.rm=TRUE )
-        st <- sd( ret[[var]], na.rm=TRUE )
-        ret[,nwname] <- pnorm( q = ret[[var]], mean = mn, sd = st )
-        wn <- shapiro.test(ret[[nwname]])$statistic
+        st <- stats::sd( ret[[var]], na.rm=TRUE )
+        ret[,nwname] <- stats::pnorm( q = ret[[var]], mean = mn, sd = st )
+        wn <- stats::shapiro.test(ret[[nwname]])$statistic
         if( is.nan(wn) || (wn < w) ) {
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
@@ -123,7 +123,7 @@ box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   mod <- dat
   for( var in vars ) {
     if( is.numeric( dat[[var]]) ) {
-      mo <- lm( formula( sprintf( "%s ~ %s", resp, var ), data = dat, y = TRUE, qr = TRUE ) )
+      mo <- stats::lm( stats::formula( sprintf( "%s ~ %s", resp, var ), data = dat, y = TRUE, qr = TRUE ) )
       bc <- MASS::boxcox( mo, interp=FALSE, plotit = FALSE )
       py <- bc$x[ which.max( bc$y ) ]
       px <- 1.0/py
@@ -200,11 +200,11 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   trans <- list()
   for( var in vars ) {
     # Note: Formula is lhs var (such that it is evaluated, if containing expressions) and rhs is response (not evaluated)
-    mf <- model.frame( formula( sprintf( "%s ~ %s", var, resp )), dat, na.action = na.pass ) %>% as_tibble %>% setNames( c("x","y") )
+    mf <- stats::model.frame( stats::formula( sprintf( "%s ~ %s", var, resp )), dat, na.action = stats::na.pass ) %>% as_tibble %>% stats::setNames( c("x","y") )
     if( is.numeric( mf[["x"]]) ) {
       # dd <- dat %>% dplyr::select( all_of( c(resp,var ) ) ) %>% setNames( c("y","x") )
       # dd <- dd[which(complete.cases(dd)),]
-      dd <- mf[complete.cases(mf),]
+      dd <- mf[stats::complete.cases(mf),]
       fu_opt <- local( {
         function( px ) {
           beta <- px[1]; lambda <- px[2]
@@ -214,7 +214,7 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
         }
       } )
       beta0 <- tryCatch({
-        or <- optim( par = c(0,0), fn = fu_opt, method="CG" ) # TODO: Try BFGS
+        or <- stats::optim( par = c(0,0), fn = fu_opt, method="CG" ) # TODO: Try BFGS
         or
         beta0 <- round( or$par[2], 4 )
         beta0        
@@ -267,13 +267,13 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
     for( j in 1:m_fits ) {
       mo <- NULL
       mo <- tryCatch({
-        flexmix::flexmix( formula( sprintf( "%s ~ 1", var ) ), 
+        flexmix::flexmix( stats::formula( sprintf( "%s ~ 1", var ) ), 
                           data = dat[idx,], 
                           k = k )
       }, error = function(e) NULL )
       models[[midx]] <- mo
       if( !is.null(mo) ) {
-        tab <- bind_rows( tab, tibble( round = j, k = k, midx = midx, aic = AIC(mo), converged = mo@converged ))
+        tab <- bind_rows( tab, tibble( round = j, k = k, midx = midx, aic = stats::AIC(mo), converged = mo@converged ))
       }
       midx <- midx + 1
     }
@@ -312,15 +312,15 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
       rt <- NULL
       rt <- tryCatch({
         fu_root <- function( val ) {
-          d1 <- dnorm( x = val, mean = prm["coef.(Intercept)",i], sd = prm["sigma",i]  ) * prio[i]
-          d2 <- dnorm( x = val, mean = prm["coef.(Intercept)",j], sd = prm["sigma",j]  ) * prio[j]
+          d1 <- stats::dnorm( x = val, mean = prm["coef.(Intercept)",i], sd = prm["sigma",i]  ) * prio[i]
+          d2 <- stats::dnorm( x = val, mean = prm["coef.(Intercept)",j], sd = prm["sigma",j]  ) * prio[j]
           ret <- d1 - d2
           return( ret )
         }
         
-        rt <- uniroot( f = fu_root, 
-                       interval = c(prm["coef.(Intercept)",i],prm["coef.(Intercept)",j]),
-                       extendInt = "no" ) # We are only interested if the cut-point is between the two adjacent modes.
+        rt <- stats::uniroot( f = fu_root, 
+                              interval = c(prm["coef.(Intercept)",i],prm["coef.(Intercept)",j]),
+                              extendInt = "no" ) # We are only interested if the cut-point is between the two adjacent modes.
         rt
       }, error = function(e) NULL ) # Catch error, if fu_root is not of opposite signs at both interval ends.
       if( !is.null(rt) ) {

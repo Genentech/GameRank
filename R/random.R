@@ -2,6 +2,8 @@
 #  Random sampling wrapper algorithm
 #
 
+#' @import tibble dplyr formula.tools
+
 #' @title Random search algorithm
 #' 
 #' @description First constructs a random sampling plan of disjoint feature selections
@@ -57,7 +59,7 @@ build_sample_matrix <- function( vars, m, nevals ) {
   sm <- matrix( NA_character_, nrow=0, ncol=m )
   while( nrow(sm) < nevals ) {
     idx <- 1:length(vars)
-    idx <- idx[ order( runif( length(idx) )) ]
+    idx <- idx[ order( stats::runif( length(idx) )) ]
     while( m < length(idx) ) {
       r <- sort( vars[ idx[ 1:m ] ] )
       idx <- idx[-c(1:m)]
@@ -162,7 +164,7 @@ random_selection.formula <- function( fo,
                               ... )
 {
   # Check inputs
-  stopifnot( is.formula( fo ) ) 
+  stopifnot( "formula"==class( fo ) ) 
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
   stopifnot( is.function(fn_train) )
   stopifnot( is.function(fn_eval) )

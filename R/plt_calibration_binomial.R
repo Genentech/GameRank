@@ -1,3 +1,6 @@
+
+#' @import ggplot2 ggExtra
+
 # Plot Binomial Calibration
 tbl_predictions_binomial <- function( dat, resp, selection, mod, ... ) {
   stopifnot( !is.null(mod) )

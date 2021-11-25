@@ -74,7 +74,7 @@ ff_fn_eval_cross_validation <- function( arg_fn_train = NULL, arg_fn_eval = NULL
       # a specific fixed fold configuration.
       n <- nrow(dat)
       ds <- rep_len( x = 1:n_folds, length.out = n )
-      ds <- ds[ order( runif( length(ds) ) ) ]
+      ds <- ds[ order( stats::runif( length(ds) ) ) ]
       theta <- rep_len( NA, length.out = length(ds) )
       for( k in 1:n_folds ) {
         idx <- which( k == ds )

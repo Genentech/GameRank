@@ -1,4 +1,6 @@
 
+#' @import ggplot2 gridExtra gridExtra knitr rmarkdown broom
+
 #' @title Render a standard template reports for a given objects.
 #' 
 #' @param obj Algorithm results output from forward, backward and other selection methods

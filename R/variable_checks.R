@@ -1,4 +1,5 @@
 
+#' @import survival entropy
 
 #' @title Utility function that performs high-level checks for a variable in a dataset
 #' 
@@ -34,7 +35,7 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
   ret[["variable"]] <- var
   
   # xval <- dat[[var]]
-  xval <- model.frame(formula(sprintf("%s ~ 1",var)), dat, na.action = na.pass)[[1]]
+  xval <- stats::model.frame(stats::formula(sprintf("%s ~ 1",var)), dat, na.action = stats::na.pass)[[1]]
   N <- length( xval )
   n <- length( which(!is.na(xval)) )
   p <- n / N
@@ -123,13 +124,13 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
       
       
       # Evaluate for outliers
-      iqr <- IQR( x, na.rm=TRUE )
-      q1 <- quantile( x, prob = 0.25, na.rm=TRUE )
-      q3 <- quantile( x, prob = 0.75, na.rm=TRUE )
+      iqr <- stats::IQR( x, na.rm=TRUE )
+      q1 <- stats::quantile( x, prob = 0.25, na.rm=TRUE )
+      q3 <- stats::quantile( x, prob = 0.75, na.rm=TRUE )
       rot.nmin <- length( which( x < q1 - c_out * iqr ) )
       rot.nmax <- length( which( x > q3 + c_out * iqr ) )
       rot.p <- (rot.nmin+rot.nmax) / n * 100.0
-      rng_sd <- range( x ) / sd( x )
+      rng_sd <- abs( max(x) - min(x) ) / sd( x )
       # tst <- outliers::dixon.test( x=x, type=22 )
       # tst_stat <- tst$statistic
       # tst_pval <- tst$p.value
@@ -184,9 +185,9 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
       ret[["check_entropy"]] <- ifelse( en < epsi, "Entropy too low", "Entropy ok" )
       
       # Evaluate for outliers
-      iqr <- IQR( x, na.rm=TRUE )
-      q1 <- quantile( x, prob = 0.25, na.rm=TRUE )
-      q3 <- quantile( x, prob = 0.75, na.rm=TRUE )
+      iqr <- stats::IQR( x, na.rm=TRUE )
+      q1 <- stats::quantile( x, prob = 0.25, na.rm=TRUE )
+      q3 <- stats::quantile( x, prob = 0.75, na.rm=TRUE )
       rot.nmin <- length( which( x < q1 - c_out * iqr ) )
       rot.nmax <- length( which( x > q3 + c_out * iqr ) )
       rot.p <- (rot.nmin+rot.nmax) / n * 100.0
@@ -245,8 +246,8 @@ check_variables <- function( dat, resp, vars, min_cases = 25L, c_out = 1.5 ) {
     evl$is_response <- TRUE
     ret[[resp]] <- evl
     
-    fo <- formula( sprintf( "%s ~ 1", resp ) )
-    mf <- model.frame( fo, dat, na.action = na.pass )
+    fo <- stats::formula( sprintf( "%s ~ 1", resp ) )
+    mf <- stats::model.frame( fo, dat, na.action = stats::na.pass )
     
     if( is.Surv( mf[[1]] ) ) {
       # TODO For now take Event/No-Event as category

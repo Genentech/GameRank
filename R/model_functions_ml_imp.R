@@ -6,9 +6,9 @@
 #' @rdname model_functions
 #' @export
 fn_train_normal_ml_imp <- function( dat, resp, selection, ... ) {
-  fo <- formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
+  fo <- stats::formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
   fo <- rewrite_formula( fo, dat )
-  mo <- glm( formula = fo, family = gaussian, data = dat )
+  mo <- stats::glm( formula = fo, family = stats::gaussian, data = dat )
   return( mo )
 }
 
@@ -16,9 +16,9 @@ fn_train_normal_ml_imp <- function( dat, resp, selection, ... ) {
 #' @rdname model_functions
 #' @export
 fn_train_binomial_ml_imp <- function( dat, resp, selection, ... ) {
-  fo <- formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
+  fo <- stats::formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
   fo <- rewrite_formula( fo, dat )
-  mod <- glm( formula = fo, family = binomial, data = dat )
+  mod <- stats::glm( formula = fo, family = stats::binomial, data = dat )
   return( mod )
 }
 
@@ -26,7 +26,7 @@ fn_train_binomial_ml_imp <- function( dat, resp, selection, ... ) {
 #' @rdname model_functions
 #' @export
 fn_train_cox_ml_imp <- function( dat, resp, selection, ... ) {
-  fo <- formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
+  fo <- stats::formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
   fo <- rewrite_formula( fo, dat )
   mod <- coxph( formula = fo, data = dat, x=TRUE, y=TRUE )
   return( mod )

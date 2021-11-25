@@ -2,6 +2,8 @@
 # Bidirectional Search wrapper algorithm
 #
 
+#' @import tibble dplyr formula.tools
+
 #' @title Bidirectional search algorithm
 #' 
 #' @description Performs forward and backward selection steps per iteration to converge to
@@ -162,7 +164,7 @@ bidirectional.formula <- function( fo, dat,
                                    ... )
 {
   # Check inputs
-  stopifnot( is.formula( fo ) ) 
+  stopifnot( "formula"==class( fo ) ) 
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
   stopifnot( is.function(fn_train) )
   stopifnot( is.function(fn_eval) )

@@ -54,13 +54,13 @@ summary.numeric <- function( ... ) {
     N = as.integer( length( x.all ) ),
     n = as.integer( length( which(!is.na(x.all)) ) ),
     
-    mean = as.numeric( mean( x, na.rm=TRUE ) ),
-    sd = as.numeric( sd( x, na.rm=TRUE ) ),
+    mean = as.numeric( stats::mean( x, na.rm=TRUE ) ),
+    sd = as.numeric( stats::sd( x, na.rm=TRUE ) ),
     
     min = as.numeric( min( x, na.rm=TRUE ) ),
-    q1 = as.numeric( quantile( x, 0.25, na.rm=TRUE ) ),
-    median = as.numeric( median( x, na.rm=TRUE ) ),
-    q3 = as.numeric( quantile( x, 0.75, na.rm=TRUE ) ),
+    q1 = as.numeric( stats::quantile( x, 0.25, na.rm=TRUE ) ),
+    median = as.numeric( stats::median( x, na.rm=TRUE ) ),
+    q3 = as.numeric( stats::quantile( x, 0.75, na.rm=TRUE ) ),
     max = as.numeric( max( x, na.rm=TRUE ) )
   )  
   
@@ -95,13 +95,13 @@ summary.integer <- function( ... ) {
     N = as.integer( length( x.all ) ),
     n = as.integer( length( which(!is.na(x.all)) ) ),
     
-    mean = as.numeric( mean( x, na.rm=TRUE ) ),
-    sd = as.numeric( sd( x, na.rm=TRUE ) ),
+    mean = as.numeric( stats::mean( x, na.rm=TRUE ) ),
+    sd = as.numeric( stats::sd( x, na.rm=TRUE ) ),
     
     min = as.numeric( min( x, na.rm=TRUE ) ),
-    q1 = as.numeric( quantile( x, 0.25, na.rm=TRUE ) ),
-    median = as.numeric( median( x, na.rm=TRUE ) ),
-    q3 = as.numeric( quantile( x, 0.75, na.rm=TRUE ) ),
+    q1 = as.numeric( stats::quantile( x, 0.25, na.rm=TRUE ) ),
+    median = as.numeric( stats::median( x, na.rm=TRUE ) ),
+    q3 = as.numeric( stats::quantile( x, 0.75, na.rm=TRUE ) ),
     max = as.numeric( max( x, na.rm=TRUE ) )
   )  
   

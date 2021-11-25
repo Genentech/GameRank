@@ -65,9 +65,10 @@ vck %>% filter( 0.006 <= mutual_information )
 #' are equal.
 #' 
 #' It is obvious that the chance for detecting multi-modal distributions depends on the available data and thus distributions reported
-#' are not multi-modal or multi-modal distributions may go undected. Thus a visual review of some variable distributions is certainly
+#' are not multi-modal or multi-modal distributions may go undetected. Thus a visual review of some variable distributions is certainly
 #' advisable.
 #' 
+#+ fig.width=7 
 toy_data %>%
   ggplot( aes( x=the_multi, y=..density.. ) ) +
   geom_histogram( bins = 100, alpha=0.5 ) +
@@ -120,6 +121,17 @@ df_test <- toy_data[which(3==rr),]
 df_sel  <- toy_data[which(rr %in% c(1L,2L)),]
 ds <- prepare_splits( ds = 1L, dat = df_sel, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial )
 
+#' Wrapper selection algorithms are slow combinatorial searches that are not guaranteed to find more than a local optimum. Their performance also
+#' depends - in some cases - on the ordering of input variables. Therefore it is advisable to rerun each algorithm with varying ordering of features
+#' to obtain a varying set of selections that can be used to choose from.
+#' 
+#' Here we'll use the mutual information or our variables with regards to the response to sort:
+vck <- check_variables( df_sel, resp, vars )
+vars <- vck %>% filter( !is_response) %>% arrange( desc(mutual_information) ) %>% pull( variable )
+
+#' Let's kick of the first wrapper: bidirectional search, an algorithm that performs a forward and backward selection step per iteration and
+#' ensures it is converging to the same partition by constraining the variables considered.
+#' 
 bds <- bidirectional( dat = df_sel, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc, m = 6L, ds = ds, maximize = TRUE )
 bds$variable_selections
 bds$agg_results %>% arrange( desc(mean_validation) )
@@ -151,4 +163,14 @@ gmr_fsel <- gmr %>% purrr::pluck( "game_rank_selection" )
 mod_gmr <- fn_train_binomial( dat = df_sel, resp = resp, selection = gmr_fsel  )
 mod_gmr
 gplot_predictions_binomial( dat = df_sel, resp = resp, selection = bds_fsel, mod = mod_gmr )
+
+#' For final understanding of the model it is good practice to identify influential observations that relevantly drive
+#' the model fit. GameRank provides a list flagging observations that, if they are removed, reduce or increase a parameter by more than 
+#' Q1 - 1.5 x IQR and Q3 + 1.5 x IQR of the distribution of difference to the reference model.
+#' 
+debugonce(influential_observations)
+ifo <- influential_observations( df_sel, resp, gmr_fsel, fn_train_binomial, fn_eval_binomial_auroc, fn_infl_coefficients, fn_predict_glm )
+ifo 
+ifo %>% filter( is_influential ) 
+
 

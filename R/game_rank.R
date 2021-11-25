@@ -7,6 +7,7 @@
 # individuals by group comparisons.
 #
 
+#' @import numDeriv
 
 #' @title GameRank algorithm
 #' 
@@ -83,7 +84,7 @@ build_match_matrix <- function( sel, team_size, min_matches_per_var ) {
   colnames(match_matrix) <- names(sel)
   while( is.null(match_matrix) | !all( min_matches_per_var < colSums( abs( match_matrix ) )  ) ) {
     idx <- 1:length(sel)
-    idx <- idx[ order( runif( length(idx) ) ) ]
+    idx <- idx[ order( stats::runif( length(idx) ) ) ]
     while( 2*team_size < length(idx)  ) {
       idxp <- idx[1:team_size]
       idx <- idx[-c(1:team_size)]
@@ -174,7 +175,7 @@ game_rank <- function( dat,
     np <- 0L
     nn <- 0L
     for( r in 1:rounds ) {
-      ds[ 1:length(ds) ] <- ds[ order( runif( length( ds ) ) ) ] # Shuffle rows to development and validation
+      ds[ 1:length(ds) ] <- ds[ order( stats::runif( length( ds ) ) ) ] # Shuffle rows to development and validation
       
       scop <- eval_team( dat, resp, fop, ds, ... )
       scon <- eval_team( dat, resp, fon, ds, ... )
@@ -233,12 +234,12 @@ game_rank <- function( dat,
       
       pp <- exp( Tp + res_matches[,2] )/ ( exp( Tp + res_matches[,2] ) + exp( Tm + res_matches[,1] ) )
       pn <- exp( Tp + res_matches[,1] )/ ( exp( Tp + res_matches[,2] ) + exp( Tm + res_matches[,1] ) )
-      gr <- sapply( names(vs), FUN=function(co) {
+      gr <- vapply( names(vs), FUN=function(co) {
         ms <- sum( abs( res_matches[,co] ) )
         pps <- sum( pp[which(res_matches[,co] > 0)] )
         pns <- sum( pp[which(res_matches[,co] < 0)] )
         return( -ms + 2 * (pps + pns) )
-      })
+      }, 1.0)
       names( gr ) <- names( vs )
       return( gr )
     } # function (END)
@@ -246,7 +247,7 @@ game_rank <- function( dat,
   
   # Fitting Group Rank model ----
   cat( "Optimizing maximum likelihood \n" )
-  oo <- optim( par = sel, fn = ll_gr, gr = ll_gr_grad, method = opt_method, control = list( fnscale = +1L, maxit = max_iter ) )
+  oo <- stats::optim( par = sel, fn = ll_gr, gr = ll_gr_grad, method = opt_method, control = list( fnscale = +1L, maxit = max_iter ) )
   oo
   fit_time <- Sys.time()
   
@@ -326,7 +327,7 @@ game_rank.formula <- function( fo, dat,
                                ... ) 
 {
   # Check inputs
-  stopifnot( is.formula( fo ) ) 
+  stopifnot( "formula"==class( fo ) ) 
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
   stopifnot( is.function(fn_train) )
   stopifnot( is.function(fn_eval) )
@@ -371,7 +372,7 @@ estimate_T_matches <- function( Tm, vs, HH, alpha = 0.05 ) {
     as.numeric( gg %*% HH %*% gg )
   } 
   
-  zz <- qnorm( 1 - alpha / 2.0 )
+  zz <- stats::qnorm( 1 - alpha / 2.0 )
   rr <- matrix( NA, ncol = 4, nrow = nrow(Tm) )
   colnames(rr) <- c("dT","dT.se","dT.LCL","dT.UCL")
   for( i in 1:nrow(rr) ) {

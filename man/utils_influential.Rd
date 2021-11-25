@@ -3,6 +3,7 @@
 \name{fn_infl_coefficients}
 \alias{fn_infl_coefficients}
 \alias{fn_predict_cox}
+\alias{fn_predict_glm}
 \alias{utils_influential}
 \alias{influential_observations}
 \title{Determine influential points for the current selection}
@@ -10,6 +11,8 @@
 fn_infl_coefficients(mod, ...)
 
 fn_predict_cox(mod, dat, ...)
+
+fn_predict_glm(mod, dat, ...)
 
 influential_observations(
   dat,

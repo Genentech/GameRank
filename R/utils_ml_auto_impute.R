@@ -18,7 +18,7 @@ psu <- Vectorize( function( x ) ifelse(  is.na(x), 1, 0 ) )
 #' @export
 rewrite_formula <- local( {
   function( fo, dat ) {
-    dat_tmp <- model.frame( fo, dat, na.action = na.pass )
+    dat_tmp <- stats::model.frame( fo, dat, na.action = stats::na.pass )
     labs <- attr( attr(dat_tmp,'terms'), 'term.labels' )
     
     fo_m <- fo
@@ -27,10 +27,10 @@ rewrite_formula <- local( {
         # cat ( ">> ", la,"\n" )
         sup <- sprintf( ". ~ . - %s + saf(%s) + psu(%s)", la, la, la )
         # cat( "-- ",sup,"\n")
-        fo_m <- update( fo_m, formula( sup ) )
+        fo_m <- stats::update( fo_m, stats::formula( sup ) )
       }
     }
-    dat_m <- model.frame( fo_m, dat, na.action=na.pass )
+    dat_m <- stats::model.frame( fo_m, dat, na.action=stats::na.pass )
     environment(fo_m) <- new.env()
     return( fo_m )
   }

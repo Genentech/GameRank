@@ -29,12 +29,12 @@
 build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, ... ) {
   rr <- c( 1,1,2 ) # Use 2/3 train and 1/3 validation
   
-  fo <- formula( sprintf( "%s ~ %s ", resp, paste( vars, collapse = " + ")) )
-  mf <- model.frame( formula = fo, data = dat, na.action = na.pass ) 
+  fo <- stats::formula( sprintf( "%s ~ %s ", resp, paste( vars, collapse = " + ")) )
+  mf <- stats::model.frame( formula = fo, data = dat, na.action = stats::na.pass ) 
   
   # Check number of complete cases
   min_cc <- 25
-  idx_cc <- which( complete.cases( mf ) )
+  idx_cc <- which( stats::complete.cases( mf ) )
   if( 0==length(idx_cc) | length(idx_cc) < min_cc ) { 
     warning( sprintf( "Not enough complete cases! (%d < %d)", length(idx_cc), min_cc ) )
     return( NULL ) 
@@ -59,8 +59,8 @@ build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, ... ) {
   k <- 100
   while( 0<=k & ncol(ret) < m ) {
     # Independently sample from complete cases and non-complete cases
-    rr_cc  <- rr_cc[order(runif(length(rr_cc )))]
-    rr_ncc <- rr_cc[order(runif(length(rr_ncc)))]
+    rr_cc  <- rr_cc[order(stats::runif(length(rr_cc )))]
+    rr_ncc <- rr_cc[order(stats::runif(length(rr_ncc)))]
     rr <- c(rr_cc, rr_ncc)
     
     dd <- matrix( NA, ncol=1, nrow=nrow(dat) )

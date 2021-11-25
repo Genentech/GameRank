@@ -10,7 +10,7 @@ check_multimodality(
   vars,
   n_comp = 5,
   m_fits = 25,
-  min_prop_converged = 0.99
+  min_fits_converged = 24
 )
 }
 \arguments{

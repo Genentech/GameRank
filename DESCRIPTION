@@ -15,6 +15,7 @@ Depends: R (>= 3.1.0),
   ggplot2,
   yaml
 Imports:
+  labelled,
   numDeriv,
   boot,
   entropy,
@@ -31,7 +32,7 @@ Imports:
   knitr,
   rmarkdown,
   boot,
-  outliers
+  ggExtra
 Suggests:
     RcppAlgos,
     curatedTCGAData,
@@ -39,4 +40,9 @@ Suggests:
 License: GPL-2
 LazyData: true
 VignetteBuilder: knitr
+VignetteEngine: knitr::rmarkdown
 RoxygenNote: 7.1.1
+biocViews: 
+  Software,
+  StatisticalMethod,
+  FeatureExtraction

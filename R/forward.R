@@ -2,6 +2,8 @@
 # Forward Selection wrapper algorithm
 #
 
+#' @import tibble dplyr formula.tools
+
 #' @title Sequential Forward Selection algorithm
 #' 
 #' @description Starts with the empty set of available features and adds the best feature
@@ -97,7 +99,7 @@ forward <- function(  dat, resp, vars,
         agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
         
         bs <- best_vars[['best_selections']]
-        if( 0==length(bs) ) bs <- list( as.character( union( Y, head( setdiff(vars,Y),1 ) ) ) )
+        if( 0==length(bs) ) bs <- list( as.character( union( Y, utils::head( setdiff(vars,Y),1 ) ) ) )
         queue <- append( queue, bs )
         cat( sprintf("No of partitions %d in search queue \n", length( queue ) ) )
       }
@@ -146,7 +148,7 @@ forward.formula <- function( fo, dat,
                              ...  ) 
 {
   # Check inputs
-  stopifnot( is.formula( fo ) ) 
+  stopifnot( "formula"==class( fo ) ) 
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
   stopifnot( is.function(fn_train) )
   stopifnot( is.function(fn_eval) )

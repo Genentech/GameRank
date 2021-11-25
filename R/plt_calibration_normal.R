@@ -1,3 +1,6 @@
+
+#' @import ggplot2 ggExtra
+
 # Plot Normal Calibration
 tbl_predictions_normal <- function( dat, resp, selection, mod, ... ) {
   stopifnot( !is.null(mod) )
