@@ -2,7 +2,16 @@
 # Formula rewrite tools to automatically impute missing values by maximum-likelihood estimate
 #
 
+#' @importFrom rlang env
+
+#' @rdname utils_ml_auto_impute
+#' @param x The input variable
+#' @export
 saf <- Vectorize( function( x ) ifelse( !is.na(x), x, 0 ) )
+
+#' @rdname utils_ml_auto_impute
+#' @param x The input variable
+#' @export
 psu <- Vectorize( function( x ) ifelse(  is.na(x), 1, 0 ) )
 
 #' @title Helper function for Maximum-Likelihood Estimation of Imputation Values
@@ -30,6 +39,7 @@ psu <- Vectorize( function( x ) ifelse(  is.na(x), 1, 0 ) )
 #' # saf(the_cubed) denotes the effect for the non-missing variables
 #' # psu(the_cubed) denotes the maximum-likelihood imputation value for the missing data
 #' 
+#' @name utils_ml_auto_impute
 #' @export
 rewrite_formula <- local( {
   function( fo, dat ) {
@@ -46,8 +56,8 @@ rewrite_formula <- local( {
       }
     }
     dat_m <- stats::model.frame( fo_m, dat, na.action=stats::na.pass )
-    environment(fo_m) <- new.env()
+    environment(fo_m) <- rlang::env(  saf=saf, psu=psu  )
     return( fo_m )
   }
-}, envir = list( saf=saf, psu=psu ) )
+}, envir = new.env() )
 

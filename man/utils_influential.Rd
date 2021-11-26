@@ -26,6 +26,8 @@ influential_observations(
 )
 }
 \arguments{
+\item{mod}{Model to obtain predictions from via predict(...)}
+
 \item{dat}{data.frame or tibble comprising data for model generation and 
 validation.}
 

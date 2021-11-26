@@ -2,7 +2,8 @@
 % Please edit documentation in R/variable_construction.R
 \name{check_multimodality}
 \alias{check_multimodality}
-\title{A function to evaluate continues variables for multi-modiality using Gaussian-Mixture Models}
+\title{A function to evaluate continues variables for multi-modiality using
+Gaussian-Mixture Models}
 \usage{
 check_multimodality(
   dat,
@@ -22,22 +23,27 @@ check_multimodality(
 
 \item{n_comp}{Integer determining the maximum number of components to check}
 
-\item{m_fits}{Each GMM is fitted multiple times to avoid local minima. m_fits determines how many GMMs are generated each time.}
+\item{m_fits}{Each GMM is fitted multiple times to avoid local minima. m_fits 
+determines how many GMMs are generated each time.}
 
-\item{min_fits_converged}{Minimal number of GMMs that need to converge before considering their AIC for model selection.}
+\item{min_fits_converged}{Minimal number of GMMs that need to converge before 
+considering their AIC for model selection.}
 }
 \value{
 list with two elements
 \describe{
-\item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
+\item{data}{A dataset comprising additional columns with transformed 
+variables, if they improve Normality.}
 \item{transformations}{A list of check_aic results for each variable.}
 }
 }
 \description{
-The function receives a list of variables and first performs a Gaussian-Mixture Model (GMM)
-model selection using the Akaike Information Criterion (AIC) to determine the number of components.
-If this process indicates more than one componet, it determines cut-points between the individual 
-mixture distributions and generates a transformed categorical variable based on those.
+The function receives a list of variables and first performs a 
+Gaussian-Mixture Model (GMM) model selection using the Akaike Information 
+Criterion (AIC) to determine the number of components. If this process 
+indicates more than one componet, it determines cut-points between the 
+individual mixture distributions and generates a transformed categorical 
+variable based on those.
 }
 \examples{
 library( ggplot2 )
@@ -50,7 +56,10 @@ toy_data \%>\%
   geom_histogram( bins = 100, alpha=0.5 ) +
   geom_density( bw = "ucv" ) 
 
-mumo <- check_multimodality( dat = toy_data, resp = resp, vars = c("the_multi","rnd01","rnd02"),n_comp = 3, m_fits = 25,  min_fits_converged = 20 )
+mumo <- check_multimodality( dat = toy_data, resp = resp, 
+                             vars = c("the_multi","rnd01","rnd02"),
+                             n_comp = 3, 
+                             m_fits = 25, min_fits_converged = 20 )
 
 mumo$transforms$the_multi$aic_aggregate
 mumo$transforms$the_multi$best_model

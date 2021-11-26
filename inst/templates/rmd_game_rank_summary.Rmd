@@ -8,7 +8,6 @@ params:
 gmr <- params$gmr
 
 options(width=80)
-devtools::load_all("~/GameRank")
 
 theme_set(theme_minimal() +
           theme(strip.background = element_rect(color = 'black',

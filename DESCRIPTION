@@ -7,19 +7,18 @@ Description: The GameRank package implements functions for feature selection to 
   transformation and detection of multi-modal distributed features.
 Depends: R,
   dplyr,
-  tidyr,
-  tibble,
   purrr,
-  formula.tools,
-  survival,
   ggplot2
 Imports:
+  formula.tools,
+  survival,
+  tibble,
+  tidyr,
   labelled,
   rlang,
   numDeriv,
   boot,
   entropy,
-  gridExtra,
   ROCR,
   MASS,
   flexmix,
@@ -29,10 +28,8 @@ Imports:
   survminer,
   knitr,
   rmarkdown,
-  ggExtra,
-  yaml
+  ggExtra
 Suggests:
-    RcppAlgos,
     curatedTCGAData,
     TCGAutils
 License: GPL-2

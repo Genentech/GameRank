@@ -35,6 +35,12 @@
 #' returns a function that calls fn_train and fn_eval to return a n_fold
 #' cross-validated estimate.}
 #' }
+#' @param dat data.frame or tibble rows from the full dataseet provided to the
+#' wrapper that should be used for generating or evaluating models.
+#' @param resp Response variable being the lhs of the model formula
+#' @param selection Current selection for model generation or evaluation
+#' @param ... Any other arguments passed to both types of functions, 
+#' 
 #' @return fn_train_... functions return a fitted model object or NULL if that
 #' fails. fn_eval_... functions return a numeric real value measuring the 
 #' validation performance on the given data, or NA if that fails.
@@ -45,7 +51,8 @@
 #' ipos <- which(  toy_data$resp )
 #' ineg <- which( !toy_data$resp )
 #' smtoy <- rbind( 
-#'   toy_data[ ipos[1:25],], # draw 50 random observations from each response category
+#'   # draw 50 random observations from each response category
+#'   toy_data[ ipos[1:25],], 
 #'   toy_data[ ineg[1:25],]
 #' )
 #' smtoy
@@ -53,12 +60,16 @@
 #' # ff_fn_eval_bootstrap and ff_fn_eval_cross_validation are function factories
 #' # that return a created function which makes use of the supplied fn_train and
 #' # fn_eval function during bootstrap or cross-validation.
-#' fn_bt_eval_binomial_auroc <- ff_fn_eval_bootstrap( fn_train_binomial, fn_eval_binomial_auroc, 25L )
+#' fn_bt_eval_binomial_auroc <- ff_fn_eval_bootstrap( fn_train_binomial, 
+#'                                                    fn_eval_binomial_auroc, 
+#'                                                    25L )
 #' 
 #' # For small sample sizes, the GameRank index vector dsi needs to be set 
 #' # to c(2L,2L) such that all observations are used for validation. Similarly, 
 #' # the training:validation split matrix then also completely consists of 2s.
-#' res <- game_rank( smtoy, resp, vars, fn_train_dummy, fn_bt_eval_binomial_auroc, 4L, c(2L,2L), TRUE, 3L, 5L, 3L )
+#' res <- game_rank( smtoy, resp, vars, 
+#'                   fn_train_dummy, fn_bt_eval_binomial_auroc, 
+#'                   4L, c(2L,2L), TRUE, 3L, 5L, 3L )
 #' res$game_rank_selection
 #' res$variable_ranking
 #' 
@@ -76,6 +87,10 @@ fn_train_dummy <- function( dat, resp, selection, ... ) {
 
 
 #' @rdname model_small_sample
+#' @param arg_fn_train Function to generate model on non-hold-out 
+#' folds (fn_train)
+#' @param arg_fn_eval Function for validation on hold-out fold (fn_eval)
+#' @param arg_n_folds Number of cross-validation folds to use
 #' @export
 ff_fn_eval_cross_validation <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n_folds = 10L ) {
   stopifnot( !is.null(arg_fn_train) & !is.null(arg_fn_eval) )
@@ -133,6 +148,10 @@ ff_fn_eval_cross_validation <- function( arg_fn_train = NULL, arg_fn_eval = NULL
 
 
 #' @rdname model_small_sample
+#' @param arg_fn_train Function to generate model on non-hold-out 
+#' folds (fn_train)
+#' @param arg_fn_eval Function for validation on hold-out fold (fn_eval)
+#' @param arg_n_boots Number of bootstrapped folds to use
 #' @export
 ff_fn_eval_bootstrap <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n_boots = 25L ) {
   stopifnot( !is.null(arg_fn_train) & !is.null(arg_fn_eval) )

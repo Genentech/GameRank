@@ -9,9 +9,9 @@
 #' @title Function to evaluate and add simple variable tranformations
 #' 
 #' @description This function adds some simple transformations, as described in 
-#' \link{following https://rcompanion.org/handbook/I_12.html}
-#' to a dataset for a set of given variables. However, variables are only added if they improve Normality as measured by an
-#' increase in Shapiro-Wilk W statistic.
+#' \link{https://rcompanion.org/handbook/I_12.html} to a dataset for a set of 
+#' given variables. However, variables are only added if they improve Normality 
+#' as measured by an increase in Shapiro-Wilk W statistic.
 #' 
 #' @param dat A data.frame or tibble with data for each variable in vars
 #' @param vars A character vector of variable names to process.
@@ -184,21 +184,28 @@ box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
 # Box-Cox transformation for binomial regression
 #' @title Box-Cox transform for binomial models
 #' 
-#' @description Determines Box-Cox transformed variables for a binary outcome modelling.
+#' @description Determines Box-Cox transformed variables for a binary 
+#' outcome modelling.
 #' 
 #' @param dat A data.frame or tibble comprising the data.
 #' @param resp A lhs term for the formula. Must be a binary variable (0/1-coded).
-#' @param vars Character vector of variables for which the Box-Cox transformation should be computed.
+#' @param vars Character vector of variables for which the Box-Cox 
+#' transformation should be computed.
 #' @param lambda Real numeric vector of lambda values to evaluate.
 #' 
 #' @return list with two elements
 #' \describe{
-#' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
-#' \item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the formula terms.}
+#' \item{data}{A dataset comprising additional columns with transformed 
+#' variables, if they improve Normality.}
+#' \item{transformations}{A list of lists with elements for variable, 
+#' transformed variable, the Box-Cox results, and the formula terms.}
 #' } 
 #' @examples 
-#' res <- box_cox_binomial( toy_data, "resp", c("the_squared","the_cubed","rnd01"), lambda = seq( -2, +2, 0.1 ) )
-#' res$transforms %>% map_dfr( function(ee) { ee[["boxcox_result"]] <- NULL; return( ee )}) 
+#' res <- box_cox_binomial( toy_data, "resp", 
+#'                          c("the_squared","the_cubed","rnd01"), 
+#'                          lambda = seq( -2, +2, 0.1 ) )
+#' res$transforms %>% 
+#'    map_dfr( function(ee) { ee[["boxcox_result"]] <- NULL; return( ee )}) 
 #' res$data[,purrr::map_chr( res$transforms, "new_var")]
 #' @export
 box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
@@ -353,23 +360,29 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
   return( ret )
 } # eval_aics (END)
 
-#' @title A function to evaluate continues variables for multi-modiality using Gaussian-Mixture Models
+#' @title A function to evaluate continues variables for multi-modiality using
+#' Gaussian-Mixture Models
 #' 
-#' @description The function receives a list of variables and first performs a Gaussian-Mixture Model (GMM)
-#' model selection using the Akaike Information Criterion (AIC) to determine the number of components.
-#' If this process indicates more than one componet, it determines cut-points between the individual 
-#' mixture distributions and generates a transformed categorical variable based on those.
+#' @description The function receives a list of variables and first performs a 
+#' Gaussian-Mixture Model (GMM) model selection using the Akaike Information 
+#' Criterion (AIC) to determine the number of components. If this process 
+#' indicates more than one componet, it determines cut-points between the 
+#' individual mixture distributions and generates a transformed categorical 
+#' variable based on those.
 #' 
 #' @param dat A data.frame or tibble
 #' @param resp A response term for the lhs of a formula
 #' @param vars A character vector of variables to screen
 #' @param n_comp Integer determining the maximum number of components to check
-#' @param m_fits Each GMM is fitted multiple times to avoid local minima. m_fits determines how many GMMs are generated each time.
-#' @param min_fits_converged Minimal number of GMMs that need to converge before considering their AIC for model selection.
+#' @param m_fits Each GMM is fitted multiple times to avoid local minima. m_fits 
+#' determines how many GMMs are generated each time.
+#' @param min_fits_converged Minimal number of GMMs that need to converge before 
+#' considering their AIC for model selection.
 #' 
 #' @return list with two elements
 #' \describe{
-#' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
+#' \item{data}{A dataset comprising additional columns with transformed 
+#' variables, if they improve Normality.}
 #' \item{transformations}{A list of check_aic results for each variable.}
 #' } 
 #' @examples 
@@ -383,7 +396,10 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
 #'   geom_histogram( bins = 100, alpha=0.5 ) +
 #'   geom_density( bw = "ucv" ) 
 #' 
-#' mumo <- check_multimodality( dat = toy_data, resp = resp, vars = c("the_multi","rnd01","rnd02"),n_comp = 3, m_fits = 25,  min_fits_converged = 20 )
+#' mumo <- check_multimodality( dat = toy_data, resp = resp, 
+#'                              vars = c("the_multi","rnd01","rnd02"),
+#'                              n_comp = 3, 
+#'                              m_fits = 25, min_fits_converged = 20 )
 #' 
 #' mumo$transforms$the_multi$aic_aggregate
 #' mumo$transforms$the_multi$best_model

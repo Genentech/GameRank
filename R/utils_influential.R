@@ -3,14 +3,17 @@
 #' @importFrom rlang .data
 
 #' @rdname utils_influential
+#' @param mod Model to obtain coefficients from via stats::coefficients
 #' @export
 fn_infl_coefficients <- function( mod, ... ) stats::coefficients(mod)
 
 #' @rdname utils_influential
+#' @param mod Model to obtain predictions from via predict(...)
 #' @export
 fn_predict_cox <- function( mod, dat, ... ) predict( mod, newdata = dat, type = "lp" )
 
 #' @rdname utils_influential
+#' @param mod Model to obtain predictions from via predict(...)
 #' @export
 fn_predict_glm <- function( mod, dat, ... ) predict( mod, newdata = dat, type = "response" )
 
@@ -30,6 +33,7 @@ fn_predict_glm <- function( mod, dat, ... ) predict( mod, newdata = dat, type = 
 #' an 1-row tibble of model parameters
 #' @param fn_predict Function with signature function( model, data ) that 
 #' returns an 1-column tibble of model predictions
+#' @param ... Further arguments passed to fn_train or fn_eval functions
 #' 
 #' @return Returns a tibble with columns for observation (row), evaluation 
 #' without observation i (ei), difference to full dataset, difference 

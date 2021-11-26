@@ -21,6 +21,27 @@ ff_fn_eval_bootstrap(
   arg_n_boots = 25L
 )
 }
+\arguments{
+\item{dat}{data.frame or tibble rows from the full dataseet provided to the
+wrapper that should be used for generating or evaluating models.}
+
+\item{resp}{Response variable being the lhs of the model formula}
+
+\item{selection}{Current selection for model generation or evaluation}
+
+\item{...}{Any other arguments passed to both types of functions,}
+
+\item{arg_fn_train}{Function to generate model on non-hold-out 
+folds (fn_train)}
+
+\item{arg_fn_eval}{Function for validation on hold-out fold (fn_eval)}
+
+\item{arg_n_folds}{Number of cross-validation folds to use}
+
+\item{arg_n_boots}{Number of bootstrapped folds to use}
+
+\item{mod}{For evaluation functions the model to be evaluated on dat}
+}
 \value{
 fn_train_... functions return a fitted model object or NULL if that
 fails. fn_eval_... functions return a numeric real value measuring the 
@@ -62,7 +83,8 @@ resp <- "resp"
 ipos <- which(  toy_data$resp )
 ineg <- which( !toy_data$resp )
 smtoy <- rbind( 
-  toy_data[ ipos[1:25],], # draw 50 random observations from each response category
+  # draw 50 random observations from each response category
+  toy_data[ ipos[1:25],], 
   toy_data[ ineg[1:25],]
 )
 smtoy
@@ -70,12 +92,16 @@ smtoy
 # ff_fn_eval_bootstrap and ff_fn_eval_cross_validation are function factories
 # that return a created function which makes use of the supplied fn_train and
 # fn_eval function during bootstrap or cross-validation.
-fn_bt_eval_binomial_auroc <- ff_fn_eval_bootstrap( fn_train_binomial, fn_eval_binomial_auroc, 25L )
+fn_bt_eval_binomial_auroc <- ff_fn_eval_bootstrap( fn_train_binomial, 
+                                                   fn_eval_binomial_auroc, 
+                                                   25L )
 
 # For small sample sizes, the GameRank index vector dsi needs to be set 
 # to c(2L,2L) such that all observations are used for validation. Similarly, 
 # the training:validation split matrix then also completely consists of 2s.
-res <- game_rank( smtoy, resp, vars, fn_train_dummy, fn_bt_eval_binomial_auroc, 4L, c(2L,2L), TRUE, 3L, 5L, 3L )
+res <- game_rank( smtoy, resp, vars, 
+                  fn_train_dummy, fn_bt_eval_binomial_auroc, 
+                  4L, c(2L,2L), TRUE, 3L, 5L, 3L )
 res$game_rank_selection
 res$variable_ranking
 

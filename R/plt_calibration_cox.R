@@ -9,7 +9,7 @@ tbl_predictions_cox <- function( dat, resp, selection, mod, u, ... ) {
     mf <- dat
     mf$prd <- as.numeric( 1 - pec::predictSurvProb( mod, newdata = dat, times = u, ... ) )
     mf$cll.prd <- log( -log(1-mf$prd) ) 
-    cal.cox <- coxph( stats::formula( sprintf( "%s ~ rms::rcs(cll.prd,3)", resp )), data = mf, x=TRUE )
+    cal.cox <- survival::coxph( stats::formula( sprintf( "%s ~ rms::rcs(cll.prd,3)", resp )), data = mf, x=TRUE )
     # cal.cox <- coxph( formula( sprintf( "%s ~ rms::lsp(cll.prd,3)", resp )), data = bind_cols( dat, tibble( cll.prd = cll.prd )), x=TRUE )
     # grd.cox <- seq( quantile( mf$prd, probs = 0.01, na.rm=TRUE ), 
     #                 quantile( mf$prd, probs = 0.99, na.rm=TRUE ), 
@@ -50,5 +50,5 @@ gplot_km_cox <- function( dat, resp, selection, mod, u, cutpoint = NULL, ... ) {
   plt$cut <- factor( cut( plt$prd, breaks = c(-Inf,cutpoint,+Inf), labels = c("Low","High"), include.lowest = TRUE  ) )
   fo <- stats::formula( sprintf( "%s ~ cut", resp ) )
   fit <- survminer::surv_fit( fo, plt )
-  ggsurvplot( fit, plt, conf.int = TRUE, risk.table = TRUE )
+  fit <- survminer::ggsurvplot( fit, plt, conf.int = TRUE, risk.table = TRUE )
 }

@@ -2,9 +2,12 @@
 # Bidirectional Search wrapper algorithm
 #
 
-#' @import tibble dplyr formula.tools
+
+#' @import tibble dplyr 
+#' @importFrom formula.tools lhs.vars rhs.vars
 #' @importFrom rlang .data
-#' 
+
+
 #' @title Bidirectional search algorithm
 #' 
 #' @description Performs forward and backward selection steps per iteration to converge to
@@ -188,8 +191,8 @@ bidirectional.formula <- function( fo, dat,
   stopifnot( is.function(fn_train) )
   stopifnot( is.function(fn_eval) )
   
-  resp <- as.character(lhs.vars( fo ) )
-  vars <- as.character(rhs.vars( fo ) )
+  resp <- as.character(formula.tools::lhs.vars( fo ) )
+  vars <- as.character(formula.tools::rhs.vars( fo ) )
   
   bidirectional( dat = dat,
                  resp = resp, 

@@ -25,19 +25,19 @@ render_std_template(
   ...
 )
 
-render_backward_summary(bwd, output_dir = NULL, output_file = NULL)
+render_backward_summary(obj, output_dir = NULL, output_file = NULL)
 
-render_forward_summary(fwd, output_dir = NULL, output_file = NULL)
+render_forward_summary(obj, output_dir = NULL, output_file = NULL)
 
-render_bidirectional_summary(bds, output_dir = NULL, output_file = NULL)
+render_bidirectional_summary(obj, output_dir = NULL, output_file = NULL)
 
-render_lrsearch_summary(lrs, output_dir = NULL, output_file = NULL)
+render_lrsearch_summary(obj, output_dir = NULL, output_file = NULL)
 
-render_random_summary(rnd, output_dir = NULL, output_file = NULL)
+render_random_summary(obj, output_dir = NULL, output_file = NULL)
 
-render_game_rank_summary(gmr, output_dir = NULL, output_file = NULL)
+render_game_rank_summary(obj, output_dir = NULL, output_file = NULL)
 
-render_variable_checks_summary(vck, output_dir = NULL, output_file = NULL)
+render_variable_checks_summary(obj, output_dir = NULL, output_file = NULL)
 
 render_model_calibration_normal(
   ds,
@@ -70,7 +70,7 @@ render_model_calibration_cox(
   output_file = NULL
 )
 
-render_influence_summary(tinf, output_dir = NULL, output_file = NULL)
+render_influence_summary(obj, output_dir = NULL, output_file = NULL)
 }
 \arguments{
 \item{template_name}{File name of the standard template}
@@ -87,6 +87,20 @@ If not NULL, it is appended to output_dir}
 
 \item{obj}{Algorithm results output from forward, backward and other 
 selection methods}
+
+\item{dat}{data.frame or tibble rows from the full dataseet provided to the
+wrapper that should be used for generating or evaluating models.}
+
+\item{resp}{Response variable being the lhs of the model formula}
+
+\item{selection}{Current selection for model generation or evaluation}
+
+\item{k}{Column from ds to use for split into training:validation:test via
+1s, 2s and 3s.}
+
+\item{u}{Landmark time point at which the survival probability is evaluated}
+
+\item{mod}{For evaluation functions the model to be evaluated on dat}
 }
 \value{
 render_... functions don't have return values. They generated the 

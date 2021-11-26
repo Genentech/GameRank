@@ -2,7 +2,8 @@
 # Sequential Backward Selection algorithm
 #
 
-#' @import tibble dplyr formula.tools
+#' @import tibble dplyr 
+#' @importFrom formula.tools lhs.vars rhs.vars
 
 #' @title Sequential Backward Selection algorithm
 #' 
@@ -167,8 +168,8 @@ backward.formula <- function( fo, dat,
   stopifnot( is.function(fn_train) )
   stopifnot( is.function(fn_eval) )
   
-  resp <- as.character(lhs.vars( fo ) )
-  vars <- as.character(rhs.vars( fo ) )
+  resp <- as.character(formula.tools::lhs.vars( fo ) )
+  vars <- as.character(formula.tools::rhs.vars( fo ) )
   
   backward( dat = dat,
             resp = resp, 

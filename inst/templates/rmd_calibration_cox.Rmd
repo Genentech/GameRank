@@ -13,7 +13,6 @@ params:
 stopifnot( is.matrix(params$ds) & nrow(params$ds)==nrow(params$dat) )
 
 options(width=80)
-devtools::load_all("~/GameRank")
 
 theme_set(theme_minimal() +
           theme(strip.background = element_rect(color = 'black',

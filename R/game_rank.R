@@ -7,6 +7,8 @@
 # individuals by group comparisons.
 #
 
+#' @import tibble dplyr 
+#' @importFrom formula.tools lhs.vars rhs.vars
 #' @import numDeriv
 #' @importFrom rlang .data
 
@@ -372,8 +374,8 @@ game_rank.formula <- function( fo, dat,
   stopifnot( is.function(fn_train) )
   stopifnot( is.function(fn_eval) )
   
-  resp <- as.character(lhs.vars( fo ) )
-  vars <- as.character(rhs.vars( fo ) )
+  resp <- as.character(formula.tools::lhs.vars( fo ) )
+  vars <- as.character(formula.tools::rhs.vars( fo ) )
   
   game_rank( dat = dat,
              resp = resp,

@@ -58,6 +58,16 @@ wrapper that should be used for generating or evaluating models.}
 e.g. 'u = 365' to define the landmark day for survival probability evaluation.}
 
 \item{mod}{For evaluation functions the model to be evaluated on dat}
+
+\item{u}{Landmark time point at which the survival probability is evaluated}
+
+\item{lda_fit_type}{Type parameter for MASS::lda function, which model to fit}
+
+\item{lda_pred_type}{Prediction method parameter for MASS::predict.lda}
+
+\item{qda_fit_type}{Type parameter for MASS::qda function, which model to fit}
+
+\item{qda_pred_type}{Prediction method parameter for MASS::predict.qda}
 }
 \value{
 fn_train_... functions return a fitted model object or NULL if that 

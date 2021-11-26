@@ -66,7 +66,7 @@ fn_eval_normal <- function( dat, resp, selection, mod, ... ) {
   if( is.null(mod) ) return( NA )
   ret <- NA
   ret <- tryCatch({
-    tibble( y = dat %>% pull( resp ), 
+    tibble::tibble( y = dat %>% pull( resp ), 
             yhat = as.numeric( predict(mod, newdata=dat, type="response" ) ) ) %>%
       mutate( sq = (.data$yhat - .data$y)^2 ) %>%
       pull( .data$sq ) %>%
@@ -93,7 +93,7 @@ fn_eval_binomial <- function( dat, resp, selection, mod, ... ) {
   if( is.null(mod) ) return( NA )
   ret <- NA
   ret <- tryCatch({
-    tibble( y = dat %>% pull( resp ), 
+    tibble::tibble( y = dat %>% pull( resp ), 
             yhat = as.numeric( predict(mod, newdata=dat, type="response" ) ) ) %>%
       mutate( di = abs( .data$y - .data$yhat ) ) %>% 
       pull( .data$di ) %>%
@@ -125,7 +125,7 @@ fn_train_cox <- function( dat, resp, selection, ... ) {
   mod <- NULL
   mod <- tryCatch({
     fo <- stats::formula( sprintf( "%s ~ %s", resp, paste( selection, collapse = " + " ) ) )
-    mod <- coxph( formula = fo, data = dat, x=TRUE, y=TRUE )
+    mod <- survival::coxph( formula = fo, data = dat, x=TRUE, y=TRUE )
   }, error = function(e) NULL )
   return( mod )
 }
@@ -135,6 +135,7 @@ fn_train_cox <- function( dat, resp, selection, ... ) {
 # calibration index (ICI) for survival models, Statistics in Medicine, 2020
 #
 #' @rdname model_functions
+#' @param u Landmark time point at which the survival probability is evaluated
 #' @export
 fn_eval_cox <- function( dat, resp, selection, mod, u = NULL, ... ) {
   if( is.null(mod) ) return( NA )
@@ -144,7 +145,7 @@ fn_eval_cox <- function( dat, resp, selection, mod, u = NULL, ... ) {
     mod$coefficients[which(is.na(mod$coefficients))] <- 0
     prd <- 1 - pec::predictSurvProb( mod, newdata = dat, times = u, ... )
     cll.prd <- log( -log(1-prd) ) 
-    cal.cox <- coxph( stats::formula( sprintf( "%s ~ rms::rcs(cll.prd,3)", resp )), data = bind_cols( dat, tibble( cll.prd = cll.prd )), x=TRUE )
+    cal.cox <- survival::coxph( stats::formula( sprintf( "%s ~ rms::rcs(cll.prd,3)", resp )), data = bind_cols( dat, tibble::tibble( cll.prd = cll.prd )), x=TRUE )
     # cal.cox <- coxph( formula( sprintf( "%s ~ rms::lsp(cll.prd,3)", resp )), data = bind_cols( dat, tibble( cll.prd = cll.prd )), x=TRUE )
     grd.cox <- seq( stats::quantile( prd, probs = 0.01, na.rm=TRUE ), 
                     stats::quantile( prd, probs = 0.99, na.rm=TRUE ), 
@@ -159,6 +160,7 @@ fn_eval_cox <- function( dat, resp, selection, mod, u = NULL, ... ) {
 
 # Linear Discriminant Analysis ----
 #' @rdname model_functions
+#' @param lda_fit_type Type parameter for MASS::lda function, which model to fit
 #' @export
 fn_train_lda <- function( dat, resp, selection, lda_fit_type = "mle", ... ) {
   mod <- NULL
@@ -170,12 +172,13 @@ fn_train_lda <- function( dat, resp, selection, lda_fit_type = "mle", ... ) {
 }
 
 #' @rdname model_functions
+#' @param lda_pred_type Prediction method parameter for MASS::predict.lda
 #' @export
 fn_eval_lda <- function( dat, resp, selection, mod, lda_pred_type = "plug-in", ... ) {
   if( is.null(mod) ) return( NA )
   ret <- NA
   ret <- tryCatch({
-    tibble( y = dat %>% pull( resp ) %>% as.character, 
+    tibble::tibble( y = dat %>% pull( resp ) %>% as.character, 
             yhat = as.character( predict(mod, newdata=dat, method = lda_pred_type, ... )$class ) ) %>%
       mutate( di = abs( .data$y == .data$yhat ) ) %>% 
       pull( .data$di ) %>%
@@ -186,6 +189,7 @@ fn_eval_lda <- function( dat, resp, selection, mod, lda_pred_type = "plug-in", .
 
 # Quadratic Discriminant Analysis ----
 #' @rdname model_functions
+#' @param qda_fit_type Type parameter for MASS::qda function, which model to fit
 #' @export
 fn_train_qda <- function( dat, resp, selection, qda_fit_type = "mle", ... ) {
   mod <- NULL
@@ -197,12 +201,13 @@ fn_train_qda <- function( dat, resp, selection, qda_fit_type = "mle", ... ) {
 }
 
 #' @rdname model_functions
+#' @param qda_pred_type Prediction method parameter for MASS::predict.qda
 #' @export
 fn_eval_qda <- function( dat, resp, selection, mod, qda_pred_type = "plug-in", ... ) {
   if( is.null(mod) ) return( NA )
   ret <- NA
   ret <- tryCatch({
-    tibble( y = dat %>% pull( resp ) %>% as.character, 
+    tibble::tibble( y = dat %>% pull( resp ) %>% as.character, 
             yhat = as.character( predict(mod, newdata=dat, method = qda_pred_type, ... )$class ) ) %>%
       mutate( di = abs( .data$y == .data$yhat ) ) %>% 
       pull( .data$di ) %>%
