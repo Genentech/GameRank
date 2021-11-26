@@ -10,7 +10,6 @@
 #' wrapper that should be used for generating or evaluating models.
 #' @param resp Response variable being the lhs of the model formula
 #' @param selection Current selection for model generation or evaluation
-#' @param mod For evaluation functions the model to be evaluated on dat
 #' 
 #' @return render_... functions don't have return values. They generated the 
 #' required output documents.

@@ -110,8 +110,6 @@ wrapper that should be used for generating or evaluating models.}
 1s, 2s and 3s.}
 
 \item{u}{Landmark time point at which the survival probability is evaluated}
-
-\item{mod}{For evaluation functions the model to be evaluated on dat}
 }
 \value{
 render_... functions don't have return values. They generated the 
