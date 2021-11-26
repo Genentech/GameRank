@@ -37,6 +37,7 @@ LazyData: true
 VignetteBuilder: knitr
 VignetteEngine: knitr::rmarkdown
 RoxygenNote: 7.1.1
+Encoding: UTF-8
 biocViews: 
   Software,
   StatisticalMethod,
