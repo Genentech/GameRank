@@ -28,6 +28,8 @@ influential_observations(
 \arguments{
 \item{mod}{Model to obtain predictions from via predict(...)}
 
+\item{...}{Further arguments passed to fn_train or fn_eval functions}
+
 \item{dat}{data.frame or tibble comprising data for model generation and 
 validation.}
 

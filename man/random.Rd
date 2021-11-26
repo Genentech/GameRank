@@ -104,7 +104,9 @@ The random search algorithm runs as follows:
 \examples{
 vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
 resp <- "resp"
-res <- random_selection( toy_data, resp, vars, fn_train_binomial, fn_eval_binomial_auroc, 4L, 1L, TRUE )
+res <- random_selection( toy_data, resp, vars, 
+                         fn_train_binomial, fn_eval_binomial_auroc, 
+                         4L, 1L, TRUE )
 res$variable_selections
 res$agg_results \%>\% filter( opt ) \%>\% arrange( desc(mean_validation) )
 

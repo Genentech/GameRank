@@ -83,10 +83,21 @@ parameter definitions of the Rmd template.}
 \item{output_file}{Output filename (with or without suffix). Default NULL. 
 If not NULL, it is appended to output_dir}
 
+\item{envir}{Environment passed to rmarkdown::render containing R objects
+for the Rmd file.}
+
 \item{...}{Further parameters passed to rmarkdown::render(...) function.}
 
 \item{obj}{Algorithm results output from forward, backward and other 
 selection methods}
+
+\item{ds}{Definition of (parallel) training:validation splits
+- a matrix with d columns containing 1s and 2s, where 1 denotes sample is 
+  used for training the model and 2 denotes sample used for validation.
+  The average of all d training:validation results is used for selection.
+- an integer number determining the number of random training:validation 
+  splits that should be generated. The sampling will ensure a sufficient 
+  number of complete cases in the training split.}
 
 \item{dat}{data.frame or tibble rows from the full dataseet provided to the
 wrapper that should be used for generating or evaluating models.}

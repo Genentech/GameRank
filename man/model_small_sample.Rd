@@ -39,8 +39,6 @@ folds (fn_train)}
 \item{arg_n_folds}{Number of cross-validation folds to use}
 
 \item{arg_n_boots}{Number of bootstrapped folds to use}
-
-\item{mod}{For evaluation functions the model to be evaluated on dat}
 }
 \value{
 fn_train_... functions return a fitted model object or NULL if that
