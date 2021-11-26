@@ -2,7 +2,8 @@
 # Forward Selection wrapper algorithm
 #
 
-#' @import tibble dplyr formula.tools
+#' @import tibble dplyr 
+#' @importFrom formula.tools lhs.vars rhs.vars
 
 #' @title Sequential Forward Selection algorithm
 #' 
@@ -172,8 +173,8 @@ forward.formula <- function( fo, dat,
   stopifnot( is.function(fn_train) )
   stopifnot( is.function(fn_eval) )
   
-  resp <- as.character(lhs.vars( fo ) )
-  vars <- as.character(rhs.vars( fo ) )
+  resp <- as.character(formula.tools::lhs.vars( fo ) )
+  vars <- as.character(formula.tools::rhs.vars( fo ) )
   
   forward(  dat = dat,
             resp = resp, 
