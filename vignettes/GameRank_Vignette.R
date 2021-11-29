@@ -19,44 +19,48 @@ library( ggplot2 )
 devtools::load_all("~/GameRank/")
 
 #' # Introduction
-#' This vignette describes how to perform wrapper-based feature selection using the GameRank package.
-#' In feature selection scenario the likely following individual steps will be performed
 #' 
-#' 1. Feature screening - Evaluating how much information each feature contains about the outcome
+#' This vignette describes how to perform wrapper-based feature selection using the GameRank package.
+#' In a feature selection scenario likely the following individual steps will be performed:
+#' 
+#' 1. Feature screening - Evaluating missing data, outliers and how much information each feature contains about the outcome
 #' 2. Feature construction - If the data doesn't comprise good features, try to construct better ones
-#' 3. Feature selection - Apply variable selection methods to determine best combination, here: we'll use wrappers
+#' 3. Feature selection - Apply variable selection methods to determine best combination, here: we'll use wrapper algorithms
 #' 4. Model evaluation - Check performance of final model on hold-out data
 #' 5. Model exploitation - Using the model [not discussed here]
 #' 
-#' Within this vignette, we'll use the following toy dataset
+#' Within this vignette, we'll use the following toy dataset:
 summary( toy_data )
 vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
 resp <- "resp"
 
 #' # 1. Feature screening
 #' 
-#' Let's start with variable screening. This is to check for missing data,
-#' outliers and evaluate how much information the variables bear about the response variable.
+#' Let's start with variable screening. The goal is to check for missing data,
+#' outliers and evaluate how much information each variable bears about the response variable.
 #'
 #' GameRank provides a one-stop function for that: check_variables function.
 #' 
 vck <- check_variables( toy_data, resp, vars )
 vck %>% summary
-vck %>% filter( !is_response ) %>% arrange( desc(entropy) )
+vck %>% 
+  filter( !is_response ) %>% 
+  arrange( desc(entropy) )
 
 #' A look into the variable entropy and mutual information with respect to the response is a good idea to
-#' identify variables that are constant or bear low information 
+#' identify variables that are constant or contain low information 
 #+ fig.width=7
 vck %>% 
   mutate( flg = grepl( "the_", variable )) %>%
   ggplot(aes(x=entropy, y=mutual_information, color=flg ) ) +
   geom_point()
-vck %>% arrange( desc(mutual_information), desc(entropy) )
+vck %>% 
+  arrange( desc(mutual_information), desc(entropy) )
 
 
 #' Sometimes variable distributions may be multi-modal. GameRank provides a function for this task: check_multimodality.
 #' 
-#' GameRank determines multi-modal variables as follows: Let k be the number of mixture components ranging from 1 to k. The algorithm
+#' GameRank determines multi-modal variables as follows: Let k be the number of mixture components ranging from 1 to kmax. The algorithm
 #' fits first m_fits GMM models with k components using flexmix. Only models that converge are retained. For each k the minimum AIC
 #' is determined together with the number of converging models. All k with less than min_fits_converged models are removed. The
 #' k for which the minimum AIC is attained is then chosen. In case of ties for this AIC the minimum number of components are chosen.

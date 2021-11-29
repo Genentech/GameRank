@@ -25,7 +25,7 @@ the_data <- list(
                     0.00,  0.00,  0.00,  0.00,  0.00,  0.02
                    ), 
                nrow = 6, ncol = 6, byrow = TRUE ),
-  cof =          c(  1.0,  1.0,  1.0,  1.0,  1.0,  1.0 ),
+  cof =          c(  2.0, -2.0,  2.0, -2.0,  2.0,  2.0 ),
   mimu = c(0.2,0.7),
   mita = 1.0/c(0.01,0.02),
   mipi = c(0.6,0.4)
@@ -153,9 +153,29 @@ dat %>% head
 random::randomQuota()               
 # random::randomNumbers()
 
+devtools::load_all("~/GameRank/")
+vck <- check_variables( dat, "reg", grep( "the_|rnd", colnames(dat), value=TRUE ) )
+vck %>% filter( !is_response ) %>% arrange( desc(mutual_information), desc(entropy) ) %>% pull( variable )
+
+fwd <- forward( dat, "resp", vck %>% filter( !is_response ) %>% arrange( desc(mutual_information), desc(entropy) ) %>% pull( variable ), 
+                fn_train_binomial, fn_eval_binomial_auroc, 6L, 3L, TRUE )
+fwd <- bidirectional( dat, "resp", vck %>% filter( !is_response ) %>% arrange( desc(mutual_information), desc(entropy) ) %>% pull( variable ), 
+                fn_train_binomial, fn_eval_binomial_auroc, 6L, 3L, TRUE )
+fwd$variable_selections
+fwd$agg_results %>% arrange(desc(mean_validation) )
+
+toy_data %>%
+  dplyr::select( all_of( setdiff( c("reg", vck$variable ), c("the_multi_grp" ) )) ) %>%
+  tidyr::pivot_longer( cols = setdiff( c(vck$variable ), c("reg","the_multi_grp" ) ), names_to = "var", values_to = "value" ) %>%
+  mutate( flg = grepl( "the_", var ) ) %>%
+  ggplot( aes( x=reg, y=value, group=var, color=var ) ) + 
+  facet_grid( . ~ flg ) + 
+  geom_point() +
+  geom_smooth( method = "lm" )
+
 toy_data <- dat
 save( toy_data, file = file_tdata  )
-save( toy_data, file = file_data  )
+# save( toy_data, file = file_data  )
 
 # https://docs.google.com/presentation/d/1bc5ktbty1BOLV6J_Z4P-_WlW6aaQ1xE7hHGKq0pYPPA/edit#slide=id.g6ffbf95dbd_0_111
 # https://www.nature.com/articles/s41586-021-03430-5
