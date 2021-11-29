@@ -124,7 +124,7 @@ rr <- rep_len( c(1L,2L,3L), length.out = nrow(toy_data) )
 rr <- rr[ order( runif( length(rr) )  )]
 df_test <- toy_data[which(3==rr),]
 df_sel  <- toy_data[which(rr %in% c(1L,2L)),]
-ds <- prepare_splits( ds = 1L, dat = df_sel, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc )
+ds <- prepare_splits( ds = 3L, dat = df_sel, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc )
 
 #' Wrapper selection algorithms are slow combinatorial searches that are not guaranteed to find more than a local optimum. Their performance also
 #' depends - in some cases - on the ordering of input variables. Therefore it is a good idea to rerun each algorithm with varying ordering of features
@@ -148,7 +148,7 @@ bds$agg_results %>% arrange( desc(mean_validation) ) %>% filter( opt )
 #' bootstrap or cross-validation (see small sample example code for details). 
 #' 
 gmr <- game_rank( dat = df_sel, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc, m = 6L, dsi = c(1L,2L), maximize = TRUE, 
-                  team_size = 3L, rounds = 10L, min_matches_per_var = 5L )
+                  team_size = 4L, rounds = 10L, min_matches_per_var = 7L )
 gmr$variable_ranking %>% as.data.frame
 gmr$game_rank_selection
 

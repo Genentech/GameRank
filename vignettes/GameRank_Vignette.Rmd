@@ -19,7 +19,7 @@ devtools::load_all("~/GameRank/")
 
 # Introduction
 
-This vignette describes how to perform wrapper-based feature selection using the \pkg{GameRank} package.
+This vignette describes how to perform wrapper-based feature selection using the GameRank package.
 In a feature selection scenario likely the following individual steps will be performed:
 
 1. Feature screening - Evaluating missing data, outliers and how much information each feature contains about the outcome
@@ -41,7 +41,7 @@ resp <- "resp"
 Let's start with variable screening. The goal is to check for missing data,
 outliers and evaluate how much information each variable bears about the response variable.
 
-\pkg{GameRank} provides a one-stop function for that: \code{check_variables} function.
+GameRank provides a one-stop function for that: check_variables function.
 
 
 ```{r }
@@ -64,10 +64,10 @@ vck %>%
   arrange( desc(mutual_information), desc(entropy) )
 ```
 
-Sometimes variable distributions may be multi-modal. \pkg{GameRank} provides a function for this task: \code{check_multimodality}.
+Sometimes variable distributions may be multi-modal. GameRank provides a function for this task: check_multimodality.
 
-\pkg{GameRank} determines multi-modal variables as follows: Let \eqn{k} be the number of mixture components ranging from 1 to \eqn{kmax}. The algorithm
-fits first \code{m_fits} GMM models with k components using \pgk{flexmix}. Only models that converge are retained. For each k the minimum AIC
+GameRank determines multi-modal variables as follows: Let k be the number of mixture components ranging from 1 to kmax. The algorithm
+fits first m_fits GMM models with k components using flexmix. Only models that converge are retained. For each k the minimum AIC
 is determined together with the number of converging models. All k with less than min_fits_converged models are removed. The
 k for which the minimum AIC is attained is then chosen. In case of ties for this AIC the minimum number of components are chosen.
 The first model obtaining these k and AIC is then used to determine cut-points if it has more than one component.
@@ -142,7 +142,7 @@ rr <- rep_len( c(1L,2L,3L), length.out = nrow(toy_data) )
 rr <- rr[ order( runif( length(rr) )  )]
 df_test <- toy_data[which(3==rr),]
 df_sel  <- toy_data[which(rr %in% c(1L,2L)),]
-ds <- prepare_splits( ds = 1L, dat = df_sel, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc )
+ds <- prepare_splits( ds = 3L, dat = df_sel, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc )
 ```
 
 Wrapper selection algorithms are slow combinatorial searches that are not guaranteed to find more than a local optimum. Their performance also
@@ -175,7 +175,7 @@ bootstrap or cross-validation (see small sample example code for details).
 
 ```{r }
 gmr <- game_rank( dat = df_sel, resp = resp, vars = vars, fn_train = fn_train_binomial, fn_eval = fn_eval_binomial_auroc, m = 6L, dsi = c(1L,2L), maximize = TRUE, 
-                  team_size = 3L, rounds = 10L, min_matches_per_var = 5L )
+                  team_size = 4L, rounds = 10L, min_matches_per_var = 7L )
 gmr$variable_ranking %>% as.data.frame
 gmr$game_rank_selection
 ```

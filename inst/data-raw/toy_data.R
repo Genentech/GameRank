@@ -25,7 +25,7 @@ the_data <- list(
                     0.00,  0.00,  0.00,  0.00,  0.00,  0.02
                    ), 
                nrow = 6, ncol = 6, byrow = TRUE ),
-  cof =          c(  2.0, -2.0,  2.0, -2.0,  2.0,  2.0 ),
+  cof =          c(  2.0, -2.0,  2.0, -2.0,  2.0,  1.0 ),
   mimu = c(0.2,0.7),
   mita = 1.0/c(0.01,0.02),
   mipi = c(0.6,0.4)
@@ -154,15 +154,30 @@ random::randomQuota()
 # random::randomNumbers()
 
 devtools::load_all("~/GameRank/")
-vck <- check_variables( dat, "reg", grep( "the_|rnd", colnames(dat), value=TRUE ) )
+
+toy_data <- dat
+dat <- dat %>%
+  mutate( the_cubed_cbrt = (the_cubed)^(1/3),
+          the_squared_sqrt = sqrt(the_squared),
+          the_power_trns = (the_power)^(1/5),
+          the_exped_log = log(the_exped) )
+vv <- grep( "the_|rnd", colnames(dat), value=TRUE )
+vck <- check_variables( dat, "reg", vv )
+vck %>% mutate( flg = grepl( "the_", variable ) ) %>% ggplot( aes(x=entropy, y=mutual_information, color=flg)) + geom_point()
 vck %>% filter( !is_response ) %>% arrange( desc(mutual_information), desc(entropy) ) %>% pull( variable )
 
-fwd <- forward( dat, "resp", vck %>% filter( !is_response ) %>% arrange( desc(mutual_information), desc(entropy) ) %>% pull( variable ), 
+fwd <- forward( dat, "resp", vv, 
                 fn_train_binomial, fn_eval_binomial_auroc, 6L, 3L, TRUE )
 fwd <- bidirectional( dat, "resp", vck %>% filter( !is_response ) %>% arrange( desc(mutual_information), desc(entropy) ) %>% pull( variable ), 
                 fn_train_binomial, fn_eval_binomial_auroc, 6L, 3L, TRUE )
 fwd$variable_selections
 fwd$agg_results %>% arrange(desc(mean_validation) )
+
+gmr <- game_rank( dat, "resp", vck %>% filter( !is_response ) %>% arrange( desc(mutual_information), desc(entropy) ) %>% pull( variable ), 
+                  fn_train_binomial, fn_eval_binomial_auroc, 6L, c(1L,2L), TRUE, 
+                  4L, 25L, 7L )
+gmr$variable_ranking %>% arrange(desc(vs) )
+gmr$game_rank_selection
 
 toy_data %>%
   dplyr::select( all_of( setdiff( c("reg", vck$variable ), c("the_multi_grp" ) )) ) %>%
@@ -173,7 +188,6 @@ toy_data %>%
   geom_point() +
   geom_smooth( method = "lm" )
 
-toy_data <- dat
 save( toy_data, file = file_tdata  )
 # save( toy_data, file = file_data  )
 
