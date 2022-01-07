@@ -91,6 +91,7 @@ forward <- function(  dat, resp, vars,
   # Obtain evaluation splits, if necessary
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
 
+  message( sprintf("forward: Starting forward selection algorithm for %d observations with %d features (m=%d, maximize=%d).", nrow(dat), length(vars), m, maximize ))
   start_time <- Sys.time()
   # Sequential Forward Selection algorithm:
   # 1) Start with the empty set Y0 = {}
@@ -121,10 +122,10 @@ forward <- function(  dat, resp, vars,
         bs <- best_vars[['best_selections']]
         if( 0==length(bs) ) bs <- list( as.character( union( Y, utils::head( setdiff(vars,Y),1 ) ) ) )
         queue <- append( queue, bs )
-        cat( sprintf("No of partitions %d in search queue \n", length( queue ) ) )
+        message( sprintf("No of partitions %d in search queue.", length( queue ) ) )
       }
     }
-    cat( sprintf( "Finished iteration %d \n", k ) )
+    message( sprintf( "Finished iteration %d.", k ) )
     k <- k + 1
   } # while
   end_time <- Sys.time()

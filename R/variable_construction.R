@@ -38,13 +38,13 @@ simple_transforms <- function( dat, vars,
                                )
 {
   stopifnot( is.data.frame(dat) | tibble::is_tibble(dat) )
-  cat( "Adding simple transformed variables if they are better by Shapiro-Wilk statistic W (larger is better) \n")
+  message( sprintf( "simple_transforms: Adding standard transformed for %d variables if they are better by Shapiro-Wilk statistic W (larger is better)", length(c(resp,vars)) ) )
   ret <- dat
   lst <- list()
   for( var in vars ) {
     if( is.numeric(dat[[var]]) & 3 < length(stats::na.omit(dat[[var]])) ) {
       w <- stats::shapiro.test( x = as.numeric(dat[[var]]) )$statistic
-      cat( sprintf( "Evaluating %s with W = %1.4f \n", var, w ))
+      message( sprintf( "Evaluating %s with W = %1.4f.", var, w ))
       labelled::var_label(ret[,var]) <- sprintf( "original variable: identity (W=%1.4f)", w )
       lst[[length(lst)+1]] <- list( variable = var, transformed_var = "", term = sprintf( "( %s )", var ), W = w, transform = "identity" )
       
@@ -129,6 +129,7 @@ simple_transforms <- function( dat, vars,
 #' @export
 box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   stopifnot( is.numeric( dat[[resp]] ) )
+  message( sprintf( "box_cox_regression: Generating Box-Cox transformations for %d.", length( c(resp,vars) ) ) )
   trans <- list()
   mod <- dat
   for( var in vars ) {
@@ -210,6 +211,7 @@ box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
 #' @export
 box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   stopifnot( is.logical( dat[[resp]] )  )
+  message( sprintf( "box_cox_binomial: Generating Box-Cox transformations for %d variables \n", length( c(resp,vars) ) ) )
   # Helper function for probability of observing a
   ll_binomial <- Vectorize( function( x, beta, lambda ) {
     ifelse( 0==lambda,
@@ -320,7 +322,7 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
                aic_tab = tab, aic_aggregate = agg, min_k = kmin, best_model = momin, cut_points = NULL )
   
   if( 1 < kmin ) {
-    cat( sprintf( "Variable %s is multi-modal with %d Normal components. Determining cut-points. \n", var, kmin ) )
+    message( sprintf( "Variable %s is multi-modal with %d Normal components. Determining cut-points.", var, kmin ) )
     prm <- flexmix::parameters(momin)
     ood <- order(prm["coef.(Intercept)",])
     prio <- momin@prior[ood]
@@ -407,12 +409,12 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
 #' prior(mumo$transforms$the_multi$best_model)
 #' @export
 check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_fits_converged = 24 ) {
-
+  message( sprintf( "check_mulitmodality: Checking mulit-modality for %d variables (k<=%d, fits=%d, convgd fits=%d).", length(c(resp,vars)), n_comp, m_fits, min_fits_converged ) )
   ret <- list()
   # Check response, if numeric, if it is bimodal
   mod <- dat
   if( ! is.null(resp) && is.numeric( dat[[resp]] ) ) {
-    cat( sprintf( "Processing response %s \n", resp ))
+    message( sprintf( "Processing response %s.", resp ))
     evl <- eval_aics( dat, resp, n_comp = n_comp, m_fits = m_fits, min_fits_converged = min_fits_converged )
     if( !is.null(evl$cut_points) ) {
       nvar <- sprintf( "%s_resp_grp", resp )
@@ -428,7 +430,7 @@ check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_f
   # Check all numeric variables if they are bimodal
   for( var in vars ) {
     if( is.numeric(dat[[var]]) ) {
-      cat( sprintf( "Processing %s \n", var ))
+      message( sprintf( "Processing %s.", var ))
       evl <- eval_aics( dat, var, n_comp = n_comp, m_fits = m_fits, min_fits_converged = min_fits_converged )
       if( !is.null(evl$cut_points) ) {
         nvar <- sprintf( "%s_grp", var )

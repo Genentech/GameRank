@@ -177,6 +177,8 @@ game_rank <- function( dat,
   stopifnot( is.integer(max_iter) )
   stopifnot( is.logical(maximize) )
   
+  message( sprintf("game_rank: Starting GameRank selection algorithm for %d observations with %d features (m=%d, maximize=%d).", nrow(dat), length(vars), m, maximize ))
+  message( sprintf("game_rank: Additional GameRank parameters team_size=%d, rounds=%d, min matches per var = %d.", team_size, rounds, min_matches_per_var ))
   start_time <- Sys.time()
   # Initialize variables ----
   sel <- rep_len( 0.0, length.out = length(vars) )
@@ -203,7 +205,7 @@ game_rank <- function( dat,
   
   # Run GameRank matches ----
   nmm <- nrow(MM)
-  cat( sprintf( "Comparing variable selections (# matches %d)--- \n", nmm ) )
+  message( sprintf( "Comparing variable selections (# matches %d)--- ", nmm ) )
   t <- 1
   res_matches <- NULL
   while( t <= nmm ) {
@@ -251,7 +253,7 @@ game_rank <- function( dat,
     res_match <- cbind( data.frame( n.pos = np, n.neg = nn), t( Tpm ) )
     res_matches <- bind_rows( res_matches, res_match )
     
-    cat( sprintf( "Iteration %4d of %4d -- (+) : (-) scored %4d : %4d \n", t, nmm, np, nn ) )
+    message( sprintf( "Iteration %4d of %4d -- (+) : (-) scored %4d : %4d ", t, nmm, np, nn ) )
     t <- t + 1 # Iteration counter
   } # while (END)
   match_played_time <- Sys.time()
@@ -288,16 +290,16 @@ game_rank <- function( dat,
   }, envir = new.env() )
   
   # Fitting Group Rank model ----
-  cat( "Optimizing maximum likelihood \n" )
+  message( "Optimizing maximum likelihood " )
   oo <- stats::optim( par = sel, fn = ll_gr, gr = ll_gr_grad, method = opt_method, control = list( fnscale = +1L, maxit = max_iter ) )
   oo
   fit_time <- Sys.time()
   
-  cat( "Calculating score vector \n" )
+  message( "Calculating score vector " )
   gg <- ll_gr_grad( oo$par )  
   gg
   
-  cat( "Calculating Hessian matrix \n" )
+  message( "Calculating Hessian matrix " )
   hh <- numDeriv::jacobian( func = ll_gr_grad, x = oo$par )
   hh
   
@@ -307,7 +309,7 @@ game_rank <- function( dat,
   end_time <- Sys.time()
   
   # Compiling results  ----
-  cat( "Compiling results \n" )
+  message( "Compiling results " )
   vsel_result <- tibble( variable = names( oo$par ),
                          vs = as.numeric( oo$par),
                          vs.var = diag( vv ) ) %>%

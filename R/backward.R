@@ -91,6 +91,7 @@ backward <- function( dat, resp, vars,
   # Obtain evaluation splits
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
   
+  message( sprintf("backward: Starting backward selection algorithm for %d observations with %d features (m=%d, maximize=%d).", nrow(dat), length(vars), m, maximize ))
   start_time <- Sys.time()
   # Sequential Backward Selection algorithm:
   # 1) Start with the full set Y0 = X
@@ -118,10 +119,10 @@ backward <- function( dat, resp, vars,
         bs <- best_vars[['best_selections']]
         if( 0==length(bs) ) bs <- list( as.character( setdiff( Y, utils::tail(Y,1) ) ) )
         queue <- append( queue, bs )
-        cat( sprintf("No of partitions %d in search queue \n", length( queue ) ) )
+        message( sprintf("No of partitions %d in search queue.", length( queue ) ) )
       }
     }
-    cat( sprintf( "Finished iteration %d \n", k ) )
+    message( sprintf( "Finished iteration %d.", k ) )
     k <- k + 1
   } # while
   end_time <- Sys.time()

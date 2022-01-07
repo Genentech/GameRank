@@ -21,6 +21,7 @@
 #' as the right hand side (rhs) of the modelling formula.
 #' @param fn_train Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.
 #' @param fn_eval Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.
+#' @param min_cc Minimal number of complete case observations to continue with building splits
 #' @param ... An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.
 #' 
 #' @return Matrix with nrow(dat) rows and m columns comprising 1s and 2s to indicate if sample is part of training or validation split.
@@ -32,17 +33,17 @@
 #' ds
 #' 
 #' @export
-build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, ... ) {
+build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, min_cc = 25L, ... ) {
+  stopifnot( is.integer(min_cc) )
   rr <- c( 1,1,2 ) # Use 2/3 train and 1/3 validation
   
   fo <- stats::formula( sprintf( "%s ~ %s ", resp, paste( vars, collapse = " + ")) )
   mf <- stats::model.frame( formula = fo, data = dat, na.action = stats::na.pass ) 
   
   # Check number of complete cases
-  min_cc <- 25
   idx_cc <- which( stats::complete.cases( mf ) )
   if( 0==length(idx_cc) | length(idx_cc) < min_cc ) { 
-    warning( sprintf( "Not enough complete cases! (%d < %d)", length(idx_cc), min_cc ) )
+    warning( sprintf( "Not enough complete cases! (%d < %d).\n", length(idx_cc), min_cc ) )
     return( NULL ) 
   }
 
@@ -50,12 +51,14 @@ build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, ... ) {
   for( var in vars ) {
     if( is.character(dat[,var]) | is.factor(dat[,var])) {
       if( ! setequal( unique(dat[idx_cc,var]), setdiff( unique( dat[,var] ), NA ) ) ) {
-        cat( sprintf( "Variable %s does not cover full domain by complete cases.", var ) )
+        warning( sprintf( "Variable %s does not cover full domain by complete cases. No information for (factor) levels %s. \n", 
+                          var, paste(setdiff( unique(dat[idx_cc,var]), setdiff( unique( dat[,var] ), NA ) ), collapse=", ") ) )
         return( NULL )
       }
     }
   }
 
+  message( sprintf("build_splits: Building %d training:validation (2:1) splits for %d observations of %d variables.", m, nrow(dat), length(vars)))
   idx_ncc <- setdiff( seq_len( nrow(dat) ), idx_cc )
   idx <- c(idx_cc,idx_ncc)
   rr_cc  <- rep_len( rr, length(idx_cc) )
@@ -112,11 +115,10 @@ prepare_splits <- function( ds, dat, resp, vars, fn_train, fn_eval, ... ) {
   }
   # 3) 
   if( is.integer(ds) ) {
-    cat( sprintf( "Generating %d splits \n", ds ) )
     ds <- build_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
     if( !is.null(ds) )  return( ds )
   }
-  stop( "Could not generate valid splits \n" )
+  stop( "Could not generate valid splits.\n" )
 }
 
 

@@ -112,6 +112,7 @@ lrsearch <- function(  dat, resp, vars,
   # Obtain evaluation splits, if necessary
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
   
+  message( sprintf("lrsearch: Starting Plus-L,Minus-R search algorithm for %d observations with %d features (m=%d, maximize=%d).", nrow(dat), length(vars), m, maximize ))
   start_time <- Sys.time()
   # Plus-L, Minus-R algorithm:
   # 1. if L > R then 

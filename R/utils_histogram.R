@@ -6,7 +6,12 @@
 Jhat <- function( x, m ) {
   n <- length( x )
   h <- 1 / m
-  hh <- graphics::hist( x=x, breaks = m, plot=FALSE )
+  hh <- graphics::hist( x=x, 
+                        # if breaks is set to the number of bins, it will be processed by pretty()
+                        # which doesn't give the right buckets, thus we'll have to use seq() here
+                        breaks = seq( min(x,na.rm=TRUE),max(x,na.rm=TRUE), length.out = 1+m ), 
+                        include.lowest=TRUE,
+                        plot=FALSE )
   pp <- hh$counts / n
   J <- 2.0 / ( h * (m - 1.0) ) - (m + 1.0)/( h * (m - 1.0) ) * sum( pp^2 )
   return( J )

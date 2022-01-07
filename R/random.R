@@ -126,6 +126,7 @@ random_selection <- function( dat,
   stopifnot( is.integer(nevals) )
   stopifnot( is.logical(maximize) )
   
+  message( sprintf("random_selection: Starting random search algorithm for %d observations with %d features (m=%d, maximize=%d).", nrow(dat), length(vars), m, maximize ))
   # Obtain evaluation splits
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
   
@@ -139,7 +140,7 @@ random_selection <- function( dat,
   # Evaluate random combinations
   df_evl <- NULL
   for( r in seq_len( nrow(samps) ) ) {
-    cat( sprintf( "Evaluating selection %d \n", r )  )
+    message( sprintf( "Evaluating selection %d.", r )  )
     sel <- as.character( samps[r, ] )
     evl <- mutate( eval_splits( ds, dat, resp, sel, fn_train, fn_eval, ... ), row = r )
     df_evl <- bind_rows( df_evl, evl )
