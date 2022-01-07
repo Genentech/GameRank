@@ -40,7 +40,7 @@
 #' \item{rng_sd}{Ratio of sample range by sample standard deviation.}
 #' }
 check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = NULL ) {
-  cat( sprintf( "Evaluating variable %s \n", var ) )
+  message( sprintf( "check_variable: Evaluating variable %s.", var ) )
   ret <- list()
   ret[["variable"]] <- var
   
@@ -271,7 +271,7 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
 #'   geom_point()
 #' @export 
 check_variables <- function( dat, resp, vars, min_cases = 25L, c_out = 1.5 ) {
-  
+  message( sprintf( "check_variables: Obtaining variable screening information for %d variables (min_cases=%d, outlier c=%1.2f).", length( c(resp,vars) ), min_cases, c_out ))
   resp_cat <- NULL
   ret <- list()
   if( !is.null(resp) ) {

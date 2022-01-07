@@ -99,6 +99,7 @@ bidirectional <- function( dat, resp, vars,
   # Obtain evaluation splits
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
   
+  message( sprintf("bidirectional: Starting bidirectional search algorithm for %d observations with %d features (m=%d, maximize=%d). ", nrow(dat), length(vars), m, maximize ))
   start_time <- Sys.time()
   # Bidirectional Search algorithm:
   # 1) Start SFS with Yf = {}

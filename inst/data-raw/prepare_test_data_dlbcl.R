@@ -94,7 +94,8 @@ dir_out <- "~/GameRank/data/"
 # DLBCL ----
 file_rdata <- file.path( dir_out, "tcga_dlbcl_cna_cnv.Rdata" )
 dc <- c("DLBC")
-ay <- c("CNASNP","CNVSNP")
+ay <- c("CNASNP","CNVSNP","Mutation")
+ay <- c("Mutation")
 dorun <- TRUE
 mae <- curatedTCGAData( diseaseCode = dc, assays = ay, dry.run = !dorun )
 

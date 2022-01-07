@@ -33,6 +33,8 @@ fn_predict_glm <- function( mod, dat, ... ) predict( mod, newdata = dat, type = 
 #' an 1-row tibble of model parameters
 #' @param fn_predict Function with signature function( model, data ) that 
 #' returns an 1-column tibble of model predictions
+#' @param c_out Constant for the Robust Outlier Test determining the scaling of 
+#' IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR. 
 #' @param ... Further arguments passed to fn_train or fn_eval functions
 #' 
 #' @return Returns a tibble with columns for observation (row), evaluation 
@@ -59,9 +61,20 @@ fn_predict_glm <- function( mod, dat, ... ) predict( mod, newdata = dat, type = 
 #' @export
 influential_observations <- function( dat, resp, selection, 
                                       fn_train, fn_eval,
-                                      fn_get_params, fn_predict, ... ) 
+                                      fn_get_params, fn_predict, 
+                                      c_out = 1.5, ... ) 
 {
+  stopifnot( is.data.frame(dat) | is_tibble(dat) )
+  stopifnot( is.character(selection) & 1 < length(selection) )
+  stopifnot( is.character(resp) )
   
+  stopifnot( is.function(fn_train) ) 
+  stopifnot( is.function(fn_eval) ) 
+  stopifnot( is.function(fn_get_params) ) 
+  stopifnot( is.function(fn_predict) ) 
+  stopifnot( is.numeric(c_out) & (0 < c_out) ) 
+  
+  message( sprintf("influential_observations: Determining influence statistics [dfbetas,dffits approach] for %d observations with %d variables.", nrow(dat), length(selection)) )
   # Reference model
   m0 <- fn_train( dat, resp, selection, ... )
   c0 <- fn_get_params( m0, ... )
@@ -87,9 +100,8 @@ influential_observations <- function( dat, resp, selection,
   ret$is_influential <- FALSE
   ret$is_influential_co <- ""
   for( co in c("deval","dffit", sprintf("%s_dfbeta",names(c0))) ) { 
-    rr <- 1.5
-    cut_min <- stats::quantile( ret[[co]], probs = 0.25, na.rm = TRUE ) - rr * stats::IQR( ret[[co]], na.rm = TRUE )
-    cut_max <- stats::quantile( ret[[co]], probs = 0.75, na.rm = TRUE ) + rr * stats::IQR( ret[[co]], na.rm = TRUE )
+    cut_min <- stats::quantile( ret[[co]], probs = 0.25, na.rm = TRUE ) - c_out * stats::IQR( ret[[co]], na.rm = TRUE )
+    cut_max <- stats::quantile( ret[[co]], probs = 0.75, na.rm = TRUE ) + c_out * stats::IQR( ret[[co]], na.rm = TRUE )
     idx <- which( ret[[co]] < cut_min | cut_max < ret[[co]] )
     ret$is_influential[ idx ] <- TRUE
     ret$is_influential_co[ idx ] <- sprintf( "%s %s", ret$is_influential_co[ idx ], co )
