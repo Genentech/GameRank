@@ -61,7 +61,10 @@ bins_ucv <-  function( x ) {
   hh <- seq_len( mmax )
   jj <- vapply( hh, FUN=function( mm ) Jhat( x, mm ), 1.0 )
   oo <- which.min( jj ) 
-  bb <- graphics::hist( x=x, breaks = hh[ oo ], plot=FALSE )
+  bb <- graphics::hist( x=x, 
+                        breaks = seq( min(x,na.rm=TRUE),max(x,na.rm=TRUE), length.out = 1+hh[ oo ] ), 
+                        include.lowest=TRUE,
+                        plot=FALSE )
   return( bb$breaks )
 } 
 
