@@ -22,6 +22,7 @@ influential_observations(
   fn_eval,
   fn_get_params,
   fn_predict,
+  c_out = 1.5,
   ...
 )
 }
@@ -50,6 +51,9 @@ an 1-row tibble of model parameters}
 
 \item{fn_predict}{Function with signature function( model, data ) that 
 returns an 1-column tibble of model predictions}
+
+\item{c_out}{Constant for the Robust Outlier Test determining the scaling of 
+IQR to determine non-outlier range from Q1 - c_out x IQR to Q3 + c_out x IQR.}
 }
 \value{
 Returns a tibble with columns for observation (row), evaluation 

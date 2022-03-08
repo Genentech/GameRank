@@ -2,7 +2,7 @@
 % Please edit documentation in R/variable_construction.R
 \name{simple_transforms}
 \alias{simple_transforms}
-\title{Function to evaluate and add simple variable tranformations}
+\title{Function to evaluate and add simple variable transformations}
 \usage{
 simple_transforms(
   dat,
@@ -17,17 +17,22 @@ simple_transforms(
 
 \item{vars}{A character vector of variable names to process.}
 
-\item{transforms}{A list of transformations to try. These can be of square root 'sqrt', cube root 'cubert', 
-natural logarithm 'log', and z-Score to Normal distribution 'zscore'}
+\item{transforms}{A list of transformations to try. These can be of 
+square root 'sqrt', cube root 'cubert', natural logarithm 'log', and 
+z-Score to Normal distribution 'zscore'}
 
-\item{name_pattern}{A function that takes two arguments 'varname' and 'transform_name' and generates a new
-variable name under with the transformed data is stored. Default is 'varname + '_' + transform_name.}
+\item{name_pattern}{A function that takes two arguments 'varname' and 
+'transform_name' and generates a new variable name under with the 
+transformed data is stored. Default is 'varname + '_' + transform_name.}
 }
 \value{
 list with two elements
 \describe{
-\item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
-\item{transformations}{A list of lists with elements for variable, transformed variable, a formula term, Shapiro-Wilk W statistic, and the name of the transform.}
+\item{data}{A dataset comprising additional columns with transformed 
+variables, if they improve Normality.}
+\item{transformations}{A list of lists with elements for variable, 
+transformed variable, a formula term, Shapiro-Wilk W statistic, and the 
+name of the transform.}
 }
 }
 \description{

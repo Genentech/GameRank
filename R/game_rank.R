@@ -102,20 +102,23 @@
 NULL
 
 #
-# Algorithm to generate a match matrix that enumerates random feature selection pairs
-# with predefined size and ensures that each feature is part of a minimum number of evaluations.
+# Algorithm to generate a match matrix that enumerates random feature selection
+# pairs with predefined size and ensures that each feature is part of a minimum
+# number of evaluations.
 #
-# The match matrix bears +1 for the (+) team and -1 for the (-) team, and 0 for all others.
-# An index vector into the list of variables is created and then chunked in sizes of team_size
-# to alternatingly define (+) and (-) teams being added to the match matrix until it is empty and 
-# then is refilled. The process continues until each feature is evaluated min_matches_per_var times.
+# The match matrix bears +1 for the (+) team and -1 for the (-) team, and 0 for 
+# all others. An index vector into the list of variables is created and then
+# chunked in sizes of team_size to alternatingly define (+) and (-) teams being 
+# added to the match matrix until it is empty and then is refilled. The process 
+# continues until each feature is evaluated min_matches_per_var times.
 #
 build_match_matrix <- function( sel, team_size, min_matches_per_var ) {
   
   sel[seq_along(sel)] <- 0 # Set all elements to 0
   match_matrix <- matrix( NA, nrow=0, ncol = length(sel) )
   colnames(match_matrix) <- names(sel)
-  while( is.null(match_matrix) | !all( min_matches_per_var < colSums( abs( match_matrix ) )  ) ) {
+  while( is.null(match_matrix) | 
+         !all( min_matches_per_var < colSums( abs( match_matrix ) )  ) ) {
     idx <- seq_along(sel)
     idx <- idx[ order( stats::runif( length(idx) ) ) ]
     while( 2*team_size < length(idx)  ) {
@@ -187,7 +190,8 @@ game_rank <- function( dat,
   # Tpm <- sel
   # Tpm[1:team_size] <- +1L
   # Tpm[(team_size+1):(2*team_size)] <- -1L
-  MM <- build_match_matrix( sel = sel, team_size = team_size, min_matches_per_var = min_matches_per_var )
+  MM <- build_match_matrix( sel = sel, team_size = team_size, 
+                            min_matches_per_var = min_matches_per_var )
   match_matrix_time <- Sys.time()
   
   # Initialize row selection vector: 1 = development, 2 = evaluation in a round
@@ -196,8 +200,10 @@ game_rank <- function( dat,
   # Define team evaluation function (internal) ----
   eval_team <- function( dat, resp, selection, ds, ... ) {
     ret <- tryCatch( {
-      mod <- fn_train( dat[which(1==ds),], resp, selection, ... )   # Obtain model from data in 1-fold
-      evl <- fn_eval(  dat[which(2==ds),], resp, selection, mod, ... ) # Evaluate model on data in 2-fold
+      # Obtain model from data in 1-fold
+      mod <- fn_train( dat[which(1==ds),], resp, selection, ... )   
+      # Evaluate model on data in 2-fold
+      evl <- fn_eval(  dat[which(2==ds),], resp, selection, mod, ... ) 
       evl
     }, error = function(e) NA )
     return( ret )
@@ -253,7 +259,8 @@ game_rank <- function( dat,
     res_match <- cbind( data.frame( n.pos = np, n.neg = nn), t( Tpm ) )
     res_matches <- bind_rows( res_matches, res_match )
     
-    message( sprintf( "Iteration %4d of %4d -- (+) : (-) scored %4d : %4d ", t, nmm, np, nn ) )
+    message( sprintf( "Iteration %4d of %4d -- (+) : (-) scored %4d : %4d ", 
+                      t, nmm, np, nn ) )
     t <- t + 1 # Iteration counter
   } # while (END)
   match_played_time <- Sys.time()
@@ -265,7 +272,8 @@ game_rank <- function( dat,
     function( vs ) {
       Tp <- ( ( res_matches[,-c(1,2)] > 0 ) %*% vs )
       Tm <- ( ( res_matches[,-c(1,2)] < 0 ) %*% vs )
-      LL <- exp( Tp + Tm - ( res_matches$n.pos - res_matches$n.neg ) ) / ( exp( Tp - ( res_matches$n.pos - res_matches$n.neg ) ) + exp( Tm ) )^2
+      LL <- exp( Tp + Tm - ( res_matches$n.pos - res_matches$n.neg ) ) / 
+        ( exp( Tp - ( res_matches$n.pos - res_matches$n.neg ) ) + exp( Tm ) )^2
       ret <- -sum( log( LL ) )
       return( ret )
     } # function (END)
@@ -276,8 +284,10 @@ game_rank <- function( dat,
       Tp <- ( ( res_matches[,-c(1,2)] > 0 ) %*% vs )
       Tm <- ( ( res_matches[,-c(1,2)] < 0 ) %*% vs )
       
-      pp <- exp( Tp + res_matches[,2] )/ ( exp( Tp + res_matches[,2] ) + exp( Tm + res_matches[,1] ) )
-      pn <- exp( Tp + res_matches[,1] )/ ( exp( Tp + res_matches[,2] ) + exp( Tm + res_matches[,1] ) )
+      pp <- exp( Tp + res_matches[,2] )/ 
+        ( exp( Tp + res_matches[,2] ) + exp( Tm + res_matches[,1] ) )
+      pn <- exp( Tp + res_matches[,1] )/ 
+        ( exp( Tp + res_matches[,2] ) + exp( Tm + res_matches[,1] ) )
       gr <- vapply( names(vs), FUN=function(co) {
         ms <- sum( abs( res_matches[,co] ) )
         pps <- sum( pp[which(res_matches[,co] > 0)] )
@@ -291,7 +301,9 @@ game_rank <- function( dat,
   
   # Fitting Group Rank model ----
   message( "Optimizing maximum likelihood " )
-  oo <- stats::optim( par = sel, fn = ll_gr, gr = ll_gr_grad, method = opt_method, control = list( fnscale = +1L, maxit = max_iter ) )
+  oo <- stats::optim( par = sel, fn = ll_gr, gr = ll_gr_grad, 
+                      method = opt_method, 
+                      control = list( fnscale = +1L, maxit = max_iter ) )
   oo
   fit_time <- Sys.time()
   
@@ -338,7 +350,8 @@ game_rank <- function( dat,
     
     # Time
     start = start_time, end = end_time,
-    match_matrix_time = match_matrix_time, match_played_time = match_played_time, fit_time = fit_time,
+    match_matrix_time = match_matrix_time, 
+    match_played_time = match_played_time, fit_time = fit_time,
     
     # Results
     match_results = res_matches,
@@ -401,10 +414,9 @@ game_rank.formula <- function( fo, dat,
 # standard errors using the Delta method. We also construct (1-alpha)% confidence
 # intervals using Normal approximation.
 #
-# TODO Debug and check!
-#
 estimate_T_matches <- function( Tm, vs, HH, alpha = 0.05 ) {
-  stopifnot( is.matrix(Tm) & 0==length( setdiff( unique(as.numeric(Tm)), c(-1L,0L,+1L) ) ) )
+  stopifnot( is.matrix(Tm) & 
+               0==length( setdiff( unique(as.numeric(Tm)), c(-1L,0L,+1L) ) ) )
   stopifnot( is.numeric(vs) )
   stopifnot( (length(vs)==nrow(HH)) & (length(vs)==ncol(HH)) )
   

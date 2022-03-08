@@ -92,7 +92,9 @@ fn_train_dummy <- function( dat, resp, selection, ... ) {
 #' @param arg_fn_eval Function for validation on hold-out fold (fn_eval)
 #' @param arg_n_folds Number of cross-validation folds to use
 #' @export
-ff_fn_eval_cross_validation <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n_folds = 10L ) {
+ff_fn_eval_cross_validation <- function( arg_fn_train = NULL, 
+                                         arg_fn_eval = NULL, 
+                                         arg_n_folds = 10L ) {
   stopifnot( !is.null(arg_fn_train) & !is.null(arg_fn_eval) )
   stopifnot( is.function(arg_fn_train) )
   stopifnot( is.function(arg_fn_eval) )
@@ -118,8 +120,8 @@ ff_fn_eval_cross_validation <- function( arg_fn_train = NULL, arg_fn_eval = NULL
       # 2) Estimate bias theta of Tn via jackknife / cross-validation
       # Perform n_fold Cross-Validation here. Note: to avoid over-fitting to the
       # folder, each time this function is called a new assignment to folds is
-      # sampled. This may seem less robust but prevents variable selection to favor
-      # a specific fixed fold configuration.
+      # sampled. This may seem less robust but prevents variable selection to
+      # favor a specific fixed fold configuration.
       n <- nrow(dat)
       ds <- rep_len( x = seq_len( .env$n_folds ), length.out = n )
       ds <- ds[ order( stats::runif( length(ds) ) ) ]
@@ -153,7 +155,9 @@ ff_fn_eval_cross_validation <- function( arg_fn_train = NULL, arg_fn_eval = NULL
 #' @param arg_fn_eval Function for validation on hold-out fold (fn_eval)
 #' @param arg_n_boots Number of bootstrapped folds to use
 #' @export
-ff_fn_eval_bootstrap <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n_boots = 25L ) {
+ff_fn_eval_bootstrap <- function( arg_fn_train = NULL, 
+                                  arg_fn_eval = NULL, 
+                                  arg_n_boots = 25L ) {
   stopifnot( !is.null(arg_fn_train) & !is.null(arg_fn_eval) )
   stopifnot( is.function(arg_fn_train) )
   stopifnot( is.function(arg_fn_eval) )
@@ -168,9 +172,10 @@ ff_fn_eval_bootstrap <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n
       ret <- NA
       
       #
-      # From Efron and Tibshirani, "An introduction to the bootstrap", Chapman & Hall/CRC, 1993
-      # Ch. 17 "Cross-validation and other estimates of prediction error", p. 237ff
-      # Ch. 17.6-7 Bootstrap estimates of prediction error / The .632 bootstrap estimator, p. 247f
+      # From Efron and Tibshirani, "An introduction to the bootstrap", 
+      # Chapman & Hall/CRC, 1993, Ch. 17 "Cross-validation and other estimates 
+      # of prediction error", p. 237ff,  Ch. 17.6-7 Bootstrap estimates of
+      # prediction error / The .632 bootstrap estimator, p. 247f
       #
       didx <- seq_len( nrow(dat) )
       the_statistic <- function( dd,ii ) {
@@ -200,10 +205,9 @@ ff_fn_eval_bootstrap <- function( arg_fn_train = NULL, arg_fn_eval = NULL, arg_n
                         R = .env$n_boots,
                         sim = "ordinary",
                         stype = "i" )
-      # bt_ci <- lapply( 1:length(bt$t0), function(i) as.data.frame( boot::norm.ci( bt, index = as.integer(i) ) ) ) 
-      # ret <- mean( bt$t[,"bte_pred_error"], na.rm=TRUE )
-      ret <- mean( bt$t[,which(names(bt$t0)=="bte_pred_error")], na.rm=TRUE ) + mean( bt$t[,which(names(bt$t0)=="optimism")], na.rm=TRUE ) # Go with the optimism corrected bootstrap prediction error for now
-      # ret <- 0.368 * mean( bt$t[,"apparent_error"], na.rm=TRUE ) + 0.632 * mean( bt$t[,"oobs_error"], na.rm=TRUE ) # TODO Check again!
+      # Go with the optimism corrected bootstrap prediction error for now
+      ret <- mean( bt$t[,which(names(bt$t0)=="bte_pred_error")], na.rm=TRUE ) + 
+        mean( bt$t[,which(names(bt$t0)=="optimism")], na.rm=TRUE ) 
       return( ret )
     } # END(function)
   }, envir = list( # Wrap function factory arguments into local environment

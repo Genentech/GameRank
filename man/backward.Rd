@@ -39,7 +39,7 @@ model formula.}
 Those are concatenated by '+' as the right hand side (rhs) of the 
 modeling formula.}
 
-\item{fn_train}{Function with signature function( dat, resp, selection, ... ) 
+\item{fn_train}{Function with signature function( dat, resp, selection, ...) 
 that returns a model or NULL in any other case on the given data dat.}
 
 \item{fn_eval}{Function with signature function( dat, resp, selection, ... ) 

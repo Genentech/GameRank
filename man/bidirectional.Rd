@@ -81,8 +81,8 @@ List with elements
 }
 }
 \description{
-Performs forward and backward selection steps per iteration to converge to
-the same, consistent variable selection set.
+Performs forward and backward selection steps per iteration to 
+converge to the same, consistent variable selection set.
 }
 \details{
 The Bidirectional Search algorithm runs as follows:

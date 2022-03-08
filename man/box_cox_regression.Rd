@@ -13,16 +13,19 @@ box_cox_regression(dat, resp, vars, lambda = seq(-2, +2, 0.1))
 
 \item{vars}{Character vector with variables to transform.}
 
-\item{lambda}{Real vector of lambda coefficients to evaluate for the Box-Cox transform.}
+\item{lambda}{Real vector of lambda coefficients to evaluate for the 
+Box-Cox transform.}
 }
 \value{
 list with two elements
 \describe{
-\item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
-\item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the formula terms.}
+\item{data}{A dataset comprising additional columns with transformed 
+variables, if they improve Normality.}
+\item{transformations}{A list of lists with elements for variable, 
+transformed variable, the Box-Cox results, and the formula terms.}
 }
 }
 \description{
-Applies the Box-Cox transformation for set of variables to improve a regression models. Only
-univariate models are considered.
+Applies the Box-Cox transformation for set of variables to
+improve a regression models. Only univariate models are considered.
 }

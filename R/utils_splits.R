@@ -33,17 +33,21 @@
 #' ds
 #' 
 #' @export
-build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, min_cc = 25L, ... ) {
+build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, 
+                          min_cc = 25L, ... ) {
   stopifnot( is.integer(min_cc) )
   rr <- c( 1,1,2 ) # Use 2/3 train and 1/3 validation
   
-  fo <- stats::formula( sprintf( "%s ~ %s ", resp, paste( vars, collapse = " + ")) )
-  mf <- stats::model.frame( formula = fo, data = dat, na.action = stats::na.pass ) 
+  fo <- stats::formula( sprintf( "%s ~ %s ", 
+                                 resp, paste( vars, collapse = " + ")) )
+  mf <- stats::model.frame( formula = fo, data = dat, 
+                            na.action = stats::na.pass ) 
   
   # Check number of complete cases
   idx_cc <- which( stats::complete.cases( mf ) )
   if( 0==length(idx_cc) | length(idx_cc) < min_cc ) { 
-    warning( sprintf( "Not enough complete cases! (%d < %d).\n", length(idx_cc), min_cc ) )
+    warning( sprintf( "Not enough complete cases! (%d < %d).\n", 
+                      length(idx_cc), min_cc ) )
     return( NULL ) 
   }
 
@@ -52,13 +56,16 @@ build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, min_cc = 25L, .
     if( is.character(dat[,var]) | is.factor(dat[,var])) {
       if( ! setequal( unique(dat[idx_cc,var]), setdiff( unique( dat[,var] ), NA ) ) ) {
         warning( sprintf( "Variable %s does not cover full domain by complete cases. No information for (factor) levels %s. \n", 
-                          var, paste(setdiff( unique(dat[idx_cc,var]), setdiff( unique( dat[,var] ), NA ) ), collapse=", ") ) )
+                          var, paste(setdiff( unique(dat[idx_cc,var]), 
+                                              setdiff( unique( dat[,var] ), NA ) ),
+                                     collapse=", ") ) )
         return( NULL )
       }
     }
   }
 
-  message( sprintf("build_splits: Building %d training:validation (2:1) splits for %d observations of %d variables.", m, nrow(dat), length(vars)))
+  message( sprintf("build_splits: Building %d training:validation (2:1) splits for %d observations of %d variables.", 
+                   m, nrow(dat), length(vars)))
   idx_ncc <- setdiff( seq_len( nrow(dat) ), idx_cc )
   idx <- c(idx_cc,idx_ncc)
   rr_cc  <- rep_len( rr, length(idx_cc) )
@@ -90,7 +97,8 @@ build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, min_cc = 25L, .
 # Check splits helper function
 # 
 check_split <- function( ds, dat, resp, vars, fn_train, fn_eval, ... ) {
-  mo <- fn_train( dat[which(1==ds),], resp, vars, ... )   # Obtain model from data in 1-fold
+  # Obtain model from data in 1-fold
+  mo <- fn_train( dat[which(1==ds),], resp, vars, ... )   
   return( !is.null(mo) )
   # Remark: Convergence is *not* checked!
 }
@@ -106,10 +114,12 @@ prepare_splits <- function( ds, dat, resp, vars, fn_train, fn_eval, ... ) {
     if( ret ) return( ds ) else return( NULL )
   }
   # 2) if ds is matrix with enough rows and columns check and return it
-  if( is.matrix(ds) && nrow(ds)==nrow(dat) && 1<=ncol(ds) && all(unique(unlist(ds) %in% c(1,2)) ) ) {
+  if( is.matrix(ds) && nrow(ds)==nrow(dat) && 1<=ncol(ds) && 
+      all(unique(unlist(ds) %in% c(1,2)) ) ) {
     ret <- TRUE
     for( k in seq_len( ncol(ds) ) ) {
-      ret <- ret & check_split( ds[,k], dat, resp, vars, fn_train, fn_eval, ... )  
+      ret <- ret & check_split( ds[,k], dat, resp, vars,
+                                fn_train, fn_eval, ... )  
     }
     if( ret ) return( ds ) else return( NULL )
   }

@@ -2,7 +2,8 @@
 % Please edit documentation in R/utils_eval.R
 \name{eval_remove_vars}
 \alias{eval_remove_vars}
-\title{Generic helper function that evaluates a set of variables for reducing a selection}
+\title{Generic helper function that evaluates a set of variables for 
+reducing a selection}
 \usage{
 eval_remove_vars(
   ds,
@@ -63,5 +64,6 @@ validation split.}
 }
 }
 \description{
-Generic helper function that evaluates a set of variables for reducing a selection
+Generic helper function that evaluates a set of variables for 
+reducing a selection
 }

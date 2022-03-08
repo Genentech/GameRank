@@ -1,5 +1,6 @@
 #
-# Formula rewrite tools to automatically impute missing values by maximum-likelihood estimate
+# Formula rewrite tools to automatically impute missing values by 
+# maximum-likelihood estimate
 #
 
 #' @importFrom rlang env

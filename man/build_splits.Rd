@@ -4,7 +4,7 @@
 \alias{build_splits}
 \title{Helper function to generate splits that are likely to produce models}
 \usage{
-build_splits(m, dat, resp, vars, fn_train, fn_eval, ...)
+build_splits(m, dat, resp, vars, fn_train, fn_eval, min_cc = 25L, ...)
 }
 \arguments{
 \item{m}{Number of parallel random splits to generate}
@@ -19,6 +19,8 @@ as the right hand side (rhs) of the modelling formula.}
 \item{fn_train}{Function with signature function( dat, resp, selection, ... ) that returns a model or NULL in any other case on the given data dat.}
 
 \item{fn_eval}{Function with signature function( dat, resp, selection, ... ) that returns a real number or NA in any other case, e.g. when model is NULL.}
+
+\item{min_cc}{Minimal number of complete case observations to continue with building splits}
 
 \item{...}{An other arguments passed to fn_train or fn_eval during calls, e.g. maybe 'u = 365' for Survival evaluations specifying the landmark day.}
 }

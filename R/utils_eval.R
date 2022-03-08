@@ -43,13 +43,17 @@
 #'  validation values}
 #' }
 #' 
-eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ..., var_sep = "," ) 
+eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ..., 
+                         var_sep = "," ) 
 {
   ret <- NULL
   ret <- purrr::map_dfr( seq_len( ncol(ds) ), function(k) {
-      mod  <- fn_train( dat[which(1==ds[,k]),], resp, selection, ... )   # Obtain model from data in 1-fold
-      evl1 <- fn_eval(  dat[which(1==ds[,k]),], resp, selection, mod, ... ) # Evaluate model on data in 1-fold
-      evl2 <- fn_eval(  dat[which(2==ds[,k]),], resp, selection, mod, ... ) # Evaluate model on data in 2-fold
+    # Obtain model from data in 1-fold
+      mod  <- fn_train( dat[which(1==ds[,k]),], resp, selection, ... )   
+      # Evaluate model on data in 1-fold
+      evl1 <- fn_eval(  dat[which(1==ds[,k]),], resp, selection, mod, ... )
+      # Evaluate model on data in 2-fold
+      evl2 <- fn_eval(  dat[which(2==ds[,k]),], resp, selection, mod, ... ) 
       selection <- base::sort( selection )
       txt_selection <- base::paste( selection, collapse = var_sep )
       cnt <- base::length(selection)
@@ -62,23 +66,6 @@ eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ..., var_s
                     eval_validation = evl2,
                     bias = sqrt( (evl1 - evl2)^2 ) )
   })
-  # for( k in 1:ncol(ds) ) {
-  #   mod  <- fn_train( dat[which(1==ds[,k]),], resp, selection, ... )   # Obtain model from data in 1-fold
-  #   evl1 <- fn_eval(  dat[which(1==ds[,k]),], resp, selection, mod, ... ) # Evaluate model on data in 1-fold
-  #   evl2 <- fn_eval(  dat[which(2==ds[,k]),], resp, selection, mod, ... ) # Evaluate model on data in 2-fold
-  #   selection <- sort( selection )
-  #   txt_selection <- paste( selection, collapse = var_sep )
-  #   cnt <- length(selection)
-  #   rr <- tibble( selection = list( selection ),
-  #                 ch_selection = txt_selection,
-  #                 m = cnt,
-  #                 response = resp, 
-  #                 split = k,
-  #                 eval_train = evl1,
-  #                 eval_validation = evl2,
-  #                 bias = sqrt( (evl1 - evl2)^2 ) )
-  #   ret <- bind_rows( ret, rr )
-  # } # for
   return( ret )
 } # eval_splits (END)
 
@@ -114,9 +101,13 @@ agg_evals <- function( df_evl, var, maximize ) {
                mean_bias = mean( .data$bias, na.rm=TRUE ) ) %>%
     ungroup
   if( maximize ) {
-    agg <- agg %>% dplyr::mutate( opt = ( .data$mean_validation >= max(.data$mean_validation, na.rm=TRUE) ) )
+    agg <- agg %>% 
+      dplyr::mutate( opt = ( .data$mean_validation >= max(.data$mean_validation,
+                                                          na.rm=TRUE) ) )
   } else if( !maximize ) {
-    agg <- agg %>% dplyr::mutate( opt = ( .data$mean_validation <= min(.data$mean_validation, na.rm=TRUE) ) )
+    agg <- agg %>% 
+      dplyr::mutate( opt = ( .data$mean_validation <= min(.data$mean_validation,
+                                                          na.rm=TRUE) ) )
   } else {
     agg <- agg %>% dplyr::mutate( opt = NA )
   }
@@ -130,11 +121,13 @@ agg_evals <- function( df_evl, var, maximize ) {
 #' 
 #' @return selection column for rows flagged as opt (=TRUE)
 best_selection <- function( agg ) {
-  sel <- agg %>% filter( !is.na(.data$opt) & (TRUE==.data$opt) ) %>% pull( .data$selection )
+  sel <- agg %>% filter( !is.na(.data$opt) & (TRUE==.data$opt) ) %>% 
+    pull( .data$selection )
   return( sel )
 }
 
-#' @title Generic helper function that evaluates a set of variables for extending a selection
+#' @title Generic helper function that evaluates a set of variables for 
+#' extending a selection
 #' 
 #' @param ds Definition of (parallel) training:validation splits by a matrix 
 #' with d columns containing 1s and 2s, where 1 denotes sample is used for 
@@ -168,18 +161,26 @@ best_selection <- function( agg ) {
 #' validation split.}
 #' }
 #' 
-eval_add_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, selection, add_vars = NULL, ..., var_sep = ","  ) {
+eval_add_vars <- function( ds, dat, resp, vars, 
+                           fn_train, fn_eval, maximize, 
+                           selection, add_vars = NULL, ..., var_sep = ","  ) {
   if( is.null(add_vars) ) add_vars <- base::setdiff( vars, selection )
   if( 0 == base::length(add_vars) ) return( NULL )
   
-  df_evl <- purrr::map_dfr( .x=add_vars, .f=function(vv) mutate( eval_splits(ds,dat,resp,union(selection,vv),fn_train,fn_eval, ... ), added = vv ) )
+  df_evl <- purrr::map_dfr( .x=add_vars, 
+                            .f=function(vv) mutate( eval_splits(ds,dat,resp,
+                                                                union(selection,vv),
+                                                                fn_train,fn_eval, ... ), 
+                                                    added = vv ) )
   agg_evl <- agg_evals( df_evl, "added", maximize )
   best_selections <- best_selection( agg_evl )
   
-  return( list( df_evl = df_evl, agg_evl = agg_evl, best_selections = best_selections ) )
+  return( list( df_evl = df_evl, agg_evl = agg_evl, 
+                best_selections = best_selections ) )
 }
 
-#' @title Generic helper function that evaluates a set of variables for reducing a selection
+#' @title Generic helper function that evaluates a set of variables for 
+#' reducing a selection
 #' 
 #' @param ds Definition of (parallel) training:validation splits by a matrix 
 #' with d columns containing 1s and 2s, where 1 denotes sample is used for 
@@ -213,15 +214,23 @@ eval_add_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, sel
 #' validation split.}
 #' }
 #' 
-eval_remove_vars <- function( ds, dat, resp, vars, fn_train, fn_eval, maximize, selection, remove_vars = NULL, ..., var_sep = ","  ) {
+eval_remove_vars <- function( ds, dat, resp, vars, 
+                              fn_train, fn_eval, 
+                              maximize, selection, remove_vars = NULL, ..., 
+                              var_sep = ","  ) {
   if( is.null(remove_vars) ) remove_vars <- selection
   if( 0 == length(remove_vars) ) return( NULL )
   
-  df_evl <- purrr::map_dfr( .x=remove_vars, .f=function(vv) mutate( eval_splits(ds,dat,resp,setdiff(selection,vv),fn_train,fn_eval, ... ), removed = vv ) )
+  df_evl <- purrr::map_dfr( .x=remove_vars, 
+                            .f=function(vv) mutate( eval_splits(ds,dat,resp,
+                                                                setdiff(selection,vv),
+                                                                fn_train,fn_eval, ... ), 
+                                                    removed = vv ) )
   agg_evl <- agg_evals( df_evl, "removed", maximize )
   best_selections <- best_selection( agg_evl )
   
-  return( list( df_evl = df_evl, agg_evl = agg_evl, best_selections = best_selections ) )
+  return( list( df_evl = df_evl, agg_evl = agg_evl,
+                best_selections = best_selections ) )
 }
 
 

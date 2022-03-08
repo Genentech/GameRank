@@ -7,9 +7,12 @@ Jhat <- function( x, m ) {
   n <- length( x )
   h <- 1 / m
   hh <- graphics::hist( x=x, 
-                        # if breaks is set to the number of bins, it will be processed by pretty()
-                        # which doesn't give the right buckets, thus we'll have to use seq() here
-                        breaks = seq( min(x,na.rm=TRUE),max(x,na.rm=TRUE), length.out = 1+m ), 
+                        # if breaks is set to the number of bins, it will be 
+                        # processed by pretty() which doesn't give the right 
+                        # buckets, thus we'll have to use seq() here
+                        breaks = seq( min(x,na.rm=TRUE),
+                                      max(x,na.rm=TRUE), 
+                                      length.out = 1+m ), 
                         include.lowest=TRUE,
                         plot=FALSE )
   pp <- hh$counts / n
@@ -23,7 +26,8 @@ Jloss_ucv <- function( x ) {
   hh <- seq_len( mmax )
   jj <- vapply( hh, FUN=function( mm ) Jhat( x, mm ), 1.0 )
   oo <- which.min( jj ) 
-  return( list( bins = hh, loss = jj, bins.opt = hh[ oo ], loss.opt = jj[ oo ] ) )
+  return( list( bins = hh, loss = jj, bins.opt = hh[ oo ], 
+                loss.opt = jj[ oo ] ) )
 } 
 
 nbins_ucv <-  function( x ) {
@@ -35,7 +39,8 @@ nbins_ucv <-  function( x ) {
   return( hh[ oo ] )
 } 
 
-#' @title Helper function to determine the optimal number of breaks for a histogram
+#' @title Helper function to determine the optimal number of breaks 
+#' for a histogram
 #' 
 #' @description This function determines the optimal set of breaks for a 
 #' histogram for numerical sample
@@ -62,7 +67,9 @@ bins_ucv <-  function( x ) {
   jj <- vapply( hh, FUN=function( mm ) Jhat( x, mm ), 1.0 )
   oo <- which.min( jj ) 
   bb <- graphics::hist( x=x, 
-                        breaks = seq( min(x,na.rm=TRUE),max(x,na.rm=TRUE), length.out = 1+hh[ oo ] ), 
+                        breaks = seq( min(x,na.rm=TRUE),
+                                      max(x,na.rm=TRUE), 
+                                      length.out = 1+hh[ oo ] ), 
                         include.lowest=TRUE,
                         plot=FALSE )
   return( bb$breaks )

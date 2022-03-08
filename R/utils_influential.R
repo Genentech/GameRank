@@ -10,12 +10,14 @@ fn_infl_coefficients <- function( mod, ... ) stats::coefficients(mod)
 #' @rdname utils_influential
 #' @param mod Model to obtain predictions from via predict(...)
 #' @export
-fn_predict_cox <- function( mod, dat, ... ) predict( mod, newdata = dat, type = "lp" )
+fn_predict_cox <- function( mod, dat, ... ) predict( mod, newdata = dat, 
+                                                     type = "lp" )
 
 #' @rdname utils_influential
 #' @param mod Model to obtain predictions from via predict(...)
 #' @export
-fn_predict_glm <- function( mod, dat, ... ) predict( mod, newdata = dat, type = "response" )
+fn_predict_glm <- function( mod, dat, ... ) predict( mod, newdata = dat, 
+                                                     type = "response" )
 
 #' @title Determine influential points for the current selection
 #' 
@@ -79,9 +81,11 @@ influential_observations <- function( dat, resp, selection,
   m0 <- fn_train( dat, resp, selection, ... )
   c0 <- fn_get_params( m0, ... )
   e0 <- fn_eval( dat, resp, selection, m0, ... )
-  res <- tibble( row = NA_integer_, is_influential = NA, is_influential_co = NA_character_, 
+  res <- tibble( row = NA_integer_, is_influential = NA, 
+                 is_influential_co = NA_character_, 
                  ei = e0, deval = NA_real_, yi = NA_real_, dffit = NA_real_ ) %>%
-    bind_cols( as_tibble( matrix( c0, nrow=1 ) ) %>% stats::setNames( sprintf( "%s_dfbeta", names(c0)) ) )
+    bind_cols( as_tibble( matrix( c0, nrow=1 ) ) %>% 
+                 stats::setNames( sprintf( "%s_dfbeta", names(c0)) ) )
   
   ret <- purrr::map_dfr( seq_len( nrow(dat) ),
                   function(i) {
@@ -90,23 +94,30 @@ influential_observations <- function( dat, resp, selection,
                     cc <- fn_get_params( mm )
                     ee <- fn_eval( dat, resp, selection, mm, ... )
                     
-                    y0 <- fn_predict( m0, dat[i,], ... ) # predict( m0, newdata = dat[i,], type = "lp" )
-                    yy <- fn_predict( mm, dat[i,], ... ) # predict( mm, newdata = dat[i,], type = "lp" )
+                    y0 <- fn_predict( m0, dat[i,], ... ) 
+                    yy <- fn_predict( mm, dat[i,], ... )
                     
-                    res <- tibble( row = i, ei = ee, deval = e0 - ee, yi = yy, dffit = y0 - yy ) %>%
-                      bind_cols( as_tibble( matrix( c0 - cc, nrow=1 ) ) %>% stats::setNames( sprintf( "%s_dfbeta", names(c0)) ) )
+                    res <- tibble( row = i, ei = ee, deval = e0 - ee, 
+                                   yi = yy, dffit = y0 - yy ) %>%
+                      bind_cols( as_tibble( matrix( c0 - cc, nrow=1 ) ) %>% 
+                                   stats::setNames( sprintf( "%s_dfbeta", 
+                                                             names(c0)) ) )
                   })
   
   ret$is_influential <- FALSE
   ret$is_influential_co <- ""
   for( co in c("deval","dffit", sprintf("%s_dfbeta",names(c0))) ) { 
-    cut_min <- stats::quantile( ret[[co]], probs = 0.25, na.rm = TRUE ) - c_out * stats::IQR( ret[[co]], na.rm = TRUE )
-    cut_max <- stats::quantile( ret[[co]], probs = 0.75, na.rm = TRUE ) + c_out * stats::IQR( ret[[co]], na.rm = TRUE )
+    cut_min <- stats::quantile( ret[[co]], probs = 0.25, na.rm = TRUE ) - 
+      c_out * stats::IQR( ret[[co]], na.rm = TRUE )
+    cut_max <- stats::quantile( ret[[co]], probs = 0.75, na.rm = TRUE ) + 
+      c_out * stats::IQR( ret[[co]], na.rm = TRUE )
     idx <- which( ret[[co]] < cut_min | cut_max < ret[[co]] )
     ret$is_influential[ idx ] <- TRUE
-    ret$is_influential_co[ idx ] <- sprintf( "%s %s", ret$is_influential_co[ idx ], co )
+    ret$is_influential_co[ idx ] <- sprintf( "%s %s", 
+                                             ret$is_influential_co[ idx ], co )
   }
   
-  ret <- bind_rows(res, ret) %>% mutate( is_influential_co = trimws( .data$is_influential_co ))
+  ret <- bind_rows(res, ret) %>% 
+    mutate( is_influential_co = trimws( .data$is_influential_co ))
   return( ret )
 }

@@ -3,10 +3,11 @@
 #
 
 #' @import purrr
+#' @importFrom stats dnorm
 #' @importFrom rlang .data
 
 # Simple transformations ----
-#' @title Function to evaluate and add simple variable tranformations
+#' @title Function to evaluate and add simple variable transformations
 #' 
 #' @description This function adds some simple transformations, as described in 
 #' \url{https://rcompanion.org/handbook/I_12.html} to a dataset for a set of 
@@ -15,15 +16,20 @@
 #' 
 #' @param dat A data.frame or tibble with data for each variable in vars
 #' @param vars A character vector of variable names to process.
-#' @param transforms A list of transformations to try. These can be of square root 'sqrt', cube root 'cubert', 
-#' natural logarithm 'log', and z-Score to Normal distribution 'zscore'
-#' @param name_pattern A function that takes two arguments 'varname' and 'transform_name' and generates a new
-#' variable name under with the transformed data is stored. Default is 'varname + '_' + transform_name.
+#' @param transforms A list of transformations to try. These can be of 
+#' square root 'sqrt', cube root 'cubert', natural logarithm 'log', and 
+#' z-Score to Normal distribution 'zscore'
+#' @param name_pattern A function that takes two arguments 'varname' and 
+#' 'transform_name' and generates a new variable name under with the 
+#' transformed data is stored. Default is 'varname + '_' + transform_name.
 #' 
 #' @return list with two elements
 #' \describe{
-#' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
-#' \item{transformations}{A list of lists with elements for variable, transformed variable, a formula term, Shapiro-Wilk W statistic, and the name of the transform.}
+#' \item{data}{A dataset comprising additional columns with transformed 
+#' variables, if they improve Normality.}
+#' \item{transformations}{A list of lists with elements for variable, 
+#' transformed variable, a formula term, Shapiro-Wilk W statistic, and the 
+#' name of the transform.}
 #' } 
 #' @examples 
 #' vars <- grep( "the_|rnd", colnames(toy_data), value=TRUE )
@@ -38,7 +44,7 @@ simple_transforms <- function( dat, vars,
                                )
 {
   stopifnot( is.data.frame(dat) | tibble::is_tibble(dat) )
-  message( sprintf( "simple_transforms: Adding standard transformed for %d variables if they are better by Shapiro-Wilk statistic W (larger is better)", length(c(resp,vars)) ) )
+  message( sprintf( "simple_transforms: Adding standard transformed for %d variables if they are better by Shapiro-Wilk statistic W (larger is better)", length(c(vars)) ) )
   ret <- dat
   lst <- list()
   for( var in vars ) {
@@ -46,7 +52,9 @@ simple_transforms <- function( dat, vars,
       w <- stats::shapiro.test( x = as.numeric(dat[[var]]) )$statistic
       message( sprintf( "Evaluating %s with W = %1.4f.", var, w ))
       labelled::var_label(ret[,var]) <- sprintf( "original variable: identity (W=%1.4f)", w )
-      lst[[length(lst)+1]] <- list( variable = var, transformed_var = "", term = sprintf( "( %s )", var ), W = w, transform = "identity" )
+      lst[[length(lst)+1]] <- list( variable = var, transformed_var = "", 
+                                    term = sprintf( "( %s )", var ), W = w, 
+                                    transform = "identity" )
       
       # sqrt transforms
       if( "sqrt" %in% transforms ) {
@@ -58,7 +66,9 @@ simple_transforms <- function( dat, vars,
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
           labelled::var_label(ret[,nwname]) <- sprintf( "simple_transforms: sqrt (W=%1.4f)", wn )
-          lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, term = sprintf( "sqrt( %s )", var ), W = wn, transform = "sqrt" )
+          lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname,
+                                        term = sprintf( "sqrt( %s )", var ), W = wn, 
+                                        transform = "sqrt" )
         }
       }
       # cube root transforms
@@ -71,7 +81,9 @@ simple_transforms <- function( dat, vars,
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
           labelled::var_label(ret[,nwname]) <- sprintf( "simple_transforms: cubert (W=%1.4f)", wn )
-          lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, term = sprintf( "( %s )^(1/3)", var ), W = wn, transform = "cube root" )
+          lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, 
+                                        term = sprintf( "( %s )^(1/3)", var ), W = wn, 
+                                        transform = "cube root" )
         }
       }
       # log transforms
@@ -84,7 +96,9 @@ simple_transforms <- function( dat, vars,
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
           labelled::var_label(ret[,nwname]) <- sprintf( "simple_transforms: log (W=%1.4f)", wn )
-          lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, term = sprintf( " log( %s ) ", var ), W = wn, transform = "log" )
+          lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, 
+                                        term = sprintf( " log( %s ) ", var ), W = wn, 
+                                        transform = "log" )
         }
       }
       # z-score transform
@@ -100,7 +114,9 @@ simple_transforms <- function( dat, vars,
           ret[,nwname] <- NULL # Delete as it is not better
         } else {
           labelled::var_label(ret[,nwname]) <- sprintf( "simple_transforms: zscore (mean=%1.4f, sd=%1.4f)", mn, st )
-          lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname, term = sprintf( "pnorm( %s, mean=%1.4f, sd=%1.4f )", var, mn, st ), W = wn, transform = "zscore" )
+          lst[[length(lst)+1]] <- list( variable = var, transformed_var = nwname,
+                                        term = sprintf( "pnorm( %s, mean=%1.4f, sd=%1.4f )", var, mn, st ), W = wn, 
+                                        transform = "zscore" )
         }
       }
     }
@@ -113,18 +129,21 @@ simple_transforms <- function( dat, vars,
 
 #' @title Function to generate Box-Cox transformations for Regression
 #' 
-#' @description Applies the Box-Cox transformation for set of variables to improve a regression models. Only
-#' univariate models are considered.
+#' @description Applies the Box-Cox transformation for set of variables to
+#' improve a regression models. Only univariate models are considered.
 #' 
 #' @param dat A data.frame or tibble as dataset.
 #' @param resp Character string for lhs of the formula.
 #' @param vars Character vector with variables to transform.
-#' @param lambda Real vector of lambda coefficients to evaluate for the Box-Cox transform.
+#' @param lambda Real vector of lambda coefficients to evaluate for the 
+#' Box-Cox transform.
 #' 
 #' @return list with two elements
 #' \describe{
-#' \item{data}{A dataset comprising additional columns with transformed variables, if they improve Normality.}
-#' \item{transformations}{A list of lists with elements for variable, transformed variable, the Box-Cox results, and the formula terms.}
+#' \item{data}{A dataset comprising additional columns with transformed 
+#' variables, if they improve Normality.}
+#' \item{transformations}{A list of lists with elements for variable, 
+#' transformed variable, the Box-Cox results, and the formula terms.}
 #' } 
 #' @export
 box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
@@ -134,13 +153,16 @@ box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   mod <- dat
   for( var in vars ) {
     if( is.numeric( dat[[var]]) ) {
-      mo <- stats::lm( stats::formula( sprintf( "%s ~ %s", resp, var ), data = dat, y = TRUE, qr = TRUE ) )
+      mo <- stats::lm( stats::formula( sprintf( "%s ~ %s", resp, var ), 
+                                       data = dat, y = TRUE, qr = TRUE ) )
       bc <- MASS::boxcox( mo, interp=FALSE, plotit = FALSE )
       py <- bc$x[ which.max( bc$y ) ]
       px <- 1.0/py
       nvar <- sprintf("%s_bc_reg",var)
       mod[[nvar]] <- dat[[var]]^px
-      trans[[nvar]] <- list( var = var, new_var = nvar, boxcox_result = bc, py = py, px = px, term = sprintf("(%s)^%1.4f",var,px) )
+      trans[[nvar]] <- list( var = var, new_var = nvar, boxcox_result = bc, 
+                             py = py, px = px, 
+                             term = sprintf("(%s)^%1.4f",var,px) )
     }
   }
   return( list( transforms = trans, data = mod ) )
@@ -223,7 +245,9 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   trans <- list()
   for( var in vars ) {
     # Note: Formula is lhs var (such that it is evaluated, if containing expressions) and rhs is response (not evaluated)
-    mf <- stats::model.frame( stats::formula( sprintf( "%s ~ %s", var, resp )), dat, na.action = stats::na.pass ) %>% as_tibble %>% stats::setNames( c("x","y") )
+    mf <- stats::model.frame( stats::formula( sprintf( "%s ~ %s", var, resp )),
+                              dat, na.action = stats::na.pass ) %>%
+      as_tibble %>% stats::setNames( c("x","y") )
     if( is.numeric( mf[["x"]]) ) {
       # dd <- dat %>% dplyr::select( all_of( c(resp,var ) ) ) %>% setNames( c("y","x") )
       # dd <- dd[which(complete.cases(dd)),]
@@ -231,13 +255,14 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
       fu_opt <- local( {
         function( px ) {
           beta <- px[1]; lambda <- px[2]
-          dd <- dd %>% mutate( pi = ll_binomial( .data$x, beta, lambda ), pi2 = 2 * pi^.data$y * (1-pi)^(2-.data$y) )
+          dd <- dd %>% mutate( pi = ll_binomial( .data$x, beta, lambda ), 
+                               pi2 = 2 * pi^.data$y * (1-pi)^(2-.data$y) )
           re <- -sum( dd %>% pull( .data$pi2 ) %>% log )
           re
         }
       } )
       beta0 <- tryCatch({
-        or <- stats::optim( par = c(0,0), fn = fu_opt, method="CG" ) # TODO: Try BFGS
+        or <- stats::optim( par = c(0,0), fn = fu_opt, method="CG" ) # Or: Try BFGS
         or
         beta0 <- round( or$par[2], 4 )
         beta0        
@@ -245,7 +270,9 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
       if( !is.na(beta0) ) {
         nvar <- sprintf( "%s_bc_bin", var )
         mod[[nvar]] <- mf[["x"]]^beta0
-        trans[[nvar]] <- list( var = var, new_var = nvar, boxcox_result = or, py = 1.0/beta0, px = beta0, term = sprintf("(%s)^%1.4f",var,beta0) )
+        trans[[nvar]] <- list( var = var, new_var = nvar, boxcox_result = or, 
+                               py = 1.0/beta0, px = beta0, 
+                               term = sprintf("(%s)^%1.4f",var,beta0) )
       }
     }
   }
@@ -279,7 +306,8 @@ box_cox_binomial <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
 
 # Mixture models ----
 
-eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 24 ) {
+eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, 
+                       min_fits_converged = 24 ) {
   ks <- seq_len( n_comp )
   idx <- which(!is.na(dat[,var]))
 
@@ -296,7 +324,9 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
       }, error = function(e) NULL )
       models[[midx]] <- mo
       if( !is.null(mo) ) {
-        tab <- bind_rows( tab, tibble( round = j, k = k, midx = midx, aic = stats::AIC(mo), converged = mo@converged ))
+        tab <- bind_rows( tab, tibble( round = j, k = k, 
+                                       midx = midx, aic = stats::AIC(mo), 
+                                       converged = mo@converged ))
       }
       midx <- midx + 1
     }
@@ -314,12 +344,15 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
   kmin <- best %>% pull( .data$k )
   maic <- best %>% pull( .data$min_aic )
   
-  best_idx <- tab %>% filter( .data$k == kmin & maic == .data$aic & .data$converged ) %>% pull( .data$midx )
+  best_idx <- tab %>% filter( .data$k == kmin & maic == .data$aic & .data$converged ) %>% 
+    pull( .data$midx )
   momin <- models[[ best_idx[1] ]]
 
   ret <- list( var = var, 
-               n_comp = n_comp, m_fits = m_fits, min_fits_converged = min_fits_converged,
-               aic_tab = tab, aic_aggregate = agg, min_k = kmin, best_model = momin, cut_points = NULL )
+               n_comp = n_comp, m_fits = m_fits, 
+               min_fits_converged = min_fits_converged,
+               aic_tab = tab, aic_aggregate = agg, min_k = kmin, 
+               best_model = momin, cut_points = NULL )
   
   if( 1 < kmin ) {
     message( sprintf( "Variable %s is multi-modal with %d Normal components. Determining cut-points.", var, kmin ) )
@@ -335,15 +368,20 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
       rt <- NULL
       rt <- tryCatch({
         fu_root <- function( val ) {
-          d1 <- stats::dnorm( x = val, mean = prm["coef.(Intercept)",i], sd = prm["sigma",i]  ) * prio[i]
-          d2 <- stats::dnorm( x = val, mean = prm["coef.(Intercept)",j], sd = prm["sigma",j]  ) * prio[j]
+          d1 <- stats::dnorm( x = val, 
+                              mean = prm["coef.(Intercept)",i], 
+                              sd = prm["sigma",i]  ) * prio[i]
+          d2 <- stats::dnorm( x = val, 
+                              mean = prm["coef.(Intercept)",j], 
+                              sd = prm["sigma",j]  ) * prio[j]
           ret <- d1 - d2
           return( ret )
         }
         
+        # We are only interested if the cut-point is between the two adjacent modes.
         rt <- stats::uniroot( f = fu_root, 
                               interval = c(prm["coef.(Intercept)",i],prm["coef.(Intercept)",j]),
-                              extendInt = "no" ) # We are only interested if the cut-point is between the two adjacent modes.
+                              extendInt = "no" ) 
         rt
       }, error = function(e) NULL ) # Catch error, if fu_root is not of opposite signs at both interval ends.
       if( !is.null(rt) ) {
@@ -408,14 +446,17 @@ eval_aics <- function( dat, var, n_comp = 5, m_fits = 25, min_fits_converged = 2
 #' parameters(mumo$transforms$the_multi$best_model)
 #' prior(mumo$transforms$the_multi$best_model)
 #' @export
-check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_fits_converged = 24 ) {
+check_multimodality <- function( dat, resp, vars, n_comp = 5,
+                                 m_fits = 25, min_fits_converged = 24 ) {
   message( sprintf( "check_mulitmodality: Checking mulit-modality for %d variables (k<=%d, fits=%d, convgd fits=%d).", length(c(resp,vars)), n_comp, m_fits, min_fits_converged ) )
   ret <- list()
   # Check response, if numeric, if it is bimodal
   mod <- dat
   if( ! is.null(resp) && is.numeric( dat[[resp]] ) ) {
     message( sprintf( "Processing response %s.", resp ))
-    evl <- eval_aics( dat, resp, n_comp = n_comp, m_fits = m_fits, min_fits_converged = min_fits_converged )
+    evl <- eval_aics( dat, resp, n_comp = n_comp, 
+                      m_fits = m_fits, 
+                      min_fits_converged = min_fits_converged )
     if( !is.null(evl$cut_points) ) {
       nvar <- sprintf( "%s_resp_grp", resp )
       mod[[nvar]] <- as.character( cut( mod[[resp]], 
@@ -431,7 +472,9 @@ check_multimodality <- function( dat, resp, vars, n_comp = 5, m_fits = 25, min_f
   for( var in vars ) {
     if( is.numeric(dat[[var]]) ) {
       message( sprintf( "Processing %s.", var ))
-      evl <- eval_aics( dat, var, n_comp = n_comp, m_fits = m_fits, min_fits_converged = min_fits_converged )
+      evl <- eval_aics( dat, var, n_comp = n_comp, 
+                        m_fits = m_fits, 
+                        min_fits_converged = min_fits_converged )
       if( !is.null(evl$cut_points) ) {
         nvar <- sprintf( "%s_grp", var )
         mod[[nvar]] <- as.character( cut( mod[[var]], 

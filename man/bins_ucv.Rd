@@ -2,7 +2,8 @@
 % Please edit documentation in R/utils_histogram.R
 \name{bins_ucv}
 \alias{bins_ucv}
-\title{Helper function to determine the optimal number of breaks for a histogram}
+\title{Helper function to determine the optimal number of breaks 
+for a histogram}
 \usage{
 bins_ucv(x)
 }

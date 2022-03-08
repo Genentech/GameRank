@@ -44,7 +44,9 @@ NULL
 #' @param ... Further parameters passed to rmarkdown::render(...) function.
 #' 
 #' @rdname utils_reporting
-render_std_template <- function( template_name, output_dir = NULL, params, output_file = NULL, envir = new.env(), ... ) {
+render_std_template <- function( template_name, output_dir = NULL, 
+                                 params, output_file = NULL, 
+                                 envir = new.env(), ... ) {
   stopifnot(!is.null(output_dir))
   stopifnot( is.list(params))
   
@@ -59,7 +61,8 @@ render_std_template <- function( template_name, output_dir = NULL, params, outpu
 
 #' @rdname utils_reporting
 #' @export
-render_backward_summary <- function( obj, output_dir = NULL, output_file = NULL ) {
+render_backward_summary <- function( obj, output_dir = NULL, 
+                                     output_file = NULL ) {
   render_std_template(  template_name = "rmd_backward_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( bwd = obj ), 
@@ -68,7 +71,8 @@ render_backward_summary <- function( obj, output_dir = NULL, output_file = NULL 
 
 #' @rdname utils_reporting
 #' @export
-render_forward_summary <- function( obj, output_dir = NULL, output_file = NULL ) {
+render_forward_summary <- function( obj, output_dir = NULL,
+                                    output_file = NULL ) {
   render_std_template(  template_name = "rmd_backward_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( fwd = obj ), 
@@ -77,7 +81,8 @@ render_forward_summary <- function( obj, output_dir = NULL, output_file = NULL )
 
 #' @rdname utils_reporting
 #' @export
-render_bidirectional_summary <- function( obj, output_dir = NULL, output_file = NULL ) {
+render_bidirectional_summary <- function( obj, output_dir = NULL, 
+                                          output_file = NULL ) {
   render_std_template(  template_name = "rmd_bidirectional_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( bds = obj ), 
@@ -86,7 +91,8 @@ render_bidirectional_summary <- function( obj, output_dir = NULL, output_file = 
 
 #' @rdname utils_reporting
 #' @export
-render_lrsearch_summary <- function( obj, output_dir = NULL, output_file = NULL ) {
+render_lrsearch_summary <- function( obj, output_dir = NULL, 
+                                     output_file = NULL ) {
   render_std_template(  template_name = "rmd_lrsearch_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( lrs = obj ), 
@@ -95,7 +101,8 @@ render_lrsearch_summary <- function( obj, output_dir = NULL, output_file = NULL 
 
 #' @rdname utils_reporting
 #' @export
-render_random_summary <- function( obj, output_dir = NULL, output_file = NULL ) {
+render_random_summary <- function( obj, output_dir = NULL, 
+                                   output_file = NULL ) {
   render_std_template(  template_name = "rmd_random_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( rnd = obj ), 
@@ -104,7 +111,8 @@ render_random_summary <- function( obj, output_dir = NULL, output_file = NULL ) 
 
 #' @rdname utils_reporting
 #' @export
-render_game_rank_summary <- function( obj, output_dir = NULL, output_file = NULL ) {
+render_game_rank_summary <- function( obj, output_dir = NULL, 
+                                      output_file = NULL ) {
   render_std_template(  template_name = "rmd_game_rank_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( gmr = obj ), 
@@ -113,7 +121,8 @@ render_game_rank_summary <- function( obj, output_dir = NULL, output_file = NULL
 
 #' @rdname utils_reporting
 #' @export
-render_variable_checks_summary <- function( obj, output_dir = NULL, output_file = NULL ) {
+render_variable_checks_summary <- function( obj, output_dir = NULL,
+                                            output_file = NULL ) {
   render_std_template(  template_name = "rmd_variable_checks.Rmd", 
                         output_dir = output_dir, 
                         params = list( vck = obj ), 
@@ -132,10 +141,12 @@ render_variable_checks_summary <- function( obj, output_dir = NULL, output_file 
 #' 1s, 2s and 3s.
 #' @export
 render_model_calibration_normal <- function( ds, dat, resp, selection, k, 
-                                             output_dir = NULL, output_file = NULL ) {
+                                             output_dir = NULL, 
+                                             output_file = NULL ) {
   render_std_template(  template_name = "rmd_calibration_normal.Rmd", 
                         output_dir = output_dir, 
-                        params = list( ds = ds, dat = dat, resp = resp, selection = selection, k = k ), 
+                        params = list( ds = ds, dat = dat, resp = resp, 
+                                       selection = selection, k = k ), 
                         output_file = output_file, envir = new.env() )
 }
 
@@ -145,10 +156,12 @@ render_model_calibration_normal <- function( ds, dat, resp, selection, k,
 #' 1s, 2s and 3s.
 #' @export
 render_model_calibration_binomial <- function( ds, dat, resp, selection, k, 
-                                               output_dir = NULL, output_file = NULL ) {
+                                               output_dir = NULL, 
+                                               output_file = NULL ) {
   render_std_template(  template_name = "rmd_calibration_binomial.Rmd", 
                         output_dir = output_dir, 
-                        params = list( ds = ds, dat = dat, resp = resp, selection = selection, k = k ), 
+                        params = list( ds = ds, dat = dat, resp = resp, 
+                                       selection = selection, k = k ), 
                         output_file = output_file, envir = new.env() )
 }
 
@@ -159,16 +172,19 @@ render_model_calibration_binomial <- function( ds, dat, resp, selection, k,
 #' @param u Landmark time point at which the survival probability is evaluated
 #' @export
 render_model_calibration_cox <- function( ds, dat, resp, selection, k, u,
-                                          output_dir = NULL, output_file = NULL ) {
+                                          output_dir = NULL, 
+                                          output_file = NULL ) {
   render_std_template(  template_name = "rmd_calibration_cox.Rmd", 
                         output_dir = output_dir, 
-                        params = list( ds = ds, dat = dat, resp = resp, selection = selection, k = k, u = u ), 
+                        params = list( ds = ds, dat = dat, resp = resp, 
+                                       selection = selection, k = k, u = u ), 
                         output_file = output_file, envir = new.env() )
 }
 
 #' @rdname utils_reporting
 #' @export
-render_influence_summary <- function( obj, output_dir = NULL, output_file = NULL ) {
+render_influence_summary <- function( obj, output_dir = NULL, 
+                                      output_file = NULL ) {
   render_std_template(  template_name = "rmd_influence_summary.Rmd", 
                         output_dir = output_dir, 
                         params = list( tinf = obj ), 

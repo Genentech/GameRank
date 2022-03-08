@@ -114,15 +114,21 @@ forward <- function(  dat, resp, vars,
     queue[[1]] <- NULL
     
     if( length(Y) <= m ) {
-      best_vars <- eval_add_vars( ds, dat, resp, vars, fn_train, fn_eval, maximize, Y, setdiff( vars, Y ), ...  )
+      best_vars <- eval_add_vars( ds, dat, resp, vars, 
+                                  fn_train, fn_eval,
+                                  maximize, Y, setdiff( vars, Y ), ...  )
       if( !is.null(best_vars) ) {
-        df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
-        agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
+        df_evl <- bind_rows( df_evl, 
+                             best_vars[['df_evl']] %>% mutate( k = k ) )
+        agg_evl <- bind_rows( agg_evl, 
+                              best_vars[['agg_evl']] %>% mutate( k = k ) )
         
         bs <- best_vars[['best_selections']]
-        if( 0==length(bs) ) bs <- list( as.character( union( Y, utils::head( setdiff(vars,Y),1 ) ) ) )
+        if( 0==length(bs) ) bs <- list( as.character( 
+          union( Y, utils::head( setdiff(vars,Y),1 ) ) ) )
         queue <- append( queue, bs )
-        message( sprintf("No of partitions %d in search queue.", length( queue ) ) )
+        message( sprintf("No of partitions %d in search queue.", 
+                         length( queue ) ) )
       }
     }
     message( sprintf( "Finished iteration %d.", k ) )

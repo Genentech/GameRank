@@ -28,7 +28,7 @@
 #' @param vars Character vector defining the list of variables for selection.
 #' Those are concatenated by '+' as the right hand side (rhs) of the 
 #' modeling formula.
-#' @param fn_train Function with signature function( dat, resp, selection, ... ) 
+#' @param fn_train Function with signature function( dat, resp, selection, ...) 
 #' that returns a model or NULL in any other case on the given data dat.
 #' @param fn_eval Function with signature function( dat, resp, selection, ... ) 
 #' that returns a real number or NA in any other case, e.g. when model is NULL.
@@ -91,7 +91,9 @@ backward <- function( dat, resp, vars,
   # Obtain evaluation splits
   ds <- prepare_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
   
-  message( sprintf("backward: Starting backward selection algorithm for %d observations with %d features (m=%d, maximize=%d).", nrow(dat), length(vars), m, maximize ))
+  message( sprintf(
+    "backward: Starting backward selection algorithm for %d observations with %d features (m=%d, maximize=%d).", 
+    nrow(dat), length(vars), m, maximize ))
   start_time <- Sys.time()
   # Sequential Backward Selection algorithm:
   # 1) Start with the full set Y0 = X
@@ -111,15 +113,21 @@ backward <- function( dat, resp, vars,
     queue[[1]] <- NULL
     
     if( m <= length(Y) ) {
-      best_vars <- eval_remove_vars( ds, dat, resp, vars, fn_train, fn_eval, maximize, Y, Y, ...  )
+      best_vars <- eval_remove_vars( ds, dat, resp, vars, fn_train, fn_eval, 
+                                     maximize, Y, Y, ...  )
       if( !is.null(best_vars) ) {
-        df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
-        agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
+        df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>%
+                               mutate( k = k ) )
+        agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% 
+                                mutate( k = k ) )
         
         bs <- best_vars[['best_selections']]
-        if( 0==length(bs) ) bs <- list( as.character( setdiff( Y, utils::tail(Y,1) ) ) )
+        if( 0==length(bs) ) { 
+          bs <- list( as.character( setdiff( Y, utils::tail(Y,1) ) ) )
+        }
         queue <- append( queue, bs )
-        message( sprintf("No of partitions %d in search queue.", length( queue ) ) )
+        message( sprintf("No of partitions %d in search queue.", 
+                         length( queue ) ) )
       }
     }
     message( sprintf( "Finished iteration %d.", k ) )

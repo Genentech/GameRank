@@ -131,7 +131,9 @@ lrsearch <- function(  dat, resp, vars,
   df_evl <- NULL
   agg_evl <- NULL
   Y <- NULL
-  d <- 0 # direction counter, is always counted towards 0. To avoid 'go to's from pseudocode.
+  # direction counter, is always counted towards 0. 
+  # To avoid 'go to's from pseudocode.
+  d <- 0
   if( L > R ) {
     Y <- c("1")
     d <- -L
@@ -144,10 +146,14 @@ lrsearch <- function(  dat, resp, vars,
   while( (k <= kmax) & (m!=length(Y)) & (d != 0) ) {
     # L forward steps
     while( (k <= kmax) & (m!=length(Y)) & (d < 0) ) {
-      best_vars <- eval_add_vars( ds, dat, resp, vars, fn_train, fn_eval, maximize, Y, setdiff( vars, Y ), ...  )
+      best_vars <- eval_add_vars( ds, dat, resp, vars, 
+                                  fn_train, fn_eval, 
+                                  maximize, Y, setdiff( vars, Y ), ...  )
       if(!is.null(best_vars))  {
-        df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
-        agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
+        df_evl <- bind_rows( df_evl, 
+                             best_vars[['df_evl']] %>% mutate( k = k ) )
+        agg_evl <- bind_rows( agg_evl, 
+                              best_vars[['agg_evl']] %>% mutate( k = k ) )
         bs <- purrr::pluck( best_vars, 'best_selections' )
         Y <- purrr::pluck( bs, 1 )
         d <- d + 1
@@ -158,10 +164,13 @@ lrsearch <- function(  dat, resp, vars,
     
     # R backward steps
     while( (k <= kmax) & (m!=length(Y)) & (0 < d) ) {
-      best_vars <- eval_remove_vars( ds, dat, resp, vars, fn_train, fn_eval, maximize, Y, Y, ...  )
+      best_vars <- eval_remove_vars( ds, dat, resp, vars, 
+                                     fn_train, fn_eval, maximize, Y, Y, ...  )
       if(!is.null(best_vars)) {
-        df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>% mutate( k = k ) )
-        agg_evl <- bind_rows( agg_evl, best_vars[['agg_evl']] %>% mutate( k = k ) )
+        df_evl <- bind_rows( df_evl, 
+                             best_vars[['df_evl']] %>% mutate( k = k ) )
+        agg_evl <- bind_rows( agg_evl, 
+                              best_vars[['agg_evl']] %>% mutate( k = k ) )
         bs <- purrr::pluck( best_vars, 'best_selections' )
         Y <- purrr::pluck( bs, 1 )
         d <- d - 1

@@ -39,13 +39,15 @@
 #' \item{rot.p}{Percentage of outliers.}
 #' \item{rng_sd}{Ratio of sample range by sample standard deviation.}
 #' }
-check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = NULL ) {
+check_variable <- function( dat, var, min_cases = 25L, 
+                            c_out = 1.5, resp_cat = NULL ) {
   message( sprintf( "check_variable: Evaluating variable %s.", var ) )
   ret <- list()
   ret[["variable"]] <- var
   
   # xval <- dat[[var]]
-  xval <- stats::model.frame(stats::formula(sprintf("%s ~ 1",var)), dat, na.action = stats::na.pass)[[1]]
+  xval <- stats::model.frame(stats::formula(sprintf("%s ~ 1",var)), dat, 
+                             na.action = stats::na.pass)[[1]]
   N <- length( xval )
   n <- length( which(!is.na(xval)) )
   p <- n / N
@@ -57,7 +59,9 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
   
   cats_nmiss <- c(0.0, 0.7, 0.8, 0.9, 0.99, 1.0)
   names(cats_nmiss) <- c("Drop","Drop","Bad","Try","Good","Perfect")
-  lbl <- as.character( cut(p,breaks = cats_nmiss, labels = names(cats_nmiss)[-1], include.lowest = TRUE ) )
+  lbl <- as.character( cut(p,breaks = cats_nmiss, 
+                           labels = names(cats_nmiss)[-1], 
+                           include.lowest = TRUE ) )
   ret[["check_missing"]] <- lbl
   
   x <- xval[ which(!is.na(xval)) ]
@@ -155,39 +159,19 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
       # x <- rnorm( 100 )
       # x <- rep.int( 1.0, 100 )
       
-      # In the continuous variable case, we first need to determine the optimal binwidth by Leave-One-Out cross-validation
+      # In the continuous variable case, we first need to determine the 
+      # optimal binwidth by Leave-One-Out cross-validation
       # before we can use it to estimate the entropy.
       bb <- bins_ucv( x )
       tab <- as.integer( table( cut( x, breaks = bb, include.lowest = TRUE ) ) )
       en <- entropy::entropy( y = tab, method = "ML", unit = "log2" )
       mi <- NA_real_
       if( !is.null(resp_cat) ) {
-        mi <- entropy::mi.empirical( y2d = table( resp_cat, cut( xval, breaks = bb, include.lowest = TRUE ) ), unit = "log2"  )  
+        mi <- entropy::mi.empirical( y2d = table( resp_cat, 
+                                                  cut( xval, breaks = bb, 
+                                                       include.lowest = TRUE ) ),
+                                     unit = "log2"  )  
       }
-      
-      # Attempt 1:
-      # n_points <- 512 # Default
-      # bw <- bw.ucv( x = x )
-      # bw
-      # dens <- density( x = x, bw = bw, kernel = "gaussian", n = n_points )
-      # fdens <- approxfun( x = dens$x, y = dens$y, yleft = 0.0, yright = 0.0 )
-      # # ii_val <- integrate( f = fdens, lower = -Inf, upper = +Inf )
-      # # ii_val # We could adjust n_points depending on how close ii_val is to 1.0
-      # fentropy <- function( x ) fdens(x) * log( fdens(x) )
-      # n_divs <- c(100, 250, 500, 1000, 1500, 2000 )
-      # ii <- NULL
-      # k <- 1
-      # while( is.null(ii) && k <= length(n_divs) ) {
-      #   ii <- tryCatch({ integrate( f = fentropy, lower = min(x), upper = max(x), subdivisions = n_divs[k] ) },
-      #                  error = function(e) NULL )
-      #   k <- k + 1
-      # }
-      # if( !is.null(ii) ) {
-      #   entropy <- -ii$value
-      # } else {
-      #   entropy <- NA
-      # }
-      # entropy
       
       ret[["type"]] <- "real"
       ret[["entropy"]] <- en
@@ -271,11 +255,13 @@ check_variable <- function( dat, var, min_cases = 25L, c_out = 1.5, resp_cat = N
 #'   geom_point()
 #' @export 
 check_variables <- function( dat, resp, vars, min_cases = 25L, c_out = 1.5 ) {
-  message( sprintf( "check_variables: Obtaining variable screening information for %d variables (min_cases=%d, outlier c=%1.2f).", length( c(resp,vars) ), min_cases, c_out ))
+  message( sprintf( "check_variables: Obtaining variable screening information for %d variables (min_cases=%d, outlier c=%1.2f).",
+                    length( c(resp,vars) ), min_cases, c_out ))
   resp_cat <- NULL
   ret <- list()
   if( !is.null(resp) ) {
-    evl <- check_variable( dat, resp, min_cases = min_cases, c_out = c_out, resp_cat = NULL )
+    evl <- check_variable( dat, resp, min_cases = min_cases, 
+                           c_out = c_out, resp_cat = NULL )
     evl$is_response <- TRUE
     ret[[resp]] <- evl
     
@@ -296,15 +282,19 @@ check_variables <- function( dat, resp, vars, min_cases = 25L, c_out = 1.5 ) {
   }
   
   for( var in vars ) {
-    evl <- check_variable( dat, var, min_cases = min_cases, c_out = c_out, resp_cat = resp_cat )
+    evl <- check_variable( dat, var, min_cases = min_cases,
+                           c_out = c_out, resp_cat = resp_cat )
     evl$is_response <- FALSE
     ret[[var]] <- evl
   }
   
   ret <- Reduce( bind_rows, ret, NULL )
   ret <- ret %>% 
-    mutate( check_missing = factor( .data$check_missing, levels = c("Drop","Bad","Try","Good","Perfect") ), 
-            check_entropy = factor( .data$check_entropy, levels = c("Entropy too low", "Entropy ok") ),
-            type = factor( ifelse( is.na(.data$type), "Entropy not done", .data$type ), levels = c("Entropy not done","real", "integer", "categorical", "binary" ) ) )
+    mutate( check_missing = factor( .data$check_missing, 
+                                    levels = c("Drop","Bad","Try","Good","Perfect") ), 
+            check_entropy = factor( .data$check_entropy, 
+                                    levels = c("Entropy too low", "Entropy ok") ),
+            type = factor( ifelse( is.na(.data$type), "Entropy not done", .data$type ), 
+                           levels = c("Entropy not done","real", "integer", "categorical", "binary" ) ) )
   return( ret )  
 }
