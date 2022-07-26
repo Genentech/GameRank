@@ -93,7 +93,7 @@ fn_train_binomial <- function( dat, resp, selection, ... ) {
 
 #' @rdname model_functions
 #' @export
-fn_eval_binomial <- function( dat, resp, selection, mod, ... ) {
+fn_eval_binomial_mad <- function( dat, resp, selection, mod, ... ) {
   if( is.null(mod) ) return( NA )
   ret <- NA
   ret <- tryCatch({
@@ -105,6 +105,25 @@ fn_eval_binomial <- function( dat, resp, selection, mod, ... ) {
   }, error = function( e ) NA )
   return( ret )  
 }
+
+fn_eval_binomial <- function( dat, resp, selection, mod, ... ) {
+  if( is.null(mod) ) return( NA )
+  ret <- NA
+  ret <- tryCatch({
+    tb <- tibble::tibble( y = dat %>% pull( resp ), 
+                          p = as.numeric( predict(mod, newdata=dat, type="link" ) ) )
+    # tb <- tb %>% mutate( grp = cut( p, c(-Inf, (1:9)/10, +Inf) ) )
+    fit1 <- glm( y ~ offset(p), family = binomial, data = tb )
+    fit2 <- glm( y ~ p, family = binomial, data = tb )
+    # fit3 <- glm( y ~ -1 + grp + offset(p), family=binomial, data = tb ) 
+    cil <- broom::tidy(fit1) %>% filter( "(Intercept)"==term ) %>% pull( "estimate" )
+    cal <- broom::tidy(fit2) %>% filter( "p"==term ) %>% pull( "estimate" )
+    cal
+  }, error = function( e ) NA )
+  return( ret )  
+}
+
+
 
 #' @rdname model_functions
 #' @export

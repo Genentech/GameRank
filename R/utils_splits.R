@@ -36,8 +36,8 @@
 build_splits <- function( m, dat, resp, vars, fn_train, fn_eval, 
                           min_cc = 25L, ... ) {
   stopifnot( is.integer(min_cc) )
-  rr <- c( 1,1,2 ) # Use 2/3 train and 1/3 validation
-  
+  cc <- c( 1,1,2 ) # Use 2/3 train and 1/3 validation
+
   fo <- stats::formula( sprintf( "%s ~ %s ", 
                                  resp, paste( vars, collapse = " + ")) )
   mf <- stats::model.frame( formula = fo, data = dat, 
@@ -45,50 +45,29 @@ build_splits <- function( m, dat, resp, vars, fn_train, fn_eval,
   
   # Check number of complete cases
   idx_cc <- which( stats::complete.cases( mf ) )
-  if( 0==length(idx_cc) | length(idx_cc) < min_cc ) { 
-    warning( sprintf( "Not enough complete cases! (%d < %d).\n", 
-                      length(idx_cc), min_cc ) )
-    return( NULL ) 
-  }
-
-  # Check if complete cases do cover complete domain for each categorical variable
-  for( var in vars ) {
-    if( is.character(dat[,var]) | is.factor(dat[,var])) {
-      if( ! setequal( unique(dat[idx_cc,var]), setdiff( unique( dat[,var] ), NA ) ) ) {
-        warning( sprintf( "Variable %s does not cover full domain by complete cases. No information for (factor) levels %s. \n", 
-                          var, paste(setdiff( unique(dat[idx_cc,var]), 
-                                              setdiff( unique( dat[,var] ), NA ) ),
-                                     collapse=", ") ) )
-        return( NULL )
-      }
-    }
-  }
 
   message( sprintf("build_splits: Building %d training:validation (2:1) splits for %d observations of %d variables.", 
                    m, nrow(dat), length(vars)))
   idx_ncc <- setdiff( seq_len( nrow(dat) ), idx_cc )
   idx <- c(idx_cc,idx_ncc)
-  rr_cc  <- rep_len( rr, length(idx_cc) )
-  rr_ncc <- rep_len( rr, length(idx_ncc) )
+  rr_cc  <- rep_len( cc, length(idx_cc) )
+  rr_ncc <- rep_len( cc, length(idx_ncc) )
 
   ret <- matrix( NA, ncol=0, nrow=nrow(dat) )
-  k <- 100
-  while( 0<=k & ncol(ret) < m ) {
+  k <- 0
+  while( ncol(ret) < m ) {
     # Independently sample from complete cases and non-complete cases
     rr_cc  <- rr_cc[order(stats::runif(length(rr_cc )))]
-    rr_ncc <- rr_cc[order(stats::runif(length(rr_ncc)))]
+    rr_ncc <- rr_ncc[order(stats::runif(length(rr_ncc)))]
     rr <- c(rr_cc, rr_ncc)
     
     dd <- matrix( NA, ncol=1, nrow=nrow(dat) )
     dd[idx[which(rr==1)],1] <- 1
     dd[idx[which(rr==2)],1] <- 2
     
-    ck <- check_split( dd[,1], dat, resp, vars, fn_train, fn_eval, ... )
-    if( ck ) {
-      # If split is good, add it
-      ret <- cbind( ret, dd )
-    }
-    k <- k - 1
+    # If split is good, add it
+    ret <- cbind( ret, dd )
+    k <- k + 1
   }
   return( ret )
 }
@@ -110,23 +89,17 @@ prepare_splits <- function( ds, dat, resp, vars, fn_train, fn_eval, ... ) {
   # 1) If ds is integer, check and convert to 1-column matrix
   if( is.integer(ds) & length(ds)==nrow(dat) ) {
     ds <- matrix( ds, ncol=1, nrow=nrow(dat) )
-    ret <- check_split( ds[,1], dat, resp, vars, fn_train, fn_eval, ... )
-    if( ret ) return( ds ) else return( NULL )
+    return( ds )
   }
   # 2) if ds is matrix with enough rows and columns check and return it
   if( is.matrix(ds) && nrow(ds)==nrow(dat) && 1<=ncol(ds) && 
       all(unique(unlist(ds) %in% c(1,2)) ) ) {
-    ret <- TRUE
-    for( k in seq_len( ncol(ds) ) ) {
-      ret <- ret & check_split( ds[,k], dat, resp, vars,
-                                fn_train, fn_eval, ... )  
-    }
-    if( ret ) return( ds ) else return( NULL )
+    return( ds )
   }
   # 3) 
   if( is.integer(ds) ) {
     ds <- build_splits( ds, dat, resp, vars, fn_train, fn_eval, ... )
-    if( !is.null(ds) )  return( ds )
+    return( ds )
   }
   stop( "Could not generate valid splits.\n" )
 }

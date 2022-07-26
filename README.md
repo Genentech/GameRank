@@ -11,7 +11,9 @@ search strategies, which are:
  * Plus-L, Minus-R search together with 
  * Random search, which draws random combinations across the feature space, and
  * *GameRank* a novel feature selection algorithm, that employs a
-   maximum likelihood ranking model to learn the optimal ranking of features.
+   maximum likelihood ranking model to learn the optimal ranking of features. 
+   The following figure illustrates the algorithm: 
+   ![The GameRank Algorithm](man/figures/GameRank-Algorithm.png)
    
 In addition, it provides methods for feature construction, that is
 

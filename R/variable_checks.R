@@ -64,7 +64,7 @@ check_variable <- function( dat, var, min_cases = 25L,
                            include.lowest = TRUE ) )
   ret[["check_missing"]] <- lbl
   
-  x <- xval[ which(!is.na(xval)) ]
+  x <- xval[ which(!(is.na(xval) | is.infinite(xval) | is.nan(xval) ) ) ]
   
   # Compute the entropy of each type of variable
   # Entropy H(x) = sum( p(x) * log( p(x) ) )

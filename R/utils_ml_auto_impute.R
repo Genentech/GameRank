@@ -8,12 +8,12 @@
 #' @rdname utils_ml_auto_impute
 #' @param x The input variable
 #' @export
-saf <- Vectorize( function( x ) ifelse( !is.na(x), x, 0 ) )
+saf <- Vectorize( function( x ) ifelse( !is.na(x) & !is.nan(x) & !is.infinite(x), x, 0 ) )
 
 #' @rdname utils_ml_auto_impute
 #' @param x The input variable
 #' @export
-psu <- Vectorize( function( x ) ifelse(  is.na(x), 1, 0 ) )
+psu <- Vectorize( function( x ) ifelse(  is.na(x) |  is.nan(x) |  is.infinite(x), 1, 0 ) )
 
 #' @title Helper function for Maximum-Likelihood Estimation of Imputation Values
 #' 
@@ -49,7 +49,7 @@ rewrite_formula <- local( {
     
     fo_m <- fo
     for( la in labs ) {
-      if( any( is.na(dat_tmp[,la] )  ) ) {
+      if( any( is.na(dat_tmp[,la]), is.nan(dat_tmp[,la]), is.infinite(dat_tmp[,la]) ) ) {
         # cat ( ">> ", la,"\n" )
         sup <- sprintf( ". ~ . - %s + saf(%s) + psu(%s)", la, la, la )
         # cat( "-- ",sup,"\n")
