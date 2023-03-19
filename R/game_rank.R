@@ -312,21 +312,33 @@ game_rank <- function( dat,
   gg
   
   message( "Calculating Hessian matrix " )
-  hh <- numDeriv::jacobian( func = ll_gr_grad, x = oo$par )
+  hh <- NULL
+  hh <- tryCatch({numDeriv::jacobian( func = ll_gr_grad, x = oo$par )}, error = function(ee) NULL )
   hh
   
-  vv <- chol2inv( hh )
-  rownames(vv) <- colnames(vv) <- colnames(hh)
+  vv <- NULL
+  vv <- tryCatch({
+    vv <- chol2inv( hh )
+    rownames(vv) <- colnames(vv) <- colnames(hh)
+    vv
+  }, error = function(ee) NULL)
   vv
   end_time <- Sys.time()
+  
   
   # Compiling results  ----
   message( "Compiling results " )
   vsel_result <- tibble( variable = names( oo$par ),
-                         vs = as.numeric( oo$par),
-                         vs.var = diag( vv ) ) %>%
+                         vs = as.numeric( oo$par) ) %>%
     mutate( selected = (.data$vs > 0) ) %>%
-    arrange( desc( .data$vs ), .data$vs.var )
+    arrange( desc( .data$vs ) )
+  
+  vsel_result <- tryCatch({
+    tmp <- vsel_result %>% mutate( vs.var = diag( vv ) )
+    tmp <- tmp %>% 
+      arrange( desc( .data$vs ), .data$vs.var )
+    tmp
+  }, error = function(ee) vsel_result )
   
   var_selection <- vsel_result$variable[seq_len(m)]
   
@@ -361,7 +373,8 @@ game_rank <- function( dat,
     optimization_result = oo,
     solution = oo$par,
     score_vector = gg,
-    inv_hessian = hh
+    inv_hessian = hh,
+    hessian = vv
   )
   class( ret ) <- c( "GameRank", class(ret) )
   return( ret )
