@@ -325,7 +325,6 @@ game_rank <- function( dat,
   vv
   end_time <- Sys.time()
   
-  
   # Compiling results  ----
   message( "Compiling results " )
   vsel_result <- tibble( variable = names( oo$par ),
