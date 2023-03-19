@@ -167,10 +167,13 @@ check_variable <- function( dat, var, min_cases = 25L,
       en <- entropy::entropy( y = tab, method = "ML", unit = "log2" )
       mi <- NA_real_
       if( !is.null(resp_cat) ) {
-        mi <- entropy::mi.empirical( y2d = table( resp_cat, 
-                                                  cut( xval, breaks = bb, 
-                                                       include.lowest = TRUE ) ),
-                                     unit = "log2"  )  
+        mi <- tryCatch({
+          # CHE/2023-03-19: Adding tryCatch to make more robust
+          entropy::mi.empirical( y2d = table( resp_cat, 
+                                              cut( xval, breaks = bb, 
+                                                   include.lowest = TRUE ) ),
+                                 unit = "log2"  )  
+          }, error = function( ee ) NA_real_ )
       }
       
       ret[["type"]] <- "real"

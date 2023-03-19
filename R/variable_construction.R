@@ -153,8 +153,8 @@ box_cox_regression <- function( dat, resp, vars, lambda = seq( -2, +2, 0.1 ) ) {
   mod <- dat
   for( var in vars ) {
     if( is.numeric( dat[[var]]) ) {
-      mo <- stats::lm( stats::formula( sprintf( "%s ~ %s", resp, var ), 
-                                       data = dat, y = TRUE, qr = TRUE ) )
+      mo <- stats::lm( stats::formula( sprintf( "%s ~ %s", resp, var ) ), 
+                                       data = dat, y = TRUE, qr = TRUE ) 
       bc <- MASS::boxcox( mo, interp=FALSE, plotit = FALSE )
       py <- bc$x[ which.max( bc$y ) ]
       px <- 1.0/py
