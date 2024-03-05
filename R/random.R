@@ -142,8 +142,8 @@ random_selection <- function( dat,
   for( r in seq_len( nrow(samps) ) ) {
     message( sprintf( "Evaluating selection %d.", r )  )
     sel <- as.character( samps[r, ] )
-    evl <- mutate( eval_splits( ds, dat, resp, sel,
-                                fn_train, fn_eval, ... ), row = r )
+    evl <- mutate( eval_splits( ds=ds, dat=dat, resp=resp, selection=sel,
+                                fn_train=fn_train, fn_eval=fn_eval, ... ), row = r )
     df_evl <- bind_rows( df_evl, evl )
   }
   end_time <- Sys.time()

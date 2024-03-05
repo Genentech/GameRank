@@ -162,9 +162,16 @@ check_variable <- function( dat, var, min_cases = 25L,
       # In the continuous variable case, we first need to determine the 
       # optimal binwidth by Leave-One-Out cross-validation
       # before we can use it to estimate the entropy.
-      bb <- bins_ucv( x )
-      tab <- as.integer( table( cut( x, breaks = bb, include.lowest = TRUE ) ) )
-      en <- entropy::entropy( y = tab, method = "ML", unit = "log2" )
+      en <- NA_real_
+      en <- tryCatch({
+        bb <- bins_ucv( x )
+        bb <- sort(unique(bb))
+        if( length(bb)<2 ) bb <- c( bb-1E-4, bb, bb+1E-4 )
+        tab <- as.integer( table( cut( x, breaks = bb, include.lowest = TRUE ) ) )
+        en <- entropy::entropy( y = tab, method = "ML", unit = "log2" )
+        en  
+      }, error = function(ee) NA_real_ )
+      
       mi <- NA_real_
       if( !is.null(resp_cat) ) {
         mi <- tryCatch({

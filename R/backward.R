@@ -113,8 +113,8 @@ backward <- function( dat, resp, vars,
     queue[[1]] <- NULL
     
     if( m <= length(Y) ) {
-      best_vars <- eval_remove_vars( ds, dat, resp, vars, fn_train, fn_eval, 
-                                     maximize, Y, Y, ...  )
+      best_vars <- eval_remove_vars( ds=ds, dat=dat, resp=resp, vars=vars, fn_train=fn_train, fn_eval=fn_eval, 
+                                     maximize=maximize, selection=Y, remove_vars=Y, ...  )
       if( !is.null(best_vars) ) {
         df_evl <- bind_rows( df_evl, best_vars[['df_evl']] %>%
                                mutate( k = k ) )
