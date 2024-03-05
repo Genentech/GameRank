@@ -49,11 +49,11 @@ eval_splits <- function( ds, dat, resp, selection, fn_train, fn_eval, ...,
   ret <- NULL
   ret <- purrr::map_dfr( seq_len( ncol(ds) ), function(k) {
     # Obtain model from data in 1-fold
-      mod  <- fn_train( dat[which(1==ds[,k]),], resp, selection, ... )   
+      mod  <- fn_train( dat=dat[which(1==ds[,k]),], resp=resp, selection=selection, ... )   
       # Evaluate model on data in 1-fold
-      evl1 <- fn_eval(  dat[which(1==ds[,k]),], resp, selection, mod, ... )
+      evl1 <- fn_eval(  dat=dat[which(1==ds[,k]),], resp=resp, selection=selection, mod=mod, ... )
       # Evaluate model on data in 2-fold
-      evl2 <- fn_eval(  dat[which(2==ds[,k]),], resp, selection, mod, ... ) 
+      evl2 <- fn_eval(  dat=dat[which(2==ds[,k]),], resp=resp, selection=selection, mod=mod, ... ) 
       selection <- base::sort( selection )
       txt_selection <- base::paste( selection, collapse = var_sep )
       cnt <- base::length(selection)

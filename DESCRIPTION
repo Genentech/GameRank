@@ -35,7 +35,7 @@ License: GPL-2
 LazyData: true
 VignetteBuilder: knitr
 VignetteEngine: knitr::rmarkdown
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 Encoding: UTF-8
 biocViews: 
   Software,

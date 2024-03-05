@@ -146,9 +146,9 @@ lrsearch <- function(  dat, resp, vars,
   while( (k <= kmax) & (m!=length(Y)) & (d != 0) ) {
     # L forward steps
     while( (k <= kmax) & (m!=length(Y)) & (d < 0) ) {
-      best_vars <- eval_add_vars( ds, dat, resp, vars, 
-                                  fn_train, fn_eval, 
-                                  maximize, Y, setdiff( vars, Y ), ...  )
+      best_vars <- eval_add_vars( ds=ds, dat=dat, resp=resp, vars=vars, 
+                                  fn_train=fn_train, fn_eval=fn_eval, 
+                                  maximize=maximize, selection=Y, add_vars=setdiff( vars, Y ), ...  )
       if(!is.null(best_vars))  {
         df_evl <- bind_rows( df_evl, 
                              best_vars[['df_evl']] %>% mutate( k = k ) )
@@ -164,8 +164,9 @@ lrsearch <- function(  dat, resp, vars,
     
     # R backward steps
     while( (k <= kmax) & (m!=length(Y)) & (0 < d) ) {
-      best_vars <- eval_remove_vars( ds, dat, resp, vars, 
-                                     fn_train, fn_eval, maximize, Y, Y, ...  )
+      best_vars <- eval_remove_vars( ds=ds, dat=dat, resp=resp, vars=vars, 
+                                     fn_train=fn_train, fn_eval=fn_eval, 
+                                     maximize=maximize, selection=Y, remove_vars=Y, ...  )
       if(!is.null(best_vars)) {
         df_evl <- bind_rows( df_evl, 
                              best_vars[['df_evl']] %>% mutate( k = k ) )

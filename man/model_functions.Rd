@@ -5,7 +5,7 @@
 \alias{fn_train_normal}
 \alias{fn_eval_normal}
 \alias{fn_train_binomial}
-\alias{fn_eval_binomial}
+\alias{fn_eval_binomial_mad}
 \alias{fn_eval_binomial_auroc}
 \alias{fn_train_cox}
 \alias{fn_eval_cox}
@@ -24,7 +24,7 @@ fn_eval_normal(dat, resp, selection, mod, ...)
 
 fn_train_binomial(dat, resp, selection, ...)
 
-fn_eval_binomial(dat, resp, selection, mod, ...)
+fn_eval_binomial_mad(dat, resp, selection, mod, ...)
 
 fn_eval_binomial_auroc(dat, resp, selection, mod, ...)
 

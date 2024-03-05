@@ -132,7 +132,7 @@ build_match_matrix <- function( sel, team_size, min_matches_per_var ) {
       match_matrix <- rbind( match_matrix, Tpm )
     }
   }
-
+  
   return( match_matrix )  
 }
 
@@ -161,7 +161,7 @@ game_rank <- function( dat,
                        opt_method = "BFGS",
                        max_iter = 1E8L, 
                        ...
-                       )
+)
 {
   # Check inputs ----
   stopifnot( is.data.frame(dat) | is_tibble(dat) )
@@ -200,10 +200,13 @@ game_rank <- function( dat,
   # Define team evaluation function (internal) ----
   eval_team <- function( dat, resp, selection, ds, ... ) {
     ret <- tryCatch( {
+      # Note: Careful! R argument matching gives exact matches priority, then followed by substring-matching, ie.
+      #       selection=..., and se=1E-4 in the ... will confuse, since finally positional matching is applied.
+      #       CHE/2023-07-13.
       # Obtain model from data in 1-fold
-      mod <- fn_train( dat[which(1==ds),], resp, selection, ... )   
+      mod <- fn_train( dat=dat[which(1==ds),], resp=resp, selection=selection, ... )   
       # Evaluate model on data in 2-fold
-      evl <- fn_eval(  dat[which(2==ds),], resp, selection, mod, ... ) 
+      evl <- fn_eval(  dat=dat[which(2==ds),], resp=resp, selection=selection, mod=mod, ... ) 
       evl
     }, error = function(e) NA )
     return( ret )
@@ -227,8 +230,8 @@ game_rank <- function( dat,
       # Shuffle rows to development and validation
       ds[ seq_along(ds) ] <- ds[ order( stats::runif( length( ds ) ) ) ] 
       
-      scop <- eval_team( dat, resp, fop, ds, ... )
-      scon <- eval_team( dat, resp, fon, ds, ... )
+      scop <- eval_team( dat=dat, resp=resp, selection=fop, ds=ds, ... )
+      scon <- eval_team( dat=dat, resp=resp, selection=fon, ds=ds, ... )
       
       # Compare results
       if( !is.na(scop) & !is.na(scon) ) {
@@ -312,21 +315,32 @@ game_rank <- function( dat,
   gg
   
   message( "Calculating Hessian matrix " )
-  hh <- numDeriv::jacobian( func = ll_gr_grad, x = oo$par )
+  hh <- NULL
+  hh <- tryCatch({numDeriv::jacobian( func = ll_gr_grad, x = oo$par )}, error = function(ee) NULL )
   hh
   
-  vv <- chol2inv( hh )
-  rownames(vv) <- colnames(vv) <- colnames(hh)
+  vv <- NULL
+  vv <- tryCatch({
+    vv <- solve( hh )
+    rownames(vv) <- colnames(vv) <- colnames(hh)
+    vv
+  }, error = function(ee) NULL)
   vv
   end_time <- Sys.time()
   
   # Compiling results  ----
   message( "Compiling results " )
   vsel_result <- tibble( variable = names( oo$par ),
-                         vs = as.numeric( oo$par),
-                         vs.var = diag( vv ) ) %>%
+                         vs = as.numeric( oo$par) ) %>%
     mutate( selected = (.data$vs > 0) ) %>%
-    arrange( desc( .data$vs ), .data$vs.var )
+    arrange( desc( .data$vs ) )
+  
+  vsel_result <- tryCatch({
+    tmp <- vsel_result %>% mutate( vs.var = diag( vv ) )
+    tmp <- tmp %>% 
+      arrange( desc( .data$vs ), .data$vs.var )
+    tmp
+  }, error = function(ee) vsel_result )
   
   var_selection <- vsel_result$variable[seq_len(m)]
   
@@ -361,7 +375,8 @@ game_rank <- function( dat,
     optimization_result = oo,
     solution = oo$par,
     score_vector = gg,
-    inv_hessian = hh
+    inv_hessian = hh,
+    hessian = vv
   )
   class( ret ) <- c( "GameRank", class(ret) )
   return( ret )
