@@ -4,8 +4,32 @@
 # Carsten Henneges
 
 Jhat <- function( x, m ) {
+  
+  # Code from https://www.stat.cmu.edu/~larry/all-of-statistics/=Rprograms/density.examples.r  
+  ### histogram cross validation function
+  # n <- length(x)
+  # a <- min(x)
+  # b <- max(x)
+  # k <- 100
+  # nbins <- seq(1,n,length=k)  ###number of bins
+  # nbins <- round(nbins)
+  # h <- (b-a)/nbins            ###width of bins
+  # risk <- rep(0,k)
+  # for(i in 1:k){
+  #   ###get counts N_j
+  #   br <- seq(a,b,length=nbins[i]+1)
+  #   N <- hist(x,breaks=br,plot=F)$counts
+  #   risk[i] <- sum(N^2)/(n^2*h[i])  - (2/(h[i]*n*(n-1)))*sum(N*(N-1))
+  # }
+  # hbest <- h[risk==min(risk)]
+  # hbest <- hbest[1]  ###in case of tie take first (smallest) one
+  # mbest <- (b-a)/hbest   ###optimal number of bins
+  # list(risk=risk,nbins=nbins,h=h,mbest=mbest)
+  
   n <- length( x )
-  h <- 1 / m
+  mx <- max( x )
+  mn <- min( x )
+  h <- (mx - mn) / m
   hh <- graphics::hist( x=x, 
                         # if breaks is set to the number of bins, it will be 
                         # processed by pretty() which doesn't give the right 
@@ -16,7 +40,9 @@ Jhat <- function( x, m ) {
                         include.lowest=TRUE,
                         plot=FALSE )
   pp <- hh$counts / n
-  J <- 2.0 / ( h * (m - 1.0) ) - (m + 1.0)/( h * (m - 1.0) ) * sum( pp^2 )
+  # J <- 2.0 / ( h * (m - 1.0) ) - (m + 1.0)/( h * (m - 1.0) ) * sum( pp^2 )
+  J <- sum(pp^2)/(n^2*h)  - (2/(h*n*(n-1)))*sum(pp*(pp-1)) # CHE/2024-02-21: Finally fixed.
+  
   return( J )
 }
 
