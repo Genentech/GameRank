@@ -39,7 +39,7 @@ Jhat <- function( x, m ) {
                                       length.out = 1+m ), 
                         include.lowest=TRUE,
                         plot=FALSE )
-  pp <- hh$counts / n
+  pp <- hh$counts 
   # J <- 2.0 / ( h * (m - 1.0) ) - (m + 1.0)/( h * (m - 1.0) ) * sum( pp^2 )
   J <- sum(pp^2)/(n^2*h)  - (2/(h*n*(n-1)))*sum(pp*(pp-1)) # CHE/2024-02-21: Finally fixed.
   
