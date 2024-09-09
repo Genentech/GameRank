@@ -18,13 +18,14 @@ vignette: >
 ---
 
 ````{r setup, eval=TRUE, include=FALSE}
-rm( list=ls() )
+# rm( list=ls() )
 library( dplyr )
 # library( tidyr )
 library( purrr )
 library( ggplot2 )
 
 devtools::load_all("~/GameRank/")
+data("toy_data")
 knitr::opts_chunk$set(eval = TRUE, message=FALSE, warning=FALSE) # Control if chunks are run or not
 ````
 

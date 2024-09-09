@@ -271,42 +271,24 @@ game_rank <- function( dat,
   # Evaluating Group Rank Maximum Likelihood estimator 
   # Define group rank negative log-likelihood function ----
   # Huang et al., 2008, p.10, Eq.31
-  ll_gr <- local({
-    function( vs ) {
-      Tp <- ( ( res_matches[,-c(1,2)] > 0 ) %*% vs )
-      Tm <- ( ( res_matches[,-c(1,2)] < 0 ) %*% vs )
-      LL <- exp( Tp + Tm - ( res_matches$n.pos - res_matches$n.neg ) ) / 
-        ( exp( Tp - ( res_matches$n.pos - res_matches$n.neg ) ) + exp( Tm ) )^2
-      ret <- -sum( log( LL ) )
-      return( ret )
-    } # function (END)
+  ll_gr <- local({ 
+    function( vs ) { 
+        ll_gr_helper( vs, res_matches ) 
+      } # function (END)
   }, envir = new.env())
   # Define group rank gradient for negative log-likelihood function ----
   ll_gr_grad <- local({
     function( vs ) {
-      Tp <- ( ( res_matches[,-c(1,2)] > 0 ) %*% vs )
-      Tm <- ( ( res_matches[,-c(1,2)] < 0 ) %*% vs )
-      
-      pp <- exp( Tp + res_matches[,2] )/ 
-        ( exp( Tp + res_matches[,2] ) + exp( Tm + res_matches[,1] ) )
-      pn <- exp( Tp + res_matches[,1] )/ 
-        ( exp( Tp + res_matches[,2] ) + exp( Tm + res_matches[,1] ) )
-      gr <- vapply( names(vs), FUN=function(co) {
-        ms <- sum( abs( res_matches[,co] ) )
-        pps <- sum( pp[which(res_matches[,co] > 0)] )
-        pns <- sum( pp[which(res_matches[,co] < 0)] )
-        return( -ms + 2 * (pps + pns) )
-      }, 1.0)
-      names( gr ) <- names( vs )
-      return( gr )
+      ll_gr_grad_helper( vs, res_matches )
     } # function (END)
   }, envir = new.env() )
   
   # Fitting Group Rank model ----
   message( "Optimizing maximum likelihood " )
-  oo <- stats::optim( par = sel, fn = ll_gr, gr = ll_gr_grad, 
-                      method = opt_method, 
-                      control = list( fnscale = +1L, maxit = max_iter ) )
+  oo <- stats::optim( par = sel, 
+                      fn = ll_gr, 
+                      gr = ll_gr_grad, 
+                      method = opt_method, control = list( fnscale = +1L, maxit = max_iter ) )
   oo
   fit_time <- Sys.time()
   
