@@ -27,8 +27,8 @@ Jhat <- function( x, m ) {
   # list(risk=risk,nbins=nbins,h=h,mbest=mbest)
   
   n <- length( x )
-  mx <- max( x )
-  mn <- min( x )
+  mx <- max( x, na.rm=TRUE )
+  mn <- min( x, na.rm=TRUE )
   h <- (mx - mn) / m
   hh <- graphics::hist( x=x, 
                         # if breaks is set to the number of bins, it will be 
